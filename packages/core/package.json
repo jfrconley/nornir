@@ -1,0 +1,16 @@
+{
+  "name": "@nornir/core",
+  "version": "0.0.1",
+  "description": "Control and shape the destiny of your events",
+  "main": "dist/index.js",
+  "author": "John Conley",
+  "license": "MIT",
+  "private": false,
+  "type": "module",
+  "scripts": {
+    "compile": "tsc"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.110"
+  }
+}

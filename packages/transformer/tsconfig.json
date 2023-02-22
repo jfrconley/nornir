@@ -1,0 +1,21 @@
+{
+	"extends": "../../tsconfig.json",
+	"compilerOptions": {
+		"outDir": "dist/",
+		"tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
+		"rootDir": "src",
+		"stripInternal": true,
+		"types": [
+			"node"
+		],
+		"paths": {
+			"*": [
+				"./src/types/*"
+			]
+		}
+	},
+	"include": [
+		"src/**/*",
+		"src/**/*.json"
+	]
+}
