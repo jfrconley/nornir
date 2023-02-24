@@ -14,7 +14,9 @@
 		"@types/node": "^18.14.0",
 		"@typescript-eslint/eslint-plugin": "^5.52.0",
 		"@typescript-eslint/parser": "^5.52.0",
+		"dprint": "^0.34.5",
 		"eslint": "^8.34.0",
-		"typescript": "^5.0.0-beta"
+		"typescript": "^4.9.5",
+		"ttypescript": "^1.5.15"
 	}
 }

@@ -1,3 +1,5 @@
+import { Errors } from './error.js';
+
 export interface IAttachmentKey<T> {
     readonly id: symbol;
     readonly marker: T;
@@ -27,7 +29,7 @@ export class AttachmentRegistry {
 
     public getAssert<T>(key: IAttachmentKey<T>): T {
         if (!this.has(key)) {
-            throw new MissingAttachmentException();
+            throw new Errors.NornirMissingAttachmentException();
         }
         return this.attachments.get(key.id);
     }
@@ -54,13 +56,5 @@ export class AttachmentRegistry {
             }
         }
         return false;
-    }
-}
-
-export class MissingAttachmentException extends Error {
-    public name = 'MissingAttachmentException';
-
-    constructor() {
-        super("Required attachment was missing from registry");
     }
 }
