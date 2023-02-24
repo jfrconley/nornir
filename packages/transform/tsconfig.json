@@ -4,10 +4,16 @@
     "outDir": "dist/",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
     "rootDir": "src",
+    "moduleResolution": "Node",
     "stripInternal": true,
     "types": [
       "node"
-    ]
+    ],
+    "paths": {
+      "*": [
+        "./src/types/*"
+      ]
+    }
   },
   "include": [
     "src/**/*",

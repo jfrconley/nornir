@@ -1,22 +1,27 @@
 {
-	"name": "nornir",
-	"version": "0.0.1",
-	"description": "Control and shape the destiny of your events",
-	"main": "index.js",
-	"license": "MIT",
-	"type": "module",
-	"author": "John Conley",
-	"private": true,
-	"workspaces": [
-		"packages/*"
-	],
-	"devDependencies": {
-		"@types/node": "^18.14.0",
-		"@typescript-eslint/eslint-plugin": "^5.52.0",
-		"@typescript-eslint/parser": "^5.52.0",
-		"dprint": "^0.34.5",
-		"eslint": "^8.34.0",
-		"typescript": "^4.9.5",
-		"ttypescript": "^1.5.15"
-	}
+  "name": "nornir",
+  "version": "0.0.1",
+  "description": "Control and shape the destiny of your events",
+  "main": "index.js",
+  "license": "MIT",
+  "type": "module",
+  "author": "John Conley",
+  "private": true,
+  "scripts": {
+    "fmt": "dprint fmt",
+    "lint": "eslint .",
+    "fix": "yarn fmt && yarn lint --fix"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "@types/node": "^18.14.0",
+    "@typescript-eslint/eslint-plugin": "^5.53.0",
+    "@typescript-eslint/parser": "^5.53.0",
+    "dprint": "^0.34.5",
+    "eslint": "^8.34.0",
+    "ttypescript": "^1.5.15",
+    "typescript": "^4.9.5"
+  }
 }

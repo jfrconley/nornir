@@ -1,0 +1,28 @@
+{
+  "name": "@nornir/test",
+  "version": "0.0.0",
+  "description": "Simple nornir test application",
+  "main": "dist/index.js",
+  "author": "John Conley",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "compile": "ttsc -b",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@nornir/core": "^0.0.1",
+    "typia": "^3.5.7"
+  },
+  "devDependencies": {
+    "@nornir/transform": "^0.0.1",
+    "@types/aws-lambda": "^8.10.110",
+    "esbuild": "^0.17.10"
+  },
+  "eslintConfig": {
+    "rules": {
+      "@typescript-eslint/no-unused-vars": "off"
+    }
+  }
+}

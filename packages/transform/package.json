@@ -1,0 +1,27 @@
+{
+  "name": "@nornir/transform",
+  "version": "0.0.1",
+  "description": "Use typia to generate compile time validations for nornir",
+  "main": "dist/transform.js",
+  "types": "dist/transform.d.ts",
+  "author": "John Conley",
+  "license": "MIT",
+  "scripts": {
+    "compile": "tsc -b"
+  },
+  "private": false,
+  "peerDependencies": {
+    "typescript": "^4.9.5",
+    "@nornir/core": "^0.0.1"
+  },
+  "dependencies": {
+    "typia": "^3.5.7"
+  },
+  "devDependencies": {
+  },
+  "eslintConfig": {
+    "rules": {
+      "@typescript-eslint/no-namespace": "off"
+    }
+  }
+}

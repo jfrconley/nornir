@@ -1,34 +1,36 @@
-import { Result } from './result.js';
-import { AttachmentRegistry } from './attachment-registry.js';
-import { concurrentMap } from './concurrent-worker.js';
-import { ExhaustiveNornirTag, ExhaustiveTag, ExtendsObject, ValidateKeys } from './exhaustive.js';
-import { Errors } from './error.js';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { AttachmentRegistry } from "./attachment-registry.js";
+import { concurrentMap } from "./concurrent-worker.js";
+import { NornirValidationError } from "./error.js";
+import { ExhaustiveNornirTag, ExhaustiveTag, ExtendsObject, ValidateKeys } from "./exhaustive.js";
+import { Result } from "./result.js";
 
 export function nornir<Input = never>() {
-  return new Nornir<Input>()
+  return new Nornir<Input>();
 }
 
 export const InitialArgumentsKey = AttachmentRegistry.createKey<unknown[]>();
 
 class NornirContext {
-  private chain: ((input: Result<unknown>, registry: AttachmentRegistry) => Promise<Result<unknown>>)[] = [];
+  private chain: ((input: Result<any>, registry: AttachmentRegistry) => Promise<Result<unknown>>)[] = [];
 
-  public addToChain<T>(handler: (input: Result<any>, registry: AttachmentRegistry) => Promise<Result<unknown>>) {
+  public addToChain(handler: (input: Result<any>, registry: AttachmentRegistry) => Promise<Result<unknown>>) {
     this.chain.push(handler);
   }
 
   public build() {
     return async (...args: unknown[]) => {
-      const registry =  new AttachmentRegistry();
+      const registry = new AttachmentRegistry();
       let input = Result.ok(args[0]);
       if (!registry.has(InitialArgumentsKey)) {
-        registry.put(InitialArgumentsKey, args)
+        registry.put(InitialArgumentsKey, args);
       }
       for (const handler of this.chain) {
         input = await handler(input, registry);
       }
       return input.unwrap();
-    }
+    };
   }
 
   public buildWithContext() {
@@ -38,52 +40,47 @@ class NornirContext {
         input = await handler(input, reg);
       }
       return input;
-    }
+    };
   }
 }
 
-export type ResultMiddleware<Input, Output> = ((input: Result<Input>, registry: AttachmentRegistry) => Output);
+export type ResultMiddleware<Input, Output> = (input: Result<Input>, registry: AttachmentRegistry) => Output;
 
 export class Nornir<Input, StepInput = Input> {
   constructor(private readonly context: NornirContext = new NornirContext()) {}
 
   public useResult<StepOutput>(handler: ResultMiddleware<StepInput, StepOutput>): Nornir<Input, Awaited<StepOutput>> {
-    this.context.addToChain(async (input: Result<StepInput>, registry: AttachmentRegistry): Promise<Result<Awaited<StepOutput>>> => {
-      try {
-        return Result.ok<Awaited<StepOutput>, Error>(await handler(input, registry));
-      } catch (error: any) {
-        return Result.err<Error>(error);
-      }
-    });
+    this.context.addToChain(
+      async (input: Result<StepInput>, registry: AttachmentRegistry): Promise<Result<Awaited<StepOutput>>> => {
+        try {
+          return Result.ok<Awaited<StepOutput>, Error>(await handler(input, registry));
+        } catch (error: any) {
+          return Result.err<Error>(error);
+        }
+      },
+    );
     return new Nornir<Input, Awaited<StepOutput>>(this.context);
   }
 
-  public use<StepOutput>(handler: ((input: StepInput) => StepOutput)): Nornir<Input, Awaited<StepOutput>> {
-    this.context.addToChain(async (input: Result<StepInput>, registry: AttachmentRegistry): Promise<Result<Awaited<StepOutput>>> => {
-      try {
-        return Result.ok<Awaited<StepOutput>, Error>(await handler(input.unwrap()));
-      } catch (error: any) {
-        return Result.err<Error>(error);
-      }
-    });
-    return new Nornir<Input, Awaited<StepOutput>>(this.context);
-  }
-
-  public useWithRegistry<StepOutput>(handler: ((input: StepInput, registry: AttachmentRegistry) => StepOutput)): Nornir<Input, Awaited<StepOutput>> {
-    this.context.addToChain(async (input: Result<StepInput>, registry: AttachmentRegistry): Promise<Result<Awaited<StepOutput>>> => {
-      try {
-        return Result.ok<Awaited<StepOutput>, Error>(await handler(input.unwrap(), registry));
-      } catch (error: any) {
-        return Result.err<Error>(error);
-      }
-    });
+  public use<StepOutput>(
+    handler: (input: StepInput, registry: AttachmentRegistry) => StepOutput,
+  ): Nornir<Input, Awaited<StepOutput>> {
+    this.context.addToChain(
+      async (input: Result<StepInput>, registry: AttachmentRegistry): Promise<Result<Awaited<StepOutput>>> => {
+        try {
+          return Result.ok<Awaited<StepOutput>, Error>(await handler(input.unwrap(), registry));
+        } catch (error: any) {
+          return Result.err<Error>(error);
+        }
+      },
+    );
     return new Nornir<Input, Awaited<StepOutput>>(this.context);
   }
 
   public split<
     Item extends ArrayItems<StepInput>,
     ItemResult,
-    Output extends Result<ItemResult, Error>[]
+    Output extends Result<ItemResult, Error>[],
   >(builder: (chain: Nornir<Item>) => Nornir<Item, ItemResult>): Nornir<Input, Output> {
     const chain = builder(new Nornir<Item>()).buildWithContext();
     this.context.addToChain(async (input: Result<StepInput>, registry: AttachmentRegistry): Promise<Result<Output>> => {
@@ -108,11 +105,18 @@ export class Nornir<Input, StepInput = Input> {
       ? ReturnType<Match[keyof Match]>
       : never,
     OutputChains extends Nornir<any, any> = OutputReturns extends Nornir<any, any> ? OutputReturns : never,
-    Output = JoinNornirChain<OutputChains>
+    Output = JoinNornirChain<OutputChains>,
   >(tag: Tag, match: ValidateKeys<Match, ExhaustiveTag<Union, Tag>>): Nornir<Input, Output> {
-    const matcherEntries = Object.entries(match) as [keyof Match, (chain: Nornir<StepInput, any>) => Nornir<StepInput, any>][];
-    const builtMatchers = matcherEntries.map(([key, value]) => [key, value(new Nornir<StepInput>()).buildWithContext()])
-    const matcher: {[key in keyof Match]: (input: Result<StepInput>, registry: AttachmentRegistry) => Result<Output>} = Object.fromEntries(builtMatchers);
+    const matcherEntries = Object.entries(match) as [
+      keyof Match,
+      (chain: Nornir<StepInput, any>) => Nornir<StepInput, any>,
+    ][];
+    const builtMatchers = matcherEntries.map((
+      [key, value],
+    ) => [key, value(new Nornir<StepInput>()).buildWithContext()]);
+    const matcher: {
+      [key in keyof Match]: (input: Result<StepInput>, registry: AttachmentRegistry) => Result<Output>;
+    } = Object.fromEntries(builtMatchers);
     this.context.addToChain(async (input: Result<Union>, registry: AttachmentRegistry): Promise<Result<Output>> => {
       try {
         const value = input.unwrap();
@@ -120,11 +124,11 @@ export class Nornir<Input, StepInput = Input> {
         if (tagValue in matcher) {
           return matcher[tagValue](input, registry);
         }
-        throw new Errors.NornirValidationError(`No match for tag ${tagValue?.toString()}`);
-      } catch (error: any) {
-        return Result.err<Error>(error);
+        return Result.err(new NornirValidationError(`No match for tag ${tagValue?.toString()}`));
+      } catch (error: unknown) {
+        return Result.err<Error>(error as Error);
       }
-    })
+    });
     return new Nornir<Input, Output>(this.context);
   }
 
@@ -133,7 +137,10 @@ export class Nornir<Input, StepInput = Input> {
   }
 
   public buildWithContext() {
-    return this.context.buildWithContext() as (input: Result<Input>, registry: AttachmentRegistry) => Promise<StepInput>;
+    return this.context.buildWithContext() as (
+      input: Result<Input>,
+      registry: AttachmentRegistry,
+    ) => Promise<StepInput>;
   }
 }
 

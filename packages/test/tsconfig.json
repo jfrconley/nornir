@@ -1,6 +1,14 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "plugins": [
+      {
+        "transform": "@nornir/transform"
+      },
+      {
+        "transform": "typia/lib/transform"
+      }
+    ],
     "outDir": "dist/",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
     "rootDir": "src",
@@ -12,5 +20,13 @@
   "include": [
     "src/**/*",
     "src/**/*.json"
+  ],
+  "references": [
+    {
+      "path": "../core"
+    },
+    {
+      "path": "../transform"
+    }
   ]
 }
