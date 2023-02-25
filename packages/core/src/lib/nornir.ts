@@ -140,7 +140,7 @@ export class Nornir<Input, StepInput = Input> {
     return this.context.buildWithContext() as (
       input: Result<Input>,
       registry: AttachmentRegistry,
-    ) => Promise<StepInput>;
+    ) => Promise<Result<StepInput>>;
   }
 }
 

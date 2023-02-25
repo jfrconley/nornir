@@ -1,20 +1,29 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "plugins": [
+      {
+        "transform": "typia/lib/transform"
+      }
+    ],
     "outDir": "dist/",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
     "rootDir": "src",
-    "moduleResolution": "Node",
     "stripInternal": true,
     "types": [
       "node"
     ],
     "paths": {
       "*": [
-        "./src/types/*"
+        "./src/typelib/*"
       ]
     }
   },
+  "references": [
+    {
+      "path": "../core"
+    }
+  ],
   "include": [
     "src/**/*",
     "src/**/*.json"

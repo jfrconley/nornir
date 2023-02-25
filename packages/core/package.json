@@ -1,8 +1,7 @@
 {
   "name": "@nornir/core",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "Control and shape the destiny of your events",
-  "main": "dist/index.js",
   "author": "John Conley",
   "license": "MIT",
   "private": false,

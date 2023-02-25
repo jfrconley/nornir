@@ -15,7 +15,6 @@
     "types": ["node"],
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "experimentalDecorators": true
   }
 }

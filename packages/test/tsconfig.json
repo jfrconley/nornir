@@ -3,7 +3,7 @@
   "compilerOptions": {
     "plugins": [
       {
-        "transform": "@nornir/transform"
+        "transform": "@nornir/rest/transform"
       },
       {
         "transform": "typia/lib/transform"
@@ -26,7 +26,7 @@
       "path": "../core"
     },
     {
-      "path": "../transform"
+      "path": "../rest"
     }
   ]
 }

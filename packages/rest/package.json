@@ -1,0 +1,42 @@
+{
+  "name": "@nornir/rest",
+  "version": "0.0.0",
+  "description": "Tiny but mighty REST framework built on nornir",
+  "author": "John Conley",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "private": false,
+  "scripts": {
+    "compile": "tsc -b",
+    "prepare": "ts-patch i -s"
+  },
+  "dependencies": {
+    "trouter": "^3.2.1",
+    "tsutils": "^3.21.0"
+  },
+  "peerDependencies": {
+    "typescript": ">=4.9.0<5",
+    "typia": "^3.5.7"
+  },
+  "devDependencies": {
+    "ts-patch": "^2.1.0",
+    "typescript": "^4.9.5",
+    "typia": "^3.5.7"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/runtime/index.d.mts",
+      "import": "./dist/runtime/index.mjs"
+    },
+    "./transform": {
+      "require": "./dist/transform/transform.js"
+    }
+  },
+  "eslintConfig": {
+    "rules": {
+      "@typescript-eslint/no-namespace": "off"
+    }
+  }
+}
