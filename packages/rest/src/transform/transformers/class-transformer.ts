@@ -1,8 +1,8 @@
 import ts from "typescript";
 import { separateNornirDecorators } from "../lib";
 import { IProject } from "../project";
-import { RouteMeta } from "../route-meta";
-import { RouteProcessor } from "./decorator-transofmers/route-processor";
+import { ControllerMeta } from "../controller-meta";
+import { ControllerProcessor } from "./decorator-transofmers/controller-processor";
 
 export abstract class ClassTransformer {
   public static transform(project: IProject, node: ts.ClassDeclaration): ts.ClassDeclaration {
@@ -12,7 +12,7 @@ export abstract class ClassTransformer {
 
     const { otherDecorators, nornirDecorators } = separateNornirDecorators(project, originalDecorators);
 
-    RouteMeta.create(node);
+    ControllerMeta.create(project,node);
 
     for (const { decorator, declaration } of nornirDecorators) {
       const { name } = project.checker.getTypeAtLocation(declaration.parent).symbol;
@@ -34,5 +34,5 @@ export abstract class ClassTransformer {
 type Task = (project: IProject, node: ts.ClassDeclaration, decorator: ts.Decorator) => void;
 
 const CLASS_DECORATOR_PROCESSORS: Record<string, Task> = {
-  Route: RouteProcessor.process,
+  Controller: ControllerProcessor.process,
 };

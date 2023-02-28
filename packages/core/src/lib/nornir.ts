@@ -77,6 +77,20 @@ export class Nornir<Input, StepInput = Input> {
     return new Nornir<Input, Awaited<StepOutput>>(this.context);
   }
 
+  public useChain<StepOutput>(chain: Nornir<StepInput, StepOutput>): Nornir<Input, StepOutput> {
+    const builtChain = chain.buildWithContext();
+    this.context.addToChain(
+      async (input: Result<StepInput>, registry: AttachmentRegistry): Promise<Result<StepOutput>> => {
+        try {
+          return builtChain(input, registry);
+        } catch (error: any) {
+          return Result.err<Error>(error);
+        }
+      }
+    );
+    return new Nornir<Input, StepOutput>(this.context);
+  }
+
   public split<
     Item extends ArrayItems<StepInput>,
     ItemResult,

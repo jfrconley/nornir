@@ -1,7 +1,18 @@
 import { nornir } from "@nornir/core";
-import Router, { HttpEvent } from "@nornir/rest";
+import router, {HttpEvent} from "@nornir/rest";
+import "./controller.js";
+import "./controller2.js"
 
-export const router = new Router();
 export const handler = nornir<HttpEvent>()
-  .use(router.build())
+  .use(router())
   .build();
+
+await handler({
+  method: "POST",
+  path: "/basepath/route",
+  headers: {
+    "content-type": "application/json",
+  },
+  query: {},
+  body: {}
+})

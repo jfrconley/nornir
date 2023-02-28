@@ -1,6 +1,8 @@
 import ts from "typescript";
 import { IProject } from "../project.js";
 import { NodeTransformer } from "./node-transformer";
+import { TransformationError } from '../error';
+import { ControllerMeta } from '../controller-meta';
 
 export abstract class FileTransformer {
   public static transform(project: IProject, context: ts.TransformationContext, file: ts.SourceFile): ts.SourceFile {
@@ -25,6 +27,7 @@ export abstract class FileTransformer {
 
     FileTransformer.FILE_NODE_MAP.delete(file.fileName);
     FileTransformer.IMPORT_MAP.delete(file.fileName);
+    ControllerMeta.clearCache();
     return updated;
   }
 
@@ -47,6 +50,7 @@ export abstract class FileTransformer {
       return NodeTransformer.transform(project, node);
     } catch (exp) {
       if (!(exp instanceof Error)) throw exp;
+      if (exp instanceof TransformationError) throw exp;
 
       const file: ts.SourceFile = node.getSourceFile();
       const { line, character } = file.getLineAndCharacterOfPosition(
@@ -73,10 +77,12 @@ export abstract class FileTransformer {
     const imports = FileTransformer.IMPORT_MAP.get(file.fileName) || new Map<string, Map<string, ts.Identifier>>();
     FileTransformer.IMPORT_MAP.set(file.fileName, imports);
     const namedImports = imports.get(packageName) || new Map<string, ts.Identifier>();
+    imports.set(packageName, namedImports);
 
     let importIdentifier = namedImports.get(namedImport);
     if (importIdentifier != null) return importIdentifier;
     importIdentifier = ts.factory.createUniqueName(namedImport);
+    namedImports.set(namedImport, importIdentifier);
 
     FileTransformer.addStatementToFile(
       file,
@@ -93,7 +99,7 @@ export abstract class FileTransformer {
       ),
       "start",
     );
-
+    FileTransformer.IMPORT_MAP.set(file.fileName, imports);
     return importIdentifier;
   }
 }

@@ -2,9 +2,10 @@ import { isTypeReference } from "tsutils";
 import ts from "typescript";
 import { ValidateProgrammer } from "typia/lib/programmers/ValidateProgrammer";
 import { getStringLiteralOrConst, isNornirLib } from "../../lib";
-import { IProject } from "../../project";
-import { RouteMeta } from "../../route-meta";
+import { convertToTypiaProject, IProject } from "../../project";
+import { ControllerMeta } from "../../controller-meta";
 import { FileTransformer } from "../file-transformer";
+import { MetadataFactory } from 'typia/lib/factories/MetadataFactory';
 
 export abstract class ChainRouteProcessor {
   public static transform(
@@ -16,7 +17,7 @@ export abstract class ChainRouteProcessor {
     if (!ts.isClassDeclaration(node.parent)) {
       throw new Error("Chain decorator can only be used in a class");
     }
-    const routeMeta = RouteMeta.getAssert(node.parent);
+    const routeMeta = ControllerMeta.getAssert(node.parent);
 
     const expression = decorator.expression;
     if (!ts.isCallExpression(expression)) {
@@ -33,25 +34,45 @@ export abstract class ChainRouteProcessor {
     if (!methodSignature) throw new Error("Method signature not found");
 
     const inputType = ChainRouteProcessor.resolveInputType(project, methodSignature);
+    const outputType = ChainRouteProcessor.resolveOutputType(project, methodSignature);
     const typiaValidateImport = FileTransformer.getOrCreateImport(node.getSourceFile(), "typia", "validate");
-    const validator = ValidateProgrammer.generate(project, typiaValidateImport, false)(inputType);
+    const validator = ValidateProgrammer.generate(convertToTypiaProject(project), typiaValidateImport, false)(inputType);
 
-    // const routeRegisterCall = ts.factory.createCallExpression(
-    //   ts.factory.createPropertyAccessExpression(
-    //     routeMeta.getRouteHolderIdentifier(),
-    //     "route"
-    //   ),
-    //   [],
-    //   [method, path, ]
-    // )
+    routeMeta.registerRoute({
+      method,
+      path,
+      input: inputType,
+      output: outputType,
+      description: "",
+      filePath: node.getSourceFile().fileName
+    })
+
+    FileTransformer.addStatementToFile(
+      node.getSourceFile(),
+      ChainRouteProcessor.generateRouteStatement(node, routeMeta.getRouteHolderIdentifier(), routeMeta.getControllerInstanceIdentifier(), validator, method, path),
+      'end'
+    )
   }
 
-  private static generateRouteStatement(routeHolderIdentifier: ts.Identifier, method: string, path: string) {
+  private static generateRouteStatement(methodDeclaration: ts.MethodDeclaration, routeHolderIdentifier: ts.Identifier, routeInstanceIdentifier: ts.Identifier, validator: ts.ArrowFunction, method: string, path: string) {
+    const methodName = methodDeclaration.name as ts.MemberName;
+    const methodAccess = ts.factory.createPropertyAccessExpression(routeInstanceIdentifier, methodName);
+    const methodBinding = ts.factory.createCallExpression(
+      ts.factory.createPropertyAccessExpression(methodAccess, "bind"),
+      [],
+      [routeInstanceIdentifier]
+    )
+
     return ts.factory.createExpressionStatement(
       ts.factory.createCallExpression(
         ts.factory.createPropertyAccessExpression(routeHolderIdentifier, "route"),
         [],
-        [ts.factory.createStringLiteral(method), ts.factory.createStringLiteral(path)],
+        [
+          ts.factory.createStringLiteral(method),
+          ts.factory.createStringLiteral(path),
+          methodBinding,
+          validator
+        ],
       ),
     );
   }
@@ -88,5 +109,22 @@ export abstract class ChainRouteProcessor {
     const typeArguments = project.checker.getTypeArguments(initialType);
     const [inputType] = typeArguments;
     return inputType;
+  }
+
+  private static resolveOutputType(project: IProject, methodSignature: ts.Signature): ts.Type {
+    const returnType = methodSignature.getReturnType();
+    const returnTypeDeclaration = returnType.symbol?.declarations?.[0];
+    if (!returnTypeDeclaration) {
+      throw new Error("Handler chain return type declaration not found");
+    }
+    if (!isNornirLib(returnTypeDeclaration.getSourceFile().fileName)) {
+      throw new Error("Handler chain return must be a Nornir class");
+    }
+    if (!isTypeReference(returnType)) {
+      throw new Error("Handler chain return must use a type reference");
+    }
+    const typeArguments = project.checker.getTypeArguments(returnType);
+    const [, outputType] = typeArguments;
+    return outputType;
   }
 }

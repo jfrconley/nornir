@@ -6,7 +6,7 @@ import { IHttpRequest, IHttpResponse } from "./http-event.mjs";
 import { Router } from "./router.mjs";
 
 const UNTRANSFORMED_ERROR = new Error("@nornir/rest decorators have not been transformed. Have you setup ts-patch/ttypescript and added the transformer to your tsconfig.json?");
-export function Route(router: Router, basePath: string) {
+export function Controller(basePath: string) {
   return <T extends { new(): any }>(target: T): T => {
     throw UNTRANSFORMED_ERROR;
   };

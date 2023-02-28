@@ -13,6 +13,7 @@
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
     "rootDir": "src",
     "stripInternal": true,
+    "incremental": true,
     "types": [
       "node"
     ]

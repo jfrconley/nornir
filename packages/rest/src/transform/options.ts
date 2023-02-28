@@ -1,3 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
-export interface IOptions {}
+export interface IOptions {
+  strict?: boolean;
+}

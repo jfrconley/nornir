@@ -1,40 +1,40 @@
 import ts from "typescript";
 import { getStringLiteralOrConst, isNornirLib } from "../../lib";
 import { IProject } from "../../project";
-import { RouteMeta } from "../../route-meta";
+import { ControllerMeta } from "../../controller-meta";
 import { FileTransformer } from "../file-transformer";
 
-export abstract class RouteProcessor {
+export abstract class ControllerProcessor {
   public static process(project: IProject, node: ts.ClassDeclaration, decorator: ts.Decorator): void {
-    const routeMeta = RouteMeta.getAssert(node);
+    const routeMeta = ControllerMeta.getAssert(node);
 
     const expression = decorator.expression;
     if (!ts.isCallExpression(expression)) {
       throw new Error("Route decorator is not a call expression");
     }
     const args = expression.arguments;
-    if (args.length !== 2) {
-      throw new Error("Route decorator must have 2 arguments");
+    if (args.length !== 1) {
+      throw new Error("Route decorator must have 1 arguments");
     }
-    const [routerArg, basePathArg] = args;
-    const routerIdentifier = RouteProcessor.getRouterIdentifier(project, routerArg);
-    const basePath = RouteProcessor.getBasePath(project, basePathArg);
+    const [basePathArg] = args;
+    const routerIdentifier = FileTransformer.getOrCreateImport(node.getSourceFile(), "@nornir/rest", "Router");
+    const basePath = ControllerProcessor.getBasePath(project, basePathArg);
     const routeHolderIdentifier = ts.factory.createUniqueName("route_handler");
     const routeInstanceIdentifier = ts.factory.createUniqueName("route_class");
 
     FileTransformer.addStatementToFile(
       node.getSourceFile(),
-      RouteProcessor.generateRouteHolderCreateStatement(node, basePath, routeHolderIdentifier),
+      ControllerProcessor.generateRouteHolderCreateStatement(node, basePath, routeHolderIdentifier),
       "end",
     );
     FileTransformer.addStatementToFile(
       node.getSourceFile(),
-      RouteProcessor.generateRegisterRouteHolderStatement(routerIdentifier, routeHolderIdentifier),
+      ControllerProcessor.generateRegisterRouteHolderStatement(routerIdentifier, routeHolderIdentifier),
       "end",
     );
     FileTransformer.addStatementToFile(
       node.getSourceFile(),
-      RouteProcessor.generateRouteClassInstantiationStatement(node, routeInstanceIdentifier),
+      ControllerProcessor.generateRouteClassInstantiationStatement(node, routeInstanceIdentifier),
       "end",
     );
 
@@ -93,35 +93,19 @@ export abstract class RouteProcessor {
     routerIdentifier: ts.Identifier,
     routeHolderIdentifier: ts.Identifier,
   ) {
+    const routerInstance = ts.factory.createCallExpression(
+      ts.factory.createPropertyAccessExpression(routerIdentifier, "get"),
+      [],
+      [],
+    )
+
     const callExpression = ts.factory.createCallExpression(
-      ts.factory.createPropertyAccessExpression(routerIdentifier, "register"),
+      ts.factory.createPropertyAccessExpression(routerInstance, "register"),
       [],
       [routeHolderIdentifier],
     );
 
     return ts.factory.createExpressionStatement(callExpression);
-  }
-
-  private static getRouterIdentifier(project: IProject, routerArg: ts.Expression): ts.Identifier {
-    if (!ts.isIdentifier(routerArg)) {
-      throw new Error("Route decorator first argument must be an identifier");
-    }
-
-    const type = project.checker.getTypeAtLocation(routerArg);
-    const declarations = type.symbol.declarations;
-    if (declarations?.length !== 1) {
-      throw new Error("Router type has multiple declarations");
-    }
-    const declaration = declarations[0];
-    if (!isNornirLib(declaration.getSourceFile().fileName)) {
-      throw new Error("Router must be from @nornir/rest");
-    }
-
-    if (type.symbol.name !== "Router") {
-      throw new Error("Router argument has incorrect type");
-    }
-
-    return routerArg as ts.Identifier;
   }
 
   private static getBasePath(project: IProject, basePathArg: ts.Expression): string {

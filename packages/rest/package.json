@@ -13,6 +13,7 @@
     "prepare": "ts-patch i -s"
   },
   "dependencies": {
+    "openapi-types": "^12.1.0",
     "trouter": "^3.2.1",
     "tsutils": "^3.21.0"
   },
