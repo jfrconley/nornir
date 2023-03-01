@@ -1,6 +1,6 @@
 import ts from "typescript";
+import { IProject as ITypiaProject } from "typia/lib/transformers/IProject";
 import { IOptions } from "./options.js";
-import {IProject as ITypiaProject} from 'typia/lib/transformers/IProject'
 
 export interface IProject {
   program: ts.Program;
@@ -9,6 +9,7 @@ export interface IProject {
   printer: ts.Printer;
   options: IOptions;
   compilerHost: ts.CompilerHost;
+  transformOnly: boolean;
 }
 
 export function convertToTypiaProject(project: IProject): ITypiaProject {

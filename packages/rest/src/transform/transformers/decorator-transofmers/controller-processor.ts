@@ -1,7 +1,7 @@
 import ts from "typescript";
-import { getStringLiteralOrConst, isNornirLib } from "../../lib";
-import { IProject } from "../../project";
 import { ControllerMeta } from "../../controller-meta";
+import { getStringLiteralOrConst } from "../../lib";
+import { IProject } from "../../project";
 import { FileTransformer } from "../file-transformer";
 
 export abstract class ControllerProcessor {
@@ -97,7 +97,7 @@ export abstract class ControllerProcessor {
       ts.factory.createPropertyAccessExpression(routerIdentifier, "get"),
       [],
       [],
-    )
+    );
 
     const callExpression = ts.factory.createCallExpression(
       ts.factory.createPropertyAccessExpression(routerInstance, "register"),

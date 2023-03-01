@@ -3,10 +3,10 @@
   "compilerOptions": {
     "plugins": [
       {
-        "transform": "@nornir/rest/transform"
+        "transform": "typia/lib/transform"
       },
       {
-        "transform": "typia/lib/transform"
+        "transform": "@nornir/rest/transform"
       }
     ],
     "outDir": "dist/",

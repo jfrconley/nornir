@@ -86,7 +86,7 @@ export class Nornir<Input, StepInput = Input> {
         } catch (error: any) {
           return Result.err<Error>(error);
         }
-      }
+      },
     );
     return new Nornir<Input, StepOutput>(this.context);
   }

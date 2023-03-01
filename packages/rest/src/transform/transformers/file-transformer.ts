@@ -1,8 +1,8 @@
 import ts from "typescript";
+import { ControllerMeta } from "../controller-meta";
+import { TransformationError } from "../error";
 import { IProject } from "../project.js";
 import { NodeTransformer } from "./node-transformer";
-import { TransformationError } from '../error';
-import { ControllerMeta } from '../controller-meta';
 
 export abstract class FileTransformer {
   public static transform(project: IProject, context: ts.TransformationContext, file: ts.SourceFile): ts.SourceFile {

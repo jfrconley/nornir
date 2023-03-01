@@ -1,7 +1,7 @@
 import ts from "typescript";
+import { ControllerMeta } from "../controller-meta";
 import { separateNornirDecorators } from "../lib";
 import { IProject } from "../project";
-import { ControllerMeta } from "../controller-meta";
 import { ControllerProcessor } from "./decorator-transofmers/controller-processor";
 
 export abstract class ClassTransformer {
@@ -12,7 +12,7 @@ export abstract class ClassTransformer {
 
     const { otherDecorators, nornirDecorators } = separateNornirDecorators(project, originalDecorators);
 
-    ControllerMeta.create(project,node);
+    ControllerMeta.create(project, node);
 
     for (const { decorator, declaration } of nornirDecorators) {
       const { name } = project.checker.getTypeAtLocation(declaration.parent).symbol;

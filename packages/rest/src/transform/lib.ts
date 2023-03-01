@@ -1,8 +1,9 @@
 import path from "path";
 import ts from "typescript";
+import { Metadata } from "typia/lib/metadata/Metadata";
+import { MetadataObject } from "typia/lib/metadata/MetadataObject";
+import { StrictTransformationError } from "./error";
 import { IProject } from "./project";
-import { Metadata } from 'typia/lib/metadata/Metadata';
-import { MetadataObject } from 'typia/lib/metadata/MetadataObject';
 
 const LIB_PATHS = [
   path.join("node_modules", "@nornir/rest", "dist", "runtime"),
@@ -60,22 +61,24 @@ export function generateDescription(comments: ts.SymbolDisplayPart[]): string {
     .join("");
 }
 
-export function strictError(project: IProject, error: Error) {
+export function strictError(project: IProject, error: StrictTransformationError) {
   if (project.options.strict) {
     throw error;
+  } else {
+    console.warn(error.warningMessage);
   }
 }
 
 export namespace MetadataUtils {
   export function getSoleLiteral(meta: Metadata): string | null {
     if (
-      meta.size() === 1 &&
-      meta.constants.length === 1 &&
-      meta.constants[0]!.type === "string" &&
-      meta.constants[0]!.values.length === 1
-    )
-      return meta.constants[0]!.values[0] as string;
-    else return null;
+      meta.size() === 1
+      && meta.constants.length === 1
+      && meta.constants[0].type === "string"
+      && meta.constants[0].values.length === 1
+    ) {
+      return meta.constants[0].values[0] as string;
+    } else return null;
   }
 
   export function getPropertyByStringIndex(metaObject: MetadataObject, index: string): Metadata | null {
@@ -97,3 +100,66 @@ export namespace MetadataUtils {
     return Metadata.covers(a, b) && Metadata.covers(b, a);
   }
 }
+
+export const HttpStatusCodes = [
+  "100",
+  "101",
+  "102",
+  "200",
+  "201",
+  "202",
+  "203",
+  "204",
+  "205",
+  "206",
+  "207",
+  "208",
+  "226",
+  "300",
+  "301",
+  "302",
+  "303",
+  "304",
+  "305",
+  "306",
+  "307",
+  "308",
+  "400",
+  "401",
+  "402",
+  "403",
+  "404",
+  "405",
+  "406",
+  "407",
+  "408",
+  "409",
+  "410",
+  "411",
+  "412",
+  "413",
+  "414",
+  "415",
+  "416",
+  "417",
+  "418",
+  "421",
+  "422",
+  "423",
+  "424",
+  "426",
+  "428",
+  "429",
+  "431",
+  "451",
+  "500",
+  "501",
+  "502",
+  "503",
+  "504",
+  "505",
+  "506",
+  "507",
+  "508",
+  "510",
+] as const;

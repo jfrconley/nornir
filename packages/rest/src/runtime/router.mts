@@ -13,9 +13,6 @@ export class Router {
     return Router.instance;
   }
 
-  private constructor() {
-  }
-
   private readonly router = new Trouter<RouteHandler>();
   private readonly routeHolders: RouteHolder[] = [];
   private readonly routes: { method: HttpMethod, path: string, builder: RouteBuilder }[] = []

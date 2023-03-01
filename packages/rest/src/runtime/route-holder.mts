@@ -1,7 +1,7 @@
 import { HttpMethod, IHttpRequest, IHttpResponse } from './http-event.mjs';
 import { Nornir } from '@nornir/core';
 import { NornirRestRequestError } from './error.mjs';
-import { validate, IValidation } from 'typia'
+import { IValidation } from 'typia'
 
 
 export type RouteBuilder<Input extends IHttpRequest = IHttpRequest, Output extends IHttpResponse = IHttpResponse> = (chain: Nornir<Input>) => Nornir<Input, Output>

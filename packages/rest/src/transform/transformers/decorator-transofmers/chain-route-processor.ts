@@ -1,11 +1,11 @@
 import { isTypeReference } from "tsutils";
 import ts from "typescript";
+import { CommentFactory } from "typia/lib/factories/CommentFactory";
 import { ValidateProgrammer } from "typia/lib/programmers/ValidateProgrammer";
+import { ControllerMeta } from "../../controller-meta";
 import { getStringLiteralOrConst, isNornirLib } from "../../lib";
 import { convertToTypiaProject, IProject } from "../../project";
-import { ControllerMeta } from "../../controller-meta";
 import { FileTransformer } from "../file-transformer";
-import { MetadataFactory } from 'typia/lib/factories/MetadataFactory';
 
 export abstract class ChainRouteProcessor {
   public static transform(
@@ -31,37 +31,60 @@ export abstract class ChainRouteProcessor {
     const [pathArg] = args;
     const path = ChainRouteProcessor.getPath(project, pathArg);
     const methodSignature = project.checker.getSignatureFromDeclaration(node);
+    const methodSymbol = project.checker.getTypeAtLocation(node).symbol;
     if (!methodSignature) throw new Error("Method signature not found");
 
     const inputType = ChainRouteProcessor.resolveInputType(project, methodSignature);
     const outputType = ChainRouteProcessor.resolveOutputType(project, methodSignature);
     const typiaValidateImport = FileTransformer.getOrCreateImport(node.getSourceFile(), "typia", "validate");
-    const validator = ValidateProgrammer.generate(convertToTypiaProject(project), typiaValidateImport, false)(inputType);
+    const validator = ValidateProgrammer.generate(convertToTypiaProject(project), typiaValidateImport, false)(
+      inputType,
+    );
+    const description = CommentFactory.generate(
+      methodSymbol.getDocumentationComment(project.checker),
+    );
+    const summaryTag = methodSymbol.getJsDocTags().find((tag) => tag.name === "summary");
+    const summary = CommentFactory.generate(summaryTag?.text || []);
 
-    routeMeta.registerRoute({
+    routeMeta.registerRoute(node, {
       method,
       path,
       input: inputType,
       output: outputType,
-      description: "",
-      filePath: node.getSourceFile().fileName
-    })
+      description,
+      summary,
+      filePath: node.getSourceFile().fileName,
+    });
 
     FileTransformer.addStatementToFile(
       node.getSourceFile(),
-      ChainRouteProcessor.generateRouteStatement(node, routeMeta.getRouteHolderIdentifier(), routeMeta.getControllerInstanceIdentifier(), validator, method, path),
-      'end'
-    )
+      ChainRouteProcessor.generateRouteStatement(
+        node,
+        routeMeta.getRouteHolderIdentifier(),
+        routeMeta.getControllerInstanceIdentifier(),
+        validator,
+        method,
+        path,
+      ),
+      "end",
+    );
   }
 
-  private static generateRouteStatement(methodDeclaration: ts.MethodDeclaration, routeHolderIdentifier: ts.Identifier, routeInstanceIdentifier: ts.Identifier, validator: ts.ArrowFunction, method: string, path: string) {
+  private static generateRouteStatement(
+    methodDeclaration: ts.MethodDeclaration,
+    routeHolderIdentifier: ts.Identifier,
+    routeInstanceIdentifier: ts.Identifier,
+    validator: ts.ArrowFunction,
+    method: string,
+    path: string,
+  ) {
     const methodName = methodDeclaration.name as ts.MemberName;
     const methodAccess = ts.factory.createPropertyAccessExpression(routeInstanceIdentifier, methodName);
     const methodBinding = ts.factory.createCallExpression(
       ts.factory.createPropertyAccessExpression(methodAccess, "bind"),
       [],
-      [routeInstanceIdentifier]
-    )
+      [routeInstanceIdentifier],
+    );
 
     return ts.factory.createExpressionStatement(
       ts.factory.createCallExpression(
@@ -71,7 +94,7 @@ export abstract class ChainRouteProcessor {
           ts.factory.createStringLiteral(method),
           ts.factory.createStringLiteral(path),
           methodBinding,
-          validator
+          validator,
         ],
       ),
     );

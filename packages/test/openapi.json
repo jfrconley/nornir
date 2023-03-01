@@ -1,0 +1,300 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Nornir Rest API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/basepath/route": {
+      "get": {
+        "parameters": [
+          {
+            "name": "content-type",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "text/plain"
+              ],
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "content-type": {
+                "name": "content-type",
+                "required": true,
+                "in": "header",
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "text/plain"
+                  ],
+                  "nullable": false
+                }
+              }
+            },
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "nullable": false
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "description": "A simple get route",
+        "summary": "Cool Route"
+      },
+      "post": {
+        "parameters": [
+          {
+            "name": "content-type",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "application/json",
+                "text/csv"
+              ],
+              "nullable": false
+            }
+          },
+          {
+            "name": "csv-header",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "nullable": false
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoutePostBodyInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "headers": {
+              "content-type": {
+                "name": "content-type",
+                "required": true,
+                "in": "header",
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "text/plain"
+                  ],
+                  "nullable": false
+                }
+              }
+            },
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "nullable": false
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "description": "",
+        "summary": ""
+      }
+    },
+    "/basepath/2/route": {
+      "get": {
+        "parameters": [
+          {
+            "name": "content-type",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "text/plain"
+              ],
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "headers": {
+              "content-type": {
+                "name": "content-type",
+                "required": true,
+                "in": "header",
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "text/plain"
+                  ],
+                  "nullable": false
+                }
+              }
+            },
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "nullable": false
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "description": "The second simple GET route.",
+        "summary": "Get route"
+      },
+      "put": {
+        "parameters": [
+          {
+            "name": "content-type",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "application/json",
+                "text/csv"
+              ],
+              "nullable": false
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoutePostBodyInput.o1"
+              }
+            },
+            "text/csv": {
+              "schema": {
+                "type": "string",
+                "nullable": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "headers": {},
+            "description": ""
+          },
+          "400": {
+            "headers": {
+              "content-type": {
+                "name": "content-type",
+                "required": true,
+                "in": "header",
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "application/json"
+                  ],
+                  "nullable": false
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/__type.o6"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "description": "",
+        "summary": ""
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RoutePostBodyInput": {
+        "type": "object",
+        "properties": {
+          "cool": {
+            "type": "string",
+            "nullable": false,
+            "description": "This is a cool property",
+            "x-typia-metaTags": [
+              {
+                "kind": "minLength",
+                "value": 5
+              }
+            ],
+            "x-typia-jsDocTags": [
+              {
+                "name": "minLength",
+                "text": [
+                  {
+                    "text": "5",
+                    "kind": "text"
+                  }
+                ]
+              }
+            ],
+            "x-typia-required": true,
+            "minLength": 5
+          }
+        },
+        "nullable": false,
+        "required": [
+          "cool"
+        ],
+        "description": "this is a comment",
+        "x-typia-jsDocTags": []
+      },
+      "RoutePostBodyInput.o1": {
+        "type": "object",
+        "properties": {
+          "cool": {
+            "type": "string",
+            "nullable": false,
+            "x-typia-required": true
+          }
+        },
+        "nullable": false,
+        "required": [
+          "cool"
+        ],
+        "x-typia-jsDocTags": []
+      },
+      "__type.o6": {
+        "type": "object",
+        "properties": {
+          "potato": {
+            "type": "boolean",
+            "nullable": false,
+            "x-typia-required": true
+          }
+        },
+        "nullable": false,
+        "required": [
+          "potato"
+        ],
+        "x-typia-jsDocTags": []
+      }
+    }
+  }
+}

@@ -1,11 +1,10 @@
-import { isLiteralType, isTypeFlagSet, isUnionOrIntersectionType } from "tsutils";
 import ts from "typescript";
 import { MetadataCollection } from "typia/lib/factories/MetadataCollection";
 import { MetadataFactory } from "typia/lib/factories/MetadataFactory";
 import { Metadata } from "typia/lib/metadata/Metadata";
 import { MetadataObject } from "typia/lib/metadata/MetadataObject";
-import { TransformationError } from "./error";
-import { MetadataUtils, strictError } from "./lib";
+import { StrictTransformationError } from "./error";
+import { HttpStatusCodes, MetadataUtils, strictError } from "./lib";
 import { IProject } from "./project";
 
 const DEFAULT_CONTENT_TYPE = "application/json";
@@ -105,23 +104,27 @@ export class ControllerMeta {
     this.routeHolderIdentifier = routeHandlerIdentifier;
   }
 
-  private getRouteIndex(info: { method: string; path: string }) {
+  private getRouteIndex(info: RouteIndex) {
     return {
       method: info.method,
       path: this.basePath + deparameterizePath(info.path).toLowerCase(),
     };
   }
 
-  public registerRoute(routeInfo: {
+  public registerRoute(node: ts.Node, routeInfo: {
     method: string;
     path: string;
     description?: string;
-    input: ts.Type,
-    output: ts.Type,
-    filePath: string
+    summary?: string;
+    input: ts.Type;
+    output: ts.Type;
+    filePath: string;
   }) {
     if (!this.isRegistered) {
       throw new Error("Route not registered");
+    }
+    if (this.project.transformOnly) {
+      return;
     }
     const index = this.getRouteIndex(routeInfo);
     const methods = ControllerMeta.routes.get(index.path) || new Map<string, RouteInfo>();
@@ -135,12 +138,14 @@ export class ControllerMeta {
       method: routeInfo.method,
       path: this.basePath + routeInfo.path.toLowerCase(),
       description: routeInfo.description,
-      requestInfo: this.buildRequestInfo(routeInfo.input),
+      requestInfo: this.buildRequestInfo(index, routeInfo.input),
+      responseInfo: this.buildResponseInfo(index, routeInfo.output),
       filePath: routeInfo.filePath,
+      summary: routeInfo.summary,
     });
   }
 
-  private buildRequestInfo(inputType: ts.Type): RequestInfo {
+  private buildRequestInfo(routeIndex: RouteIndex, inputType: ts.Type): RequestInfo {
     const paramterData: { [key in ParameterType]: { [name: string]: ParameterMeta } } = {
       path: {},
       header: {},
@@ -172,7 +177,7 @@ export class ControllerMeta {
             break;
         }
       }
-      this.buildBodyInfo(object, body);
+      this.buildBodyInfo(routeIndex, object, body);
     }
 
     return {
@@ -185,15 +190,79 @@ export class ControllerMeta {
     };
   }
 
-  private buildBodyInfo(object: MetadataObject, bodyTypes: {[contentType: string]: Metadata}) {
+  private buildResponseInfo(routeIndex: RouteIndex, outputType: ts.Type): ResponseInfo {
+    const responses: ResponseInfo = {};
+    const meta = MetadataFactory.generate(
+      this.project.checker,
+      ControllerMeta.metadataCollection,
+      outputType,
+      { resolve: false, constant: true },
+    );
+    for (const object of meta.objects) {
+      const statusCodeProp = MetadataUtils.getPropertyByStringIndex(object, "statusCode");
+      if (statusCodeProp == null) {
+        throw new Error("Response must have a statusCode property");
+      }
+      let statusCodes = statusCodeProp.constants.map((c) => c.values).flat().map(v => v.toString());
+      if (HttpStatusCodes.every((c) => statusCodes.includes(c))) {
+        strictError(
+          this.project,
+          new StrictTransformationError(
+            "Response status codes must be literal values",
+            "Defaulting response status code to 200",
+            routeIndex,
+          ),
+        );
+        statusCodes = ["200"];
+      }
+
+      if (statusCodes.length === 0) {
+        throw new Error("Literal status codes must be specified");
+      }
+
+      for (const statusCode of statusCodes) {
+        if (responses[statusCode] != null) {
+          throw new Error(`Response already defined for status code ${statusCode}`);
+        }
+        const headerParamHolder: { [key in ParameterType]: { [name: string]: ParameterMeta } } = {
+          path: {},
+          header: {},
+          query: {},
+        };
+        const headerProp = MetadataUtils.getPropertyByStringIndex(object, "headers");
+        if (headerProp != null) {
+          this.buildParameterInfo(headerProp, "header", headerParamHolder);
+        }
+        const result: ResponseInfo[string] = {
+          body: {},
+          headers: Object.values(headerParamHolder.header),
+        };
+        this.buildBodyInfo(routeIndex, object, result.body);
+        responses[statusCode] = result;
+      }
+    }
+    return responses;
+  }
+
+  private buildBodyInfo(
+    routeIndex: RouteIndex,
+    object: MetadataObject,
+    bodyTypes: { [contentType: string]: Metadata },
+  ) {
     let contentType = this.getContentTypeFromObject(object);
     const bodyType = MetadataUtils.getPropertyByStringIndex(object, "body");
     if (bodyType == null || (bodyType.empty() && !bodyType.nullable)) {
       return;
     }
     if (contentType == null) {
-      strictError(this.project, new Error("No content type specified for body"));
-      console.warn("No content type specified, defaulting to application/json");
+      strictError(
+        this.project,
+        new StrictTransformationError(
+          "No content type specified for body",
+          "No content type specified, defaulting to application/json",
+          routeIndex,
+        ),
+      );
     }
     contentType = contentType || DEFAULT_CONTENT_TYPE;
     const existingBody = bodyTypes[contentType];
@@ -201,7 +270,7 @@ export class ControllerMeta {
       if (MetadataUtils.equal(existingBody, bodyType)) {
         return;
       } else {
-        bodyTypes[contentType] = Metadata.merge(existingBody, bodyType);
+        throw new Error(`Content type ${contentType} already defined`);
       }
     } else {
       bodyTypes[contentType] = bodyType;
@@ -241,13 +310,13 @@ export class ControllerMeta {
           parameterData[parameterType][key] = {
             name: key,
             meta: Metadata.merge(existingParameter.meta, meta),
-            type: parameterType
+            type: parameterType,
           };
         } else {
           parameterData[parameterType][key] = {
             name: key,
             meta,
-            type: parameterType
+            type: parameterType,
           };
         }
       }
@@ -266,6 +335,9 @@ function deparameterizePath(path: string) {
 const RequestTypeFields = ["pathParams", "query", "headers", "body"] as const;
 type RequestTypeField = typeof RequestTypeFields[number];
 
+const ResponseTypeFields = ["headers", "body", "statusCode"] as const;
+type ResponseTypeField = typeof ResponseTypeFields[number];
+
 type ParameterType = "path" | "query" | "header";
 
 export interface ParameterMeta {
@@ -278,12 +350,24 @@ export interface RouteInfo {
   method: string;
   path: string;
   description?: string;
+  summary?: string;
   requestInfo: RequestInfo;
-
+  responseInfo: ResponseInfo;
   filePath: string;
 }
 
 interface RequestInfo {
   parameters: ParameterMeta[];
-  body: { [contentType: string]: Metadata };
+  body: RequestBody;
 }
+
+export type RequestBody = { [contentType: string]: Metadata };
+
+interface ResponseInfo {
+  [statusCode: string]: {
+    headers: ParameterMeta[];
+    body: RequestBody;
+  };
+}
+
+export type RouteIndex = Pick<RouteInfo, "method" | "path">;
