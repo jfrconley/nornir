@@ -13,7 +13,7 @@
     "prepare": "ts-patch i -s"
   },
   "dependencies": {
-    "@nornir/core": "^0.0.0",
+    "@nornir/core": "^0.0.1",
     "@nornir/rest": "^0.0.0",
     "typia": "^3.5.7"
   },
