@@ -1,0 +1,6 @@
+#!/bin/bash
+patches=$(pnpm ts-patch c | grep -c "is patched")
+if [ "$patches" != 4 ]; then
+  echo "Installing patch"
+  pnpm ts-patch i -s && pnpm ts-patch patch tsserver.js -s && pnpm ts-patch patch tsserverlibrary.js -s
+fi

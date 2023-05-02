@@ -1,0 +1,8 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "directories": {
+    "bin": "bin"
+  },
+  "private": true
+}

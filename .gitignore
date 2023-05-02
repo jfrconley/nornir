@@ -3,3 +3,11 @@ node_modules
 .idea
 yarn-error.log
 bundle
+.turbo
+reports
+coverage
+.eslintcache
+report.json
+.tsbuildinfo
+cdk.out
+.env

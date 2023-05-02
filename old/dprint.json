@@ -5,9 +5,7 @@
   },
   "markdown": {
   },
-  "includes": [
-    "packages/**/*.{ts,tsx,json,md}"
-  ],
+  "includes": ["**/*.{ts,tsx,js,jsx,cjs,mjs,json,md}"],
   "excludes": [
     "**/node_modules",
     "**/*-lock.json",

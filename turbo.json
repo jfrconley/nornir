@@ -1,0 +1,52 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "pipeline": {
+    "compile:single": {
+      "cache": true,
+      "dependsOn": [
+        "^compile:single"
+      ],
+      "inputs": [
+        "src/**/*",
+        "tsconfig.json",
+        "package.json"
+      ],
+      "outputs": [
+        "dist/**/*"
+      ]
+    },
+    "compile:single:tests": {
+      "cache": true,
+      "dependsOn": [
+        "compile:single"
+      ],
+      "inputs": [
+        "__tests__/src/**/*",
+        "tsconfig.json",
+        "tsconfig.tests.json",
+        "package.json"
+      ],
+      "outputs": [
+        "__tests__/dist/**/*"
+      ]
+    },
+    "clean:single": {
+      "cache": false
+    },
+    "bundle:single": {
+      "cache": true,
+      "dependsOn": [
+        "^compile:single",
+        "compile:single"
+      ],
+      "inputs": [
+        "dist/**/*",
+        "package.json",
+        "build.js"
+      ],
+      "outputs": [
+        "bundle/**/*"
+      ]
+    }
+  }
+}
