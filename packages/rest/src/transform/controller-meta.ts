@@ -1,10 +1,6 @@
 import ts from "typescript";
-import { MetadataCollection } from "typia/lib/factories/MetadataCollection";
-import { MetadataFactory } from "typia/lib/factories/MetadataFactory";
-import { Metadata } from "typia/lib/metadata/Metadata";
-import { MetadataObject } from "typia/lib/metadata/MetadataObject";
 import { StrictTransformationError } from "./error";
-import { HttpStatusCodes, MetadataUtils, strictError } from "./lib";
+import { HttpStatusCodes, strictError } from "./lib";
 import { IProject } from "./project";
 
 const DEFAULT_CONTENT_TYPE = "application/json";
@@ -12,25 +8,21 @@ export class ControllerMeta {
   private static cache = new Map<ts.Identifier, ControllerMeta>();
   private static routes = new Map<string, Map<string, RouteInfo>>();
 
-  public static readonly metadataCollection = new MetadataCollection({
-    replace: MetadataCollection.replace,
-  });
-
   private routeHolderIdentifier?: ts.Identifier;
   private controllerInstanceIdentifier?: ts.Identifier;
   private basePath?: string;
 
-  public static getRoutes(): RouteInfo[] {
-    const methods = ControllerMeta.routes.values();
-    const routes = Array.from(methods).map((method) => Array.from(method.values()));
-    return routes.flat();
-  }
+  // public static getRoutes(): RouteInfo[] {
+  //   const methods = ControllerMeta.routes.values();
+  //   const routes = Array.from(methods).map((method) => Array.from(method.values()));
+  //   return routes.flat();
+  // }
 
-  public static getAndClearRoutes(): RouteInfo[] {
-    const routes = this.getRoutes();
-    this.routes.clear();
-    return routes;
-  }
+  // public static getAndClearRoutes(): RouteInfo[] {
+  //   const routes = this.getRoutes();
+  //   this.routes.clear();
+  //   return routes;
+  // }
 
   public static clearCache() {
     this.cache.clear();
@@ -138,190 +130,190 @@ export class ControllerMeta {
       method: routeInfo.method,
       path: this.basePath + routeInfo.path.toLowerCase(),
       description: routeInfo.description,
-      requestInfo: this.buildRequestInfo(index, routeInfo.input),
-      responseInfo: this.buildResponseInfo(index, routeInfo.output),
+      // requestInfo: this.buildRequestInfo(index, routeInfo.input),
+      // responseInfo: this.buildResponseInfo(index, routeInfo.output),
       filePath: routeInfo.filePath,
       summary: routeInfo.summary,
     });
   }
 
-  private buildRequestInfo(routeIndex: RouteIndex, inputType: ts.Type): RequestInfo {
-    const paramterData: { [key in ParameterType]: { [name: string]: ParameterMeta } } = {
-      path: {},
-      header: {},
-      query: {},
-    };
-    const body: { [contentType: string]: Metadata } = {};
+  // private buildRequestInfo(routeIndex: RouteIndex, inputType: ts.Type): RequestInfo {
+  //   const paramterData: { [key in ParameterType]: { [name: string]: ParameterMeta } } = {
+  //     path: {},
+  //     header: {},
+  //     query: {},
+  //   };
+  //   const body: { [contentType: string]: Metadata } = {};
+  //
+  //   const meta = MetadataFactory.generate(
+  //     this.project.checker,
+  //     ControllerMeta.metadataCollection,
+  //     inputType,
+  //     { resolve: false, constant: true },
+  //   );
+  //   for (const object of meta.objects) {
+  //     for (const property of object.properties) {
+  //       const key = MetadataUtils.getSoleLiteral(property.key);
+  //       if (key != null && !isRequestTypeField(key)) {
+  //         throw new Error(`Invalid request field: ${key}`);
+  //       }
+  //       switch (key) {
+  //         case "query":
+  //           this.buildParameterInfo(property.value, "query", paramterData);
+  //           break;
+  //         case "pathParams":
+  //           this.buildParameterInfo(property.value, "path", paramterData);
+  //           break;
+  //         case "headers":
+  //           this.buildParameterInfo(property.value, "header", paramterData);
+  //           break;
+  //       }
+  //     }
+  //     this.buildBodyInfo(routeIndex, object, body);
+  //   }
+  //
+  //   return {
+  //     body,
+  //     parameters: [
+  //       ...Object.values(paramterData.path),
+  //       ...Object.values(paramterData.header),
+  //       ...Object.values(paramterData.query),
+  //     ],
+  //   };
+  // }
 
-    const meta = MetadataFactory.generate(
-      this.project.checker,
-      ControllerMeta.metadataCollection,
-      inputType,
-      { resolve: false, constant: true },
-    );
-    for (const object of meta.objects) {
-      for (const property of object.properties) {
-        const key = MetadataUtils.getSoleLiteral(property.key);
-        if (key != null && !isRequestTypeField(key)) {
-          throw new Error(`Invalid request field: ${key}`);
-        }
-        switch (key) {
-          case "query":
-            this.buildParameterInfo(property.value, "query", paramterData);
-            break;
-          case "pathParams":
-            this.buildParameterInfo(property.value, "path", paramterData);
-            break;
-          case "headers":
-            this.buildParameterInfo(property.value, "header", paramterData);
-            break;
-        }
-      }
-      this.buildBodyInfo(routeIndex, object, body);
-    }
+  // private buildResponseInfo(routeIndex: RouteIndex, outputType: ts.Type): ResponseInfo {
+  //   const responses: ResponseInfo = {};
+  //   const meta = MetadataFactory.generate(
+  //     this.project.checker,
+  //     ControllerMeta.metadataCollection,
+  //     outputType,
+  //     { resolve: false, constant: true },
+  //   );
+  //   for (const object of meta.objects) {
+  //     const statusCodeProp = MetadataUtils.getPropertyByStringIndex(object, "statusCode");
+  //     if (statusCodeProp == null) {
+  //       throw new Error("Response must have a statusCode property");
+  //     }
+  //     let statusCodes = statusCodeProp.constants.map((c) => c.values).flat().map(v => v.toString());
+  //     if (HttpStatusCodes.every((c) => statusCodes.includes(c))) {
+  //       strictError(
+  //         this.project,
+  //         new StrictTransformationError(
+  //           "Response status codes must be literal values",
+  //           "Defaulting response status code to 200",
+  //           routeIndex,
+  //         ),
+  //       );
+  //       statusCodes = ["200"];
+  //     }
+  //
+  //     if (statusCodes.length === 0) {
+  //       throw new Error("Literal status codes must be specified");
+  //     }
+  //
+  //     for (const statusCode of statusCodes) {
+  //       if (responses[statusCode] != null) {
+  //         throw new Error(`Response already defined for status code ${statusCode}`);
+  //       }
+  //       const headerParamHolder: { [key in ParameterType]: { [name: string]: ParameterMeta } } = {
+  //         path: {},
+  //         header: {},
+  //         query: {},
+  //       };
+  //       const headerProp = MetadataUtils.getPropertyByStringIndex(object, "headers");
+  //       if (headerProp != null) {
+  //         this.buildParameterInfo(headerProp, "header", headerParamHolder);
+  //       }
+  //       const result: ResponseInfo[string] = {
+  //         body: {},
+  //         headers: Object.values(headerParamHolder.header),
+  //       };
+  //       this.buildBodyInfo(routeIndex, object, result.body);
+  //       responses[statusCode] = result;
+  //     }
+  //   }
+  //   return responses;
+  // }
 
-    return {
-      body,
-      parameters: [
-        ...Object.values(paramterData.path),
-        ...Object.values(paramterData.header),
-        ...Object.values(paramterData.query),
-      ],
-    };
-  }
+  // private buildBodyInfo(
+  //   routeIndex: RouteIndex,
+  //   object: MetadataObject,
+  //   bodyTypes: { [contentType: string]: Metadata },
+  // ) {
+  //   let contentType = this.getContentTypeFromObject(object);
+  //   const bodyType = MetadataUtils.getPropertyByStringIndex(object, "body");
+  //   if (bodyType == null || (bodyType.empty() && !bodyType.nullable)) {
+  //     return;
+  //   }
+  //   if (contentType == null) {
+  //     strictError(
+  //       this.project,
+  //       new StrictTransformationError(
+  //         "No content type specified for body",
+  //         "No content type specified, defaulting to application/json",
+  //         routeIndex,
+  //       ),
+  //     );
+  //   }
+  //   contentType = contentType || DEFAULT_CONTENT_TYPE;
+  //   const existingBody = bodyTypes[contentType];
+  //   if (existingBody != null) {
+  //     if (MetadataUtils.equal(existingBody, bodyType)) {
+  //       return;
+  //     } else {
+  //       throw new Error(`Content type ${contentType} already defined`);
+  //     }
+  //   } else {
+  //     bodyTypes[contentType] = bodyType;
+  //   }
+  // }
 
-  private buildResponseInfo(routeIndex: RouteIndex, outputType: ts.Type): ResponseInfo {
-    const responses: ResponseInfo = {};
-    const meta = MetadataFactory.generate(
-      this.project.checker,
-      ControllerMeta.metadataCollection,
-      outputType,
-      { resolve: false, constant: true },
-    );
-    for (const object of meta.objects) {
-      const statusCodeProp = MetadataUtils.getPropertyByStringIndex(object, "statusCode");
-      if (statusCodeProp == null) {
-        throw new Error("Response must have a statusCode property");
-      }
-      let statusCodes = statusCodeProp.constants.map((c) => c.values).flat().map(v => v.toString());
-      if (HttpStatusCodes.every((c) => statusCodes.includes(c))) {
-        strictError(
-          this.project,
-          new StrictTransformationError(
-            "Response status codes must be literal values",
-            "Defaulting response status code to 200",
-            routeIndex,
-          ),
-        );
-        statusCodes = ["200"];
-      }
+  // private getContentTypeFromObject(metaObject: MetadataObject): string | null {
+  //   const headers = MetadataUtils.getPropertyByStringIndex(metaObject, "headers");
+  //   if (headers == null) {
+  //     return null;
+  //   }
+  //   if (headers.objects.length !== 1) {
+  //     return null;
+  //   }
+  //   const headerObject = headers.objects[0];
+  //   const contentType = MetadataUtils.getPropertyByStringIndex(headerObject, "content-type");
+  //   if (contentType == null) {
+  //     return null;
+  //   }
+  //   return MetadataUtils.getSoleLiteral(contentType);
+  // }
 
-      if (statusCodes.length === 0) {
-        throw new Error("Literal status codes must be specified");
-      }
-
-      for (const statusCode of statusCodes) {
-        if (responses[statusCode] != null) {
-          throw new Error(`Response already defined for status code ${statusCode}`);
-        }
-        const headerParamHolder: { [key in ParameterType]: { [name: string]: ParameterMeta } } = {
-          path: {},
-          header: {},
-          query: {},
-        };
-        const headerProp = MetadataUtils.getPropertyByStringIndex(object, "headers");
-        if (headerProp != null) {
-          this.buildParameterInfo(headerProp, "header", headerParamHolder);
-        }
-        const result: ResponseInfo[string] = {
-          body: {},
-          headers: Object.values(headerParamHolder.header),
-        };
-        this.buildBodyInfo(routeIndex, object, result.body);
-        responses[statusCode] = result;
-      }
-    }
-    return responses;
-  }
-
-  private buildBodyInfo(
-    routeIndex: RouteIndex,
-    object: MetadataObject,
-    bodyTypes: { [contentType: string]: Metadata },
-  ) {
-    let contentType = this.getContentTypeFromObject(object);
-    const bodyType = MetadataUtils.getPropertyByStringIndex(object, "body");
-    if (bodyType == null || (bodyType.empty() && !bodyType.nullable)) {
-      return;
-    }
-    if (contentType == null) {
-      strictError(
-        this.project,
-        new StrictTransformationError(
-          "No content type specified for body",
-          "No content type specified, defaulting to application/json",
-          routeIndex,
-        ),
-      );
-    }
-    contentType = contentType || DEFAULT_CONTENT_TYPE;
-    const existingBody = bodyTypes[contentType];
-    if (existingBody != null) {
-      if (MetadataUtils.equal(existingBody, bodyType)) {
-        return;
-      } else {
-        throw new Error(`Content type ${contentType} already defined`);
-      }
-    } else {
-      bodyTypes[contentType] = bodyType;
-    }
-  }
-
-  private getContentTypeFromObject(metaObject: MetadataObject): string | null {
-    const headers = MetadataUtils.getPropertyByStringIndex(metaObject, "headers");
-    if (headers == null) {
-      return null;
-    }
-    if (headers.objects.length !== 1) {
-      return null;
-    }
-    const headerObject = headers.objects[0];
-    const contentType = MetadataUtils.getPropertyByStringIndex(headerObject, "content-type");
-    if (contentType == null) {
-      return null;
-    }
-    return MetadataUtils.getSoleLiteral(contentType);
-  }
-
-  private buildParameterInfo(
-    inputMeta: Metadata,
-    parameterType: ParameterType,
-    parameterData: { [key in ParameterType]: { [name: string]: ParameterMeta } },
-  ) {
-    for (const object of inputMeta.objects) {
-      for (const property of object.properties) {
-        const key = MetadataUtils.getSoleLiteral(property.key);
-        if (key == null) {
-          continue;
-        }
-        const meta = property.value;
-        const existingParameter = parameterData[parameterType][key];
-        if (existingParameter != null) {
-          parameterData[parameterType][key] = {
-            name: key,
-            meta: Metadata.merge(existingParameter.meta, meta),
-            type: parameterType,
-          };
-        } else {
-          parameterData[parameterType][key] = {
-            name: key,
-            meta,
-            type: parameterType,
-          };
-        }
-      }
-    }
-  }
+  // private buildParameterInfo(
+  //   inputMeta: Metadata,
+  //   parameterType: ParameterType,
+  //   parameterData: { [key in ParameterType]: { [name: string]: ParameterMeta } },
+  // ) {
+  //   for (const object of inputMeta.objects) {
+  //     for (const property of object.properties) {
+  //       const key = MetadataUtils.getSoleLiteral(property.key);
+  //       if (key == null) {
+  //         continue;
+  //       }
+  //       const meta = property.value;
+  //       const existingParameter = parameterData[parameterType][key];
+  //       if (existingParameter != null) {
+  //         parameterData[parameterType][key] = {
+  //           name: key,
+  //           meta: Metadata.merge(existingParameter.meta, meta),
+  //           type: parameterType,
+  //         };
+  //       } else {
+  //         parameterData[parameterType][key] = {
+  //           name: key,
+  //           meta,
+  //           type: parameterType,
+  //         };
+  //       }
+  //     }
+  //   }
+  // }
 }
 
 function isRequestTypeField(name: string): name is RequestTypeField {
@@ -342,7 +334,7 @@ type ParameterType = "path" | "query" | "header";
 
 export interface ParameterMeta {
   name: string;
-  meta: Metadata;
+  // meta: Metadata;
   type: ParameterType;
 }
 
@@ -351,8 +343,8 @@ export interface RouteInfo {
   path: string;
   description?: string;
   summary?: string;
-  requestInfo: RequestInfo;
-  responseInfo: ResponseInfo;
+  // requestInfo: RequestInfo;
+  // responseInfo: ResponseInfo;
   filePath: string;
 }
 
@@ -361,7 +353,7 @@ interface RequestInfo {
   body: RequestBody;
 }
 
-export type RequestBody = { [contentType: string]: Metadata };
+export type RequestBody = { [contentType: string]: object };
 
 interface ResponseInfo {
   [statusCode: string]: {

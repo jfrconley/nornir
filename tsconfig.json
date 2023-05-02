@@ -9,12 +9,10 @@
     "noUnusedParameters": false,
     "sourceMap": true,
     "noUnusedLocals": false,
-    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
     "rootDir": "src",
     "composite": true,
     "types": ["node"],
     "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "experimentalDecorators": true
+    "resolveJsonModule": true
   }
 }

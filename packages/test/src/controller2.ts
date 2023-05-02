@@ -61,6 +61,7 @@ class TestController {
         },
       }));
   }
+
   @PutChain("/route")
   public postRoute(chain: Nornir<RoutePutInput>): Nornir<RoutePutInput, PutResponse> {
     return chain

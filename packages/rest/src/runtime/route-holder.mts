@@ -1,8 +1,7 @@
 import { HttpMethod, IHttpRequest, IHttpResponse } from './http-event.mjs';
 import { Nornir } from '@nornir/core';
 import { NornirRestRequestError } from './error.mjs';
-import { IValidation } from 'typia'
-
+import {type ErrorObject, type ValidateFunction, type ValidationError} from 'ajv'
 
 export type RouteBuilder<Input extends IHttpRequest = IHttpRequest, Output extends IHttpResponse = IHttpResponse> = (chain: Nornir<Input>) => Nornir<Input, Output>
 
@@ -19,7 +18,7 @@ export class RouteHolder {
   }
 
   public route<Input extends IHttpRequest = IHttpRequest, Output extends IHttpResponse = IHttpResponse>
-  (method: HttpMethod, path: string, builder: RouteBuilder<Input, Output>, validator: (input: IHttpRequest) => IValidation<Input>) {
+  (method: HttpMethod, path: string, builder: RouteBuilder<Input, Output>, validator: ValidateFunction<Input>) {
     const handler = builder(new Nornir<Input>());
     this.routes.push({
       method,
@@ -27,8 +26,8 @@ export class RouteHolder {
       builder: chain =>
         chain.use(request => {
           const result = validator(request)
-          if (!result.success) {
-            throw new NornirRestRequestValidationError(request, result.errors)
+          if (!result) {
+            throw new NornirRestRequestValidationError(request, validator.errors || [])
           }
           return request as Input;
         })
@@ -40,7 +39,7 @@ export class RouteHolder {
 export class NornirRestRequestValidationError<Request extends IHttpRequest> extends NornirRestRequestError<Request> {
   constructor(
     request: Request,
-    public readonly errors: IValidation.IError[]
+    public readonly errors: ErrorObject[]
   ) {
     super(request, `Request validation failed`)
   }

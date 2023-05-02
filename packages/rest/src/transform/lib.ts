@@ -1,7 +1,5 @@
 import path from "path";
 import ts from "typescript";
-import { Metadata } from "typia/lib/metadata/Metadata";
-import { MetadataObject } from "typia/lib/metadata/MetadataObject";
 import { StrictTransformationError } from "./error";
 import { IProject } from "./project";
 
@@ -62,43 +60,7 @@ export function generateDescription(comments: ts.SymbolDisplayPart[]): string {
 }
 
 export function strictError(project: IProject, error: StrictTransformationError) {
-  if (project.options.strict) {
-    throw error;
-  } else {
-    console.warn(error.warningMessage);
-  }
-}
-
-export namespace MetadataUtils {
-  export function getSoleLiteral(meta: Metadata): string | null {
-    if (
-      meta.size() === 1
-      && meta.constants.length === 1
-      && meta.constants[0].type === "string"
-      && meta.constants[0].values.length === 1
-    ) {
-      return meta.constants[0].values[0] as string;
-    } else return null;
-  }
-
-  export function getPropertyByStringIndex(metaObject: MetadataObject, index: string): Metadata | null {
-    const properties = metaObject.properties;
-    for (const property of properties) {
-      const key = getSoleLiteral(property.key);
-      if (key == null) {
-        return null;
-      }
-      if (key === index) {
-        return property.value;
-      }
-    }
-    return null;
-  }
-
-  export function equal(a: Metadata, b: Metadata) {
-    if (a.size() !== b.size()) return false;
-    return Metadata.covers(a, b) && Metadata.covers(b, a);
-  }
+  throw error;
 }
 
 export const HttpStatusCodes = [

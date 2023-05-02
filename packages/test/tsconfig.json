@@ -3,9 +3,6 @@
   "compilerOptions": {
     "plugins": [
       {
-        "transform": "typia/lib/transform"
-      },
-      {
         "transform": "@nornir/rest/transform"
       }
     ],

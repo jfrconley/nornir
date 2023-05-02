@@ -2,7 +2,6 @@ import Trouter from 'trouter';
 import { RouteHolder, RouteBuilder } from './route-holder.mjs';
 import { HttpMethod, HttpEvent, IHttpRequest, IHttpResponse } from './http-event.mjs';
 import { Nornir, AttachmentRegistry, Result } from '@nornir/core';
-import { assert } from 'typia';
 
 type RouteHandler = (request: Result<IHttpRequest>, registry: AttachmentRegistry) => Promise<Result<IHttpResponse>>;
 
@@ -37,14 +36,13 @@ export class Router {
     );
 
     return async (event, registry): Promise<IHttpResponse> => {
-      try {
-        assert<HttpEvent>(event)
-      } catch (_) {
-        throw new Error("Router was given an invalid IHttpEvent")
-      }
       const {params, handlers: [handler]} = this.router.find(event.method, event.path);
       if (handler == null) {
-        throw new Error("")
+        return {
+          statusCode: "404",
+          body: "Not Found",
+          headers: {}
+        }
       }
       const request: IHttpRequest = {
         ...event,

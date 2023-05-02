@@ -1,10 +1,10 @@
+import { schemaToValidator } from "@nrfcloud/ts-json-schema-transformer/utils";
+import { createWrappedNode, MethodDeclaration, TypeNode, TypeReferenceNode } from "ts-morph";
 import { isTypeReference } from "tsutils";
 import ts from "typescript";
-import { CommentFactory } from "typia/lib/factories/CommentFactory";
-import { ValidateProgrammer } from "typia/lib/programmers/ValidateProgrammer";
 import { ControllerMeta } from "../../controller-meta";
 import { getStringLiteralOrConst, isNornirLib } from "../../lib";
-import { convertToTypiaProject, IProject } from "../../project";
+import { IProject } from "../../project";
 import { FileTransformer } from "../file-transformer";
 
 export abstract class ChainRouteProcessor {
@@ -30,29 +30,26 @@ export abstract class ChainRouteProcessor {
 
     const [pathArg] = args;
     const path = ChainRouteProcessor.getPath(project, pathArg);
-    const methodSignature = project.checker.getSignatureFromDeclaration(node);
-    const methodSymbol = project.checker.getTypeAtLocation(node).symbol;
-    if (!methodSignature) throw new Error("Method signature not found");
 
-    const inputType = ChainRouteProcessor.resolveInputType(project, methodSignature);
-    const outputType = ChainRouteProcessor.resolveOutputType(project, methodSignature);
-    const typiaValidateImport = FileTransformer.getOrCreateImport(node.getSourceFile(), "typia", "validate");
-    const validator = ValidateProgrammer.generate(convertToTypiaProject(project), typiaValidateImport, false)(
-      inputType,
-    );
-    const description = CommentFactory.generate(
-      methodSymbol.getDocumentationComment(project.checker),
-    );
-    const summaryTag = methodSymbol.getJsDocTags().find((tag) => tag.name === "summary");
-    const summary = CommentFactory.generate(summaryTag?.text || []);
+    const wrappedNode = createWrappedNode(node, { typeChecker: project.checker }) as MethodDeclaration;
+
+    const inputType = ChainRouteProcessor.resolveInputType(wrappedNode);
+
+    // const outputType = ChainRouteProcessor.resolveOutputType(project, methodSignature);
+
+    const inputSchema = project.schemaGenerator.createSchemaFromNodes([inputType.compilerNode as any]);
+
+    console.log(inputType.getKindName());
+
+    const inputValidator = schemaToValidator(inputSchema, project.options.validation);
 
     routeMeta.registerRoute(node, {
       method,
       path,
-      input: inputType,
-      output: outputType,
-      description,
-      summary,
+      input: inputType.getType().compilerType,
+      output: {} as any,
+      // description,
+      // summary,
       filePath: node.getSourceFile().fileName,
     });
 
@@ -62,7 +59,7 @@ export abstract class ChainRouteProcessor {
         node,
         routeMeta.getRouteHolderIdentifier(),
         routeMeta.getControllerInstanceIdentifier(),
-        validator,
+        inputValidator,
         method,
         path,
       ),
@@ -74,7 +71,7 @@ export abstract class ChainRouteProcessor {
     methodDeclaration: ts.MethodDeclaration,
     routeHolderIdentifier: ts.Identifier,
     routeInstanceIdentifier: ts.Identifier,
-    validator: ts.ArrowFunction,
+    validator: ts.Expression,
     method: string,
     path: string,
   ) {
@@ -108,30 +105,23 @@ export abstract class ChainRouteProcessor {
     return path;
   }
 
-  private static resolveInputType(project: IProject, methodSignature: ts.Signature): ts.Type {
-    const parameters = methodSignature.getParameters();
-    if (parameters.length !== 1) {
-      throw new Error("Handler chain method must have 1 parameter");
+  private static resolveInputType(method: MethodDeclaration): TypeNode {
+    const params = method.getParameters();
+    if (params.length !== 1) {
+      throw new Error("Handler chain must have 1 parameter");
     }
-    const [inputParameter] = parameters;
-    const declaration = inputParameter.declarations?.[0];
-    if (!declaration) {
-      throw new Error("Handler chain input parameter declaration not found");
-    }
-    const initialType = project.checker.getTypeAtLocation(declaration);
-    const initialTypeDeclaration = initialType.symbol?.declarations?.[0];
-    if (!initialTypeDeclaration) {
-      throw new Error("Handler chain input parameter type declaration not found");
-    }
-    if (!isNornirLib(initialTypeDeclaration.getSourceFile().fileName)) {
+    const [param] = params;
+    const paramTypePath = param.getType().getSymbol()?.getDeclarations()?.[0].getSourceFile().getFilePath();
+    if (!isNornirLib(paramTypePath || "")) {
       throw new Error("Handler chain input must be a Nornir class");
     }
-    if (!isTypeReference(initialType)) {
-      throw new Error("Handler chain input must use a type reference");
+    const paramTypeNode = param.getTypeNodeOrThrow() as TypeReferenceNode;
+    const paramTypeArgs = paramTypeNode.getTypeArguments();
+    if (paramTypeArgs.length !== 1) {
+      throw new Error("Handler chain input must have a type argument");
     }
-    const typeArguments = project.checker.getTypeArguments(initialType);
-    const [inputType] = typeArguments;
-    return inputType;
+
+    return paramTypeArgs[0];
   }
 
   private static resolveOutputType(project: IProject, methodSignature: ts.Signature): ts.Type {
@@ -147,7 +137,7 @@ export abstract class ChainRouteProcessor {
       throw new Error("Handler chain return must use a type reference");
     }
     const typeArguments = project.checker.getTypeArguments(returnType);
-    const [, outputType] = typeArguments;
+    const [outputType] = typeArguments;
     return outputType;
   }
 }

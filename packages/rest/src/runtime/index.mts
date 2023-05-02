@@ -3,7 +3,8 @@ export {
   GetChain, Controller, PostChain, DeleteChain, HeadChain, OptionsChain, PatchChain, PutChain
 } from './decorators.mjs';
 export { IHttpResponse, IHttpRequest, HttpEvent, HttpMethod, IHttpRequestEmpty, IHttpResponseEmpty } from './http-event.mjs';
-export { RouteHolder } from './route-holder.mjs'
+export { RouteHolder, NornirRestRequestValidationError } from './route-holder.mjs'
+export {NornirRestRequestError, NornirRestBaseError} from './error.mjs'
 
 import { Router } from './router.mjs';
 

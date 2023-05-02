@@ -13,14 +13,13 @@
     "prepare": "ts-patch i -s"
   },
   "dependencies": {
-    "@nornir/core": "^0.0.1",
-    "@nornir/rest": "^0.0.0",
-    "typia": "^3.5.7"
+    "@nornir/core": "workspace:*",
+    "@nornir/rest": "workspace:*"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.110",
     "esbuild": "^0.17.10",
-    "ts-patch": "^2.1.0"
+    "ts-patch": "^3.0.0-beta3"
   },
   "eslintConfig": {
     "rules": {

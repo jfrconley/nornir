@@ -9,8 +9,8 @@
   "private": true,
   "scripts": {
     "fmt": "dprint fmt",
-    "lint": "eslint .",
-    "fix": "yarn fmt && yarn lint --fix"
+    "lint": "eslint . && syncpack list",
+    "fix": "pnpm fmt && eslint . --fix && syncpack fix-mismatches"
   },
   "workspaces": [
     "packages/*"
@@ -21,6 +21,7 @@
     "@typescript-eslint/parser": "^5.53.0",
     "dprint": "^0.34.5",
     "eslint": "^8.34.0",
-    "typescript": "^4.9.5"
+    "syncpack": "^9.8.4",
+    "typescript": ">=5.0.4"
   }
 }

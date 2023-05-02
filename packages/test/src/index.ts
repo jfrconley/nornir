@@ -20,14 +20,17 @@ interface Event2 {
 
 type Event = Event1 | Event2;
 export const handler: ALBHandler = nornir<ALBEvent>()
-  .use(input => [{ type: "Event1", data: input.body} as Event])
+  .use(input => [{ type: "Event1", data: input.body } as Event])
   .split(
     chain =>
       chain
         .use(input => ({ cool: input.type, event: input }))
         .use(input => input.event),
   )
-  .use(input => input[0].unwrap())
+  .use(input => {
+    console.log(input[0].unwrap());
+    return input[0].unwrap();
+  })
   .match("type", {
     Event1: chain => chain.use(input => input.data),
     Event2: chain => chain,

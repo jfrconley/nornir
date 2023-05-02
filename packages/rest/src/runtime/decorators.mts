@@ -7,15 +7,14 @@ import { Router } from "./router.mjs";
 
 const UNTRANSFORMED_ERROR = new Error("@nornir/rest decorators have not been transformed. Have you setup ts-patch/ttypescript and added the transformer to your tsconfig.json?");
 export function Controller(basePath: string) {
-  return <T extends { new(): any }>(target: T): T => {
+  return <T extends { new(): any }>(target: T, ctx: ClassDecoratorContext): T => {
     throw UNTRANSFORMED_ERROR;
   };
 }
 
 const routeChainDecorator = <Input extends IHttpRequest, Output extends IHttpResponse>(
-  target: any,
-  propertyKey: string | symbol,
-  descriptor: TypedPropertyDescriptor<(chain: Nornir<Input>) => Nornir<Input, Output>>,
+  target: (chain: Nornir<Input>) => Nornir<Input, Output>,
+  propertyKey: ClassMethodDecoratorContext,
 ): any => {throw UNTRANSFORMED_ERROR};
 
 export function GetChain(path: string) {
