@@ -1,27 +1,82 @@
-import config from "@nrfcloud/utils-eslint";
-import {createRequire} from 'node:module'
+import {FlatCompat} from "@eslint/eslintrc";
+import path from "path";
+import {fileURLToPath} from "url";
 
-const require = createRequire(import.meta.url);
+// mimic CommonJS variables -- not needed if using CommonJS
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const compat = new FlatCompat({
+    recommendedConfig: {},
+    baseDirectory: __dirname,
+});
 
 /**
- * @type {import('eslint').Linter.FlatConfig}
+ * @type {import('eslint').Linter.Config}
  */
-export default [
-  {
-    ignores: ["**/*.{mjs,js,d.ts}"],
-  },
-  ...config,
-  {
-    files: ["**/*.ts"],
+const test = {
+    extends: [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:unicorn/recommended",
+        "plugin:jest/recommended",
+        "plugin:jest/style",
+        "plugin:workspaces/recommended",
+        "plugin:eslint-comments/recommended",
+        "plugin:sonarjs/recommended",
+    ],
+    parser: "@typescript-eslint/parser",
+    plugins: [
+        "@typescript-eslint",
+        "eslint-plugin-workspaces",
+        "eslint-plugin-unicorn",
+        "eslint-plugin-jest",
+        "eslint-plugin-eslint-comments",
+        "eslint-plugin-sonarjs",
+        "eslint-plugin-no-secrets",
+    ],
+    root: true,
+    ignorePatterns: [
+        "dist",
+        "node_modules",
+        "**/*.js",
+    ],
     rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [{
-            group: ["@nrfcloud/*-private.*", `!@nrfcloud/${require("./package.json").name.replace('@nrfcloud/', '')}-private.*`],
-          }],
-        },
-      ],
+        // Reduce is confusing, but it shouldn't be banned
+        "unicorn/no-array-reduce": ["off"],
+        "unicorn/filename-case": ["error", {
+            case: "kebabCase",
+        }],
+        "workspaces/require-dependency": ["off"],
+        "unicorn/prevent-abbreviations": ["off"],
+        "no-secrets/no-secrets": ["warn", {"tolerance": 5.0}],
+        "unicorn/numeric-separators-style": ["off"],
+        "@typescript-eslint/no-unused-vars": ["warn",   {
+            "argsIgnorePattern": "^_",
+            "varsIgnorePattern": "^_",
+            "caughtErrorsIgnorePattern": "^_"
+        }],
+        "@typescript-eslint/naming-convention": ["error",
+            {
+                selector: 'class',
+                format: ['PascalCase'],
+                leadingUnderscore: 'allow'
+            },
+            {
+                selector: 'typeLike',
+                format: ['PascalCase'],
+                "custom": {
+                    "regex": "^I[A-Z]",
+                    "match": false
+                }
+            },
+        ]
     },
-  },
+};
+
+export default [
+    {
+        ignores: ["**/*.d.ts", "dist/**/*"],
+    },
+    ...compat.config(test),
 ];

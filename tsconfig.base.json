@@ -16,7 +16,6 @@
     ],
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "experimentalDecorators": true,
     "strictNullChecks": true,
     "inlineSourceMap": true,
     "verbatimModuleSyntax": false,

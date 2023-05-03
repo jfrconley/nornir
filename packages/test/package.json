@@ -1,0 +1,67 @@
+{
+  "name": "@nornir/test",
+  "description": "Sandbox test library for Nornir",
+  "version": "1.0.0",
+  "dependencies": {
+    "@nornir/core": "workspace:*",
+    "@nornir/rest": "workspace:*"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.5.0",
+    "@nrfcloud/ts-json-schema-transformer": "^0.2.1",
+    "@types/aws-lambda": "^8.10.110",
+    "@types/jest": "^29.4.0",
+    "@types/node": "^18.15.11",
+    "esbuild": "^0.17.18",
+    "eslint": "^8.38.0",
+    "jest": "^29.5.0",
+    "ts-patch": "^3.0.0-rc2",
+    "typescript": "^5.0.4"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": "please use pnpm",
+    "pnpm": ">=6.32.4",
+    "yarn": "please use pnpm"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "package.json",
+    "README.md"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "//10": "The following scripts are also available from the scripts package",
+    "//20": "You can also override them by specifying them here",
+    "//30": "",
+    "//40": "compile - compile the project including dependencies",
+    "//50": "compile:tests - compile the tests including dependencies",
+    "//60": "clean - clean the project including dependencies",
+    "//70": "bundle - bundle the project including dependencies",
+    "//80": "tests - run the tests",
+    "//90": "tests:clean - cleans artifacts before running tests",
+    "//91": "lint - run the linter",
+    "//92": "lint:fix - run the linter and fix any issues",
+    "//93": "build - compile and bundle the project",
+    "//94": "build:clean - clean the project then compile and bundle",
+    "//95": "---",
+    "//96": "The following scripts are specific to this project",
+    "//97": "Notice that scripts for this specific project are suffixed with :single",
+    "//98": "This is so the default scripts are project aware",
+    "//99": "",
+    "clean:single": "rm -rf dist bundle __tests__/dist .turbo",
+    "compile:single": "tsc",
+    "compile:single:tests": "tsc -p __tests__/tsconfig.json",
+    "compile:single:watch": "pnpm compile:single --incremental -w & pnpm compile:single:tests -w --incremental",
+    "prepare": "patch-typescript",
+    "prepublish": "pnpm build:clean",
+    "test": "pnpm tests"
+  },
+  "type": "module"
+}
