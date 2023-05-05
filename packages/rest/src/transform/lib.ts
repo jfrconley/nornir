@@ -26,12 +26,18 @@ export function getStringLiteralOrConst(project: Project, node: ts.Expression): 
   return undefined;
 }
 
+export interface NornirDecoratorInfo {
+  decorator: ts.Decorator;
+  signature: ts.Signature;
+  declaration: ts.Declaration;
+}
+
 export function separateNornirDecorators(
   project: Project,
   originalDecorators: Readonly<ts.Decorator[]>,
 ): {
   otherDecorators: ts.Decorator[];
-  nornirDecorators: { decorator: ts.Decorator; signature: ts.Signature; declaration: ts.Declaration }[];
+  nornirDecorators: NornirDecoratorInfo[];
 } {
   const nornirDecorators: { decorator: ts.Decorator; signature: ts.Signature; declaration: ts.Declaration }[] = [];
   const decorators: ts.Decorator[] = [];

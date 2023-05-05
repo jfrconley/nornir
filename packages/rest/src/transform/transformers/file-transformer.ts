@@ -7,11 +7,8 @@ import { NodeTransformer } from "./node-transformer";
 export abstract class FileTransformer {
   public static transform(project: Project, context: ts.TransformationContext, file: ts.SourceFile): ts.SourceFile {
     if (file.isDeclarationFile) return file;
-    const transformed = ts.visitEachChild(
-      file,
-      (node) => FileTransformer.iterateNode(project, context, node),
-      context,
-    );
+    // return file;
+    const transformed = FileTransformer.iterateNode(project, context, file);
 
     const nodesToAdd = FileTransformer.getStatementsForFile(file);
     if (nodesToAdd == undefined) return transformed;
@@ -33,24 +30,26 @@ export abstract class FileTransformer {
 
   private static FILE_NODE_MAP = new Map<string, { start: ts.Statement[]; end: ts.Statement[] }>();
 
-  private static iterateNode(
+  private static iterateNode<T extends ts.Node>(
     project: Project,
     context: ts.TransformationContext,
-    node: ts.Node,
-  ): ts.Node {
-    return ts.visitEachChild(
-      FileTransformer.tryTransformNode(project, node),
-      (child) => FileTransformer.iterateNode(project, context, child),
-      context,
-    );
+    node: T,
+  ) {
+    const visitor = (child: ts.Node): ts.VisitResult<ts.Node> => {
+      const transformed = FileTransformer.tryTransformNode(project, child, context);
+      return ts.visitEachChild(transformed, visitor, context);
+    };
+
+    return ts.visitEachChild(node, visitor, context);
   }
 
-  private static tryTransformNode(project: Project, node: ts.Node): ts.Node {
+  private static tryTransformNode(project: Project, node: ts.Node, context: ts.TransformationContext): ts.Node {
     try {
-      return NodeTransformer.transform(project, node);
+      return NodeTransformer.transform(project, node, context);
     } catch (error) {
       if (!(error instanceof Error)) throw error;
       if (error instanceof TransformationError) throw error;
+      console.error(error);
 
       const file: ts.SourceFile = node.getSourceFile();
       const { line, character } = file.getLineAndCharacterOfPosition(

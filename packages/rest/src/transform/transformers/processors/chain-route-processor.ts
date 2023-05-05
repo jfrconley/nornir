@@ -3,33 +3,33 @@ import { createWrappedNode, MethodDeclaration, TypeNode, TypeReferenceNode } fro
 import { isTypeReference } from "tsutils";
 import ts from "typescript";
 import { ControllerMeta } from "../../controller-meta";
-import { getStringLiteralOrConst, isNornirLib } from "../../lib";
+import { getStringLiteralOrConst, isNornirLib, NornirDecoratorInfo, separateNornirDecorators } from "../../lib";
 import { Project } from "../../project";
-import { FileTransformer } from "../file-transformer";
+
+export const ChainMethodDecoratorTypeMap = {
+  GetChain: "GET",
+  PostChain: "POST",
+  PutChain: "PUT",
+  DeleteChain: "DELETE",
+  PatchChain: "PATCH",
+  OptionsChain: "OPTIONS",
+  HeadChain: "HEAD",
+} as const;
+
+export const ChainMethodDecoratorTypes = Object.keys(
+  ChainMethodDecoratorTypeMap,
+) as (keyof typeof ChainMethodDecoratorTypeMap)[];
 
 export abstract class ChainRouteProcessor {
   public static transform(
-    method: string,
+    methodDecorator: NornirDecoratorInfo,
     project: Project,
     node: ts.MethodDeclaration,
-    decorator: ts.Decorator,
-  ): void {
-    if (!ts.isClassDeclaration(node.parent)) {
-      throw new Error("Chain decorator can only be used in a class");
-    }
-    const routeMeta = ControllerMeta.getAssert(node.parent);
-
-    const expression = decorator.expression;
-    if (!ts.isCallExpression(expression)) {
-      throw new Error(`Handler chain decorator is not a call expression`);
-    }
-    const args = expression.arguments;
-    if (args.length !== 1) {
-      throw new Error("Handler chain decorator must have 1 argument");
-    }
-
-    const [pathArg] = args;
-    const path = ChainRouteProcessor.getPath(project, pathArg);
+    nornirDecorators: NornirDecoratorInfo[],
+    controller: ControllerMeta,
+  ): ts.MethodDeclaration {
+    const path = ChainRouteProcessor.getPath(project, methodDecorator);
+    const method = ChainRouteProcessor.getMethod(project, methodDecorator);
 
     const wrappedNode = createWrappedNode(node, { typeChecker: project.checker }) as MethodDeclaration;
 
@@ -39,11 +39,9 @@ export abstract class ChainRouteProcessor {
 
     const inputSchema = project.schemaGenerator.createSchemaFromNodes([inputType.compilerNode as never]);
 
-    console.log(inputType.getKindName());
-
     const inputValidator = schemaToValidator(inputSchema, project.options.validation);
 
-    routeMeta.registerRoute(node, {
+    controller.registerRoute(node, {
       method,
       path,
       input: inputType.getType().compilerType,
@@ -53,17 +51,26 @@ export abstract class ChainRouteProcessor {
       filePath: node.getSourceFile().fileName,
     });
 
-    FileTransformer.addStatementToFile(
-      node.getSourceFile(),
+    controller.addInitializationStatement(
       ChainRouteProcessor.generateRouteStatement(
         node,
-        routeMeta.getRouteHolderIdentifier(),
-        routeMeta.getControllerInstanceIdentifier(),
+        controller.getRouteHolderIdentifier(),
+        controller.getControllerInstanceIdentifier(),
         inputValidator,
         method,
         path,
       ),
-      "end",
+    );
+    const { otherDecorators } = separateNornirDecorators(project, ts.getDecorators(node) || []);
+    return ts.factory.createMethodDeclaration(
+      [...(ts.getModifiers(node) || []), ...otherDecorators],
+      node.asteriskToken,
+      node.name,
+      node.questionToken,
+      node.typeParameters,
+      node.parameters,
+      node.type,
+      node.body,
     );
   }
 
@@ -97,12 +104,27 @@ export abstract class ChainRouteProcessor {
     );
   }
 
-  private static getPath(project: Project, pathArg: ts.Expression): string {
+  private static getPath(project: Project, methodDecorator: NornirDecoratorInfo): string {
+    const methodDecoratorExpression = methodDecorator.decorator.expression;
+    if (!ts.isCallExpression(methodDecoratorExpression)) {
+      throw new Error(`Handler chain decorator is not a call expression`);
+    }
+    const args = methodDecoratorExpression.arguments;
+    if (args.length !== 1) {
+      throw new Error("Handler chain decorator must have 1 argument");
+    }
+
+    const [pathArg] = args;
     const path = getStringLiteralOrConst(project, pathArg);
     if (!path) {
       throw new Error("Handler chain decorator path must be a string literal or const");
     }
     return path;
+  }
+
+  private static getMethod(project: Project, methodDecorator: NornirDecoratorInfo): string {
+    const name = project.checker.getTypeAtLocation(methodDecorator.declaration.parent).symbol.name;
+    return ChainMethodDecoratorTypeMap[name as keyof typeof ChainMethodDecoratorTypeMap];
   }
 
   private static resolveInputType(method: MethodDeclaration): TypeNode {

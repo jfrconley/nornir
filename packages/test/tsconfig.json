@@ -5,6 +5,9 @@
     "plugins": [
       {
         "transform": "@nrfcloud/ts-json-schema-transformer/dist/transform"
+      },
+      {
+        "transform": "@nornir/rest/transform"
       }
     ],
     "tsBuildInfoFile": "dist/.tsbuildinfo",

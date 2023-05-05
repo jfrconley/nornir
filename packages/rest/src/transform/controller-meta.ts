@@ -8,6 +8,7 @@ export class ControllerMeta {
   private routeHolderIdentifier?: ts.Identifier;
   private controllerInstanceIdentifier?: ts.Identifier;
   private basePath?: string;
+  public readonly initializationStatements: ts.Statement[] = [];
 
   // public static getRoutes(): RouteInfo[] {
   //   const methods = ControllerMeta.routes.values();
@@ -66,6 +67,14 @@ export class ControllerMeta {
     }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.routeHolderIdentifier!;
+  }
+
+  public addInitializationStatement(statement: ts.Statement) {
+    this.initializationStatements.push(statement);
+  }
+
+  public getInitializationMethod(): ts.ClassStaticBlockDeclaration {
+    return ts.factory.createClassStaticBlockDeclaration(ts.factory.createBlock(this.initializationStatements, true));
   }
 
   public getControllerInstanceIdentifier(): ts.Identifier {

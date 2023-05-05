@@ -1,5 +1,5 @@
 import { Nornir } from "@nornir/core";
-import { Controller, GetChain, HttpRequest, HttpRequestEmpty, HttpStatusCode, PostChain } from "@nornir/rest";
+import { Controller, GetChain, type HttpRequest, HttpRequestEmpty, HttpStatusCode, PostChain } from "@nornir/rest";
 
 interface RouteGetInput extends HttpRequestEmpty {
   headers: {
@@ -70,6 +70,10 @@ const basePath = "/basepath";
 
 @Controller(basePath)
 export class TestController {
+  static {
+    console.log("hello");
+  }
+
   /**
    * A simple get route
    * @summary Cool Route

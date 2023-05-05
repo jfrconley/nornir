@@ -1,38 +1,16 @@
 import ts from "typescript";
-import { ControllerMeta } from "../controller-meta";
 import { separateNornirDecorators } from "../lib";
 import { Project } from "../project";
-import { ControllerProcessor } from "./decorator-transofmers/controller-processor";
+import { ControllerProcessor } from "./processors/controller-processor";
 
 export abstract class ClassTransformer {
-  public static transform(project: Project, node: ts.ClassDeclaration): ts.ClassDeclaration {
+  public static transform(project: Project, node: ts.ClassDeclaration, context: ts.TransformationContext): ts.Node {
     const originalDecorators = ts.getDecorators(node) || [];
     if (!originalDecorators) return node;
-    const modifiers = ts.getModifiers(node) || [];
 
-    const { otherDecorators, nornirDecorators } = separateNornirDecorators(project, originalDecorators);
+    const { nornirDecorators } = separateNornirDecorators(project, originalDecorators);
+    if (nornirDecorators.length === 0) return node;
 
-    ControllerMeta.create(project, node);
-
-    for (const { decorator, declaration } of nornirDecorators) {
-      const { name } = project.checker.getTypeAtLocation(declaration.parent).symbol;
-      const processor = CLASS_DECORATOR_PROCESSORS[name];
-      if (!processor) throw new Error(`No processor for decorator ${name}`);
-      processor(project, node, decorator);
-    }
-
-    return ts.factory.createClassDeclaration(
-      [...modifiers, ...otherDecorators],
-      node.name,
-      node.typeParameters,
-      node.heritageClauses,
-      node.members,
-    );
+    return ControllerProcessor.process(project, node, nornirDecorators, context);
   }
 }
-
-type Task = (project: Project, node: ts.ClassDeclaration, decorator: ts.Decorator) => void;
-
-const CLASS_DECORATOR_PROCESSORS: Record<string, Task> = {
-  Controller: ControllerProcessor.process,
-};

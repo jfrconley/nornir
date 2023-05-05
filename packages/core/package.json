@@ -5,7 +5,7 @@
   "author": "John Conley",
   "devDependencies": {
     "@jest/globals": "^29.5.0",
-    "@nrfcloud/ts-json-schema-transformer": "^0.2.1",
+    "@nrfcloud/ts-json-schema-transformer": "^0.2.2",
     "@types/jest": "^29.4.0",
     "@types/node": "^18.15.11",
     "esbuild": "^0.17.18",
@@ -22,8 +22,8 @@
   },
   "exports": {
     "types": "./dist/index.d.ts",
-    "import": "./dist/index.js",
-    "require": "./dist/index.cjs"
+    "require": "./dist/index.cjs",
+    "import": "./dist/index.js"
   },
   "files": [
     "dist"

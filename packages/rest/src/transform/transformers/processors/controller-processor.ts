@@ -1,44 +1,70 @@
 import ts from "typescript";
 import { ControllerMeta } from "../../controller-meta";
-import { getStringLiteralOrConst } from "../../lib";
+import { getStringLiteralOrConst, NornirDecoratorInfo, separateNornirDecorators } from "../../lib";
 import { Project } from "../../project";
+import { ControllerMethodTransformer } from "../controller-method-transformer";
 import { FileTransformer } from "../file-transformer";
 
 export abstract class ControllerProcessor {
-  public static process(project: Project, node: ts.ClassDeclaration, decorator: ts.Decorator): void {
-    const routeMeta = ControllerMeta.getAssert(node);
+  public static process(
+    project: Project,
+    node: ts.ClassDeclaration,
+    nornirDecorators: NornirDecoratorInfo[],
+    context: ts.TransformationContext,
+  ): ts.Node {
+    const routeMeta = ControllerMeta.create(project, node);
 
-    const expression = decorator.expression;
-    if (!ts.isCallExpression(expression)) {
-      throw new Error("Route decorator is not a call expression");
-    }
-    const args = expression.arguments;
-    if (args.length !== 1) {
-      throw new Error("Route decorator must have 1 arguments");
-    }
-    const [basePathArg] = args;
+    const basePath = ControllerProcessor.getBasePath(project, nornirDecorators);
     const routerIdentifier = FileTransformer.getOrCreateImport(node.getSourceFile(), "@nornir/rest", "Router");
-    const basePath = ControllerProcessor.getBasePath(project, basePathArg);
     const routeHolderIdentifier = ts.factory.createUniqueName("route_handler");
     const routeInstanceIdentifier = ts.factory.createUniqueName("route_class");
 
-    FileTransformer.addStatementToFile(
-      node.getSourceFile(),
+    routeMeta.addInitializationStatement(
       ControllerProcessor.generateRouteHolderCreateStatement(node, basePath, routeHolderIdentifier),
-      "end",
     );
-    FileTransformer.addStatementToFile(
-      node.getSourceFile(),
+    routeMeta.addInitializationStatement(
       ControllerProcessor.generateRegisterRouteHolderStatement(routerIdentifier, routeHolderIdentifier),
-      "end",
     );
-    FileTransformer.addStatementToFile(
-      node.getSourceFile(),
+    routeMeta.addInitializationStatement(
       ControllerProcessor.generateRouteClassInstantiationStatement(node, routeInstanceIdentifier),
-      "end",
     );
-
     routeMeta.registerRouteHolder(routeHolderIdentifier, routeInstanceIdentifier, basePath);
+
+    const transformedNode = ControllerMethodTransformer.transformControllerMethods(project, node, routeMeta, context);
+
+    const transformedModifiers = ts.getModifiers(transformedNode) || [];
+
+    const { otherDecorators } = separateNornirDecorators(project, ts.getDecorators(transformedNode) || []);
+
+    return ts.factory.createClassDeclaration(
+      [...transformedModifiers, ...otherDecorators],
+      transformedNode.name,
+      transformedNode.typeParameters,
+      transformedNode.heritageClauses,
+      [
+        ...transformedNode.members,
+        routeMeta.getInitializationMethod(),
+      ],
+    );
+  }
+
+  private static getBasePath(project: Project, nornirDecorators: NornirDecoratorInfo[]) {
+    const basePathDecorator = nornirDecorators.find((decorator) =>
+      project.checker.getTypeAtLocation(decorator.declaration.parent).symbol.name === "Controller"
+    );
+    if (basePathDecorator == undefined) throw new Error("Controller must have a controller decorator");
+    if (!ts.isCallExpression(basePathDecorator.decorator.expression)) {
+      throw new Error("Controller decorator is not a call expression");
+    }
+    const args = basePathDecorator.decorator.expression.arguments;
+    if (args.length !== 1) throw new Error("Controller decorator must have 1 arguments");
+    const [basePathArg] = args;
+    const basePath = getStringLiteralOrConst(project, basePathArg);
+
+    if (!basePath) {
+      throw new Error("Base path must resolve to a literal string");
+    }
+    return basePath;
   }
 
   private static generateRouteHolderCreateStatement(
@@ -105,14 +131,5 @@ export abstract class ControllerProcessor {
     );
 
     return ts.factory.createExpressionStatement(callExpression);
-  }
-
-  private static getBasePath(project: Project, basePathArg: ts.Expression): string {
-    const basePath = getStringLiteralOrConst(project, basePathArg);
-
-    if (!basePath) {
-      throw new Error("Base path must resolve to a literal string");
-    }
-    return basePath;
   }
 }
