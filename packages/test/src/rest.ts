@@ -1,35 +1,56 @@
-import { nornir, Result } from "@nornir/core";
-import router, { HttpEvent, HttpResponse, HttpStatusCode } from "@nornir/rest";
+import nornir from "@nornir/core";
+import framework, { ApiGatewayProxyV2, startLocalServer } from "@nornir/rest";
+import type {
+  APIGatewayEventRequestContextV2,
+  APIGatewayProxyEventV2,
+  APIGatewayProxyHandlerV2,
+  APIGatewayProxyStructuredResultV2,
+} from "aws-lambda";
 import "./controller.js";
 import "./controller2.js";
-import { NornirRestRequestValidationError } from "@nornir/rest";
+import { getMockObject } from "@nrfcloud/ts-json-schema-transformer";
 
-export const handler: (event: HttpEvent) => Promise<HttpResponse> = nornir<HttpEvent>()
-  .use(router())
-  .useResult(result =>
-    result.chain(input => Result.ok(input), error => {
-      if (error instanceof NornirRestRequestValidationError) {
-        return Result.ok({
-          statusCode: HttpStatusCode.UnprocessableEntity,
-          body: error.errors,
-          headers: {},
-        });
-      }
-      return Result.err(error);
-    }).unwrap()
-  )
+const frameworkChain = framework();
+
+export const handler: APIGatewayProxyHandlerV2 = nornir<APIGatewayProxyEventV2>()
+  .use(ApiGatewayProxyV2.toHttpEvent)
+  .useChain(frameworkChain)
+  .use(ApiGatewayProxyV2.toResult)
   .build();
 
-console.log(
-  await handler({
-    method: "PUT",
-    path: "/basepath/2/route",
-    headers: {
-      "content-type": "application/json",
-    },
-    query: {},
-    body: {
+const mockEvent = getMockObject<Omit<APIGatewayProxyEventV2, "requestContext">>();
+const mockContext = getMockObject<APIGatewayEventRequestContextV2>();
+
+const testResponse = await handler(
+  {
+    ...mockEvent,
+    body: JSON.stringify({
       cool: "stuff",
+    }),
+    isBase64Encoded: false,
+    rawPath: "/basepath/2/route",
+    headers: {
+      "Content-Type": "application/json",
     },
-  }),
-);
+    requestContext: {
+      ...mockContext,
+      http: {
+        method: "PUT",
+        path: "/basepath/2/route",
+        protocol: "HTTP/1.1",
+        sourceIp: "",
+        userAgent: "",
+      },
+    },
+  },
+  {} as any,
+  console.log,
+) as APIGatewayProxyStructuredResultV2;
+
+console.log(testResponse);
+if (testResponse.isBase64Encoded) {
+  console.log(Buffer.from(testResponse.body || "", "base64").toString("utf8"));
+}
+
+await startLocalServer(frameworkChain);
+console.log("Server started");

@@ -7,6 +7,8 @@ import {
   HttpResponse,
   HttpResponseEmpty,
   HttpStatusCode,
+  MimeType,
+  Provider,
   PutChain,
 } from "@nornir/rest";
 
@@ -14,21 +16,20 @@ interface RouteGetInput extends HttpRequestEmpty {
   headers: GetHeaders;
 }
 interface GetHeaders {
-  // eslint-disable-next-line sonarjs/no-duplicate-string
-  "content-type": "text/plain";
+  "content-type": MimeType.None;
   [key: string]: string;
 }
 
 interface RoutePostInputJSON extends HttpRequest {
   headers: {
-    "content-type": "application/json";
+    "content-type": MimeType.ApplicationJson;
   };
   body: RoutePostBodyInput;
 }
 
 interface RoutePostInputCSV extends HttpRequest {
   headers: {
-    "content-type": "text/csv";
+    "content-type": MimeType.TextCsv;
   };
   body: string;
 }
@@ -41,8 +42,13 @@ interface RoutePostBodyInput {
 
 const basePath = "/basepath/2";
 
-@Controller(basePath)
+@Controller(basePath, "test")
 export class TestController {
+  @Provider()
+  public static test() {
+    return new TestController();
+  }
+
   /**
    * The second simple GET route.
    * @summary Get route
@@ -55,7 +61,7 @@ export class TestController {
         statusCode: HttpStatusCode.Ok,
         body: `Content-Type: ${contentType}`,
         headers: {
-          "content-type": "text/plain" as const,
+          "content-type": MimeType.TextPlain,
         },
       }));
   }
@@ -65,7 +71,9 @@ export class TestController {
     return chain
       .use(() => ({
         statusCode: HttpStatusCode.Created,
-        headers: {},
+        headers: {
+          "content-type": MimeType.TextPlain,
+        },
       }));
   }
 }
@@ -79,7 +87,7 @@ interface PutSuccessResponse extends HttpResponseEmpty {
 interface PutBadRequestResponse extends HttpResponse {
   statusCode: HttpStatusCode.BadRequest;
   headers: {
-    "content-type": "application/json";
+    "content-type": MimeType.ApplicationJson;
   };
   body: {
     potato: boolean;

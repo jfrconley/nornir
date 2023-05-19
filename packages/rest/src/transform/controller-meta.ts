@@ -1,14 +1,15 @@
 import ts from "typescript";
 import { Project } from "./project";
+import { FileTransformer } from "./transformers/file-transformer";
 
 export class ControllerMeta {
   private static cache = new Map<ts.Identifier, ControllerMeta>();
   private static routes = new Map<string, Map<string, RouteInfo>>();
 
-  private routeHolderIdentifier?: ts.Identifier;
-  private controllerInstanceIdentifier?: ts.Identifier;
-  private basePath?: string;
+  public readonly routeHolderIdentifier = ts.factory.createUniqueName("route_handler");
+  public readonly routeInstanceIdentifier = ts.factory.createUniqueName("route_instance");
   public readonly initializationStatements: ts.Statement[] = [];
+  private instanceProviderExpression: ts.Expression;
 
   // public static getRoutes(): RouteInfo[] {
   //   const methods = ControllerMeta.routes.values();
@@ -26,7 +27,7 @@ export class ControllerMeta {
     this.cache.clear();
   }
 
-  public static create(project: Project, route: ts.ClassDeclaration): ControllerMeta {
+  public static create(project: Project, route: ts.ClassDeclaration, basePath: string, apiId: string): ControllerMeta {
     const name = route.name;
     if (!name) {
       throw new Error("Route class must have a name");
@@ -34,7 +35,7 @@ export class ControllerMeta {
     if (this.cache.has(name)) {
       throw new Error("Route already exists: " + name.getText());
     }
-    const meta = new ControllerMeta(project, route, name);
+    const meta = new ControllerMeta(project, route, name, basePath, apiId);
     this.cache.set(name, meta);
     return meta;
   }
@@ -59,47 +60,96 @@ export class ControllerMeta {
     private readonly project: Project,
     public readonly route: ts.ClassDeclaration,
     public readonly identifier: ts.Identifier,
-  ) {}
+    public readonly basePath: string,
+    public readonly apiId: string,
+  ) {
+    this.instanceProviderExpression = ts.factory.createNewExpression(
+      this.identifier,
+      [],
+      [],
+    );
+  }
 
-  public getRouteHolderIdentifier(): ts.Identifier {
-    if (!this.isRegistered) {
-      throw new Error("Route not registered");
-    }
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return this.routeHolderIdentifier!;
+  public setInstanceProviderExpression(expression: ts.Expression) {
+    this.instanceProviderExpression = expression;
   }
 
   public addInitializationStatement(statement: ts.Statement) {
     this.initializationStatements.push(statement);
   }
 
-  public getInitializationMethod(): ts.ClassStaticBlockDeclaration {
-    return ts.factory.createClassStaticBlockDeclaration(ts.factory.createBlock(this.initializationStatements, true));
+  public getGeneratedMembers(): ts.ClassElement[] {
+    return [
+      this.getInitializationMethod(),
+    ];
   }
 
-  public getControllerInstanceIdentifier(): ts.Identifier {
-    if (!this.isRegistered) {
-      throw new Error("Controller not registered");
-    }
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return this.controllerInstanceIdentifier!;
+  private getInitializationMethod(): ts.ClassStaticBlockDeclaration {
+    return ts.factory.createClassStaticBlockDeclaration(ts.factory.createBlock([
+      this.generateRouteHolderCreateStatement(),
+      this.generateRegisterRouteHolderStatement(),
+      this.generateRouteClassInstantiationStatement(),
+      ...this.initializationStatements,
+    ], true));
   }
 
-  public get isRegistered(): boolean {
-    return (this.basePath != undefined && this.routeHolderIdentifier != undefined);
+  private generateRouteHolderCreateStatement() {
+    const nornirRestImport = FileTransformer.getOrCreateImport(
+      this.route.getSourceFile(),
+      "@nornir/rest",
+      "RouteHolder",
+    );
+
+    const routeHolderCreate = ts.factory.createNewExpression(
+      nornirRestImport,
+      [],
+      [ts.factory.createStringLiteral(this.basePath)],
+    );
+    const routeHolderDeclaration = ts.factory.createVariableDeclaration(
+      this.routeHolderIdentifier,
+      undefined,
+      undefined,
+      routeHolderCreate,
+    );
+    return ts.factory.createVariableStatement(
+      ts.factory.createModifiersFromModifierFlags(ts.ModifierFlags.Const),
+      [routeHolderDeclaration],
+    );
   }
 
-  public registerRouteHolder(
-    routeHandlerIdentifier: ts.Identifier,
-    routeControllerIdentifier: ts.Identifier,
-    basePath: string,
-  ) {
-    if (this.isRegistered) {
-      throw new Error("Route already registered");
-    }
-    this.basePath = basePath.toLowerCase();
-    this.controllerInstanceIdentifier = routeControllerIdentifier;
-    this.routeHolderIdentifier = routeHandlerIdentifier;
+  private generateRouteClassInstantiationStatement() {
+    if (this.route.name == undefined) throw new Error("Class must have a name");
+
+    return ts.factory.createVariableStatement(
+      ts.factory.createModifiersFromModifierFlags(ts.ModifierFlags.Const),
+      [
+        ts.factory.createVariableDeclaration(
+          this.routeInstanceIdentifier,
+          undefined,
+          undefined,
+          this.instanceProviderExpression,
+        ),
+      ],
+    );
+  }
+
+  private generateRegisterRouteHolderStatement() {
+    const routerIdentifier = FileTransformer.getOrCreateImport(this.route.getSourceFile(), "@nornir/rest", "Router");
+    const routerInstance = ts.factory.createCallExpression(
+      ts.factory.createPropertyAccessExpression(routerIdentifier, "get"),
+      [],
+      [
+        ts.factory.createStringLiteral(this.apiId),
+      ],
+    );
+
+    const callExpression = ts.factory.createCallExpression(
+      ts.factory.createPropertyAccessExpression(routerInstance, "register"),
+      [],
+      [this.routeHolderIdentifier],
+    );
+
+    return ts.factory.createExpressionStatement(callExpression);
   }
 
   private getRouteIndex(info: RouteIndex) {
@@ -118,9 +168,6 @@ export class ControllerMeta {
     output: ts.Type;
     filePath: string;
   }) {
-    if (!this.isRegistered) {
-      throw new Error("Route not registered");
-    }
     if (this.project.transformOnly) {
       return;
     }

@@ -1,39 +1,62 @@
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD" | "OPTIONS";
 
-export type HttpEvent = Omit<HttpRequest, "pathParams"> & {
-  method: HttpMethod;
-  path: string;
+export type HttpEvent = Omit<HttpRequest, "pathParams" | "headers"> & {
+    headers: HttpHeaders;
+    method: HttpMethod;
+    path: string;
 };
 
+export type UnparsedHttpEvent = Omit<HttpEvent, "body" | "query"> & {
+    rawBody: Buffer
+    rawQuery: string
+}
+
+// export type HttpHeaders = {
+//     readonly "content-type": MimeType;
+// } & Record<string, string | number>
+
+export type HttpHeadersWithContentType = {
+    readonly "content-type": MimeType;
+} & HttpHeaders;
+
+export type HttpHeaders = Record<string, number | string>;
+
 export interface HttpRequest {
-  readonly headers: Record<string, string | number>;
+    readonly headers: HttpHeadersWithContentType;
 
-  readonly query: Record<string, string | number | boolean | Array<string> | Array<number>>;
+    readonly query: Record<string, string | number | boolean | Array<string> | Array<number>>;
 
-  readonly body?: unknown;
+    readonly body?: unknown;
 
-  readonly pathParams: Record<string, string | number>;
+    readonly pathParams: Record<string, string | number>;
 }
 
 export interface HttpRequestEmpty extends HttpRequest {
-  body: never;
+    headers: {
+        "content-type": MimeType.None;
+    }
+    body: never;
 }
 
 export interface HttpRequestJSON extends HttpRequest {
-  body: unknown;
-  headers: {
-    "content-type": "application/json";
-  } & HttpRequest["headers"];
+    body: unknown;
+    headers: {
+        "content-type": "application/json";
+    } & HttpRequest["headers"];
 }
 
 export interface HttpResponse {
-  readonly statusCode: HttpStatusCode;
-  readonly headers: Record<string, string | number>;
-  readonly body?: unknown;
+    readonly statusCode: HttpStatusCode;
+    readonly headers: HttpHeaders;
+    readonly body?: unknown;
+}
+
+export interface SerializedHttpResponse extends Omit<HttpResponse, "body"> {
+    readonly body: Buffer;
 }
 
 export interface HttpResponseEmpty extends HttpResponse {
-  body?: never;
+    body?: never;
 }
 
 export enum HttpStatusCode {
@@ -96,4 +119,40 @@ export enum HttpStatusCode {
     InsufficientStorage = "507",
     LoopDetected = "508",
     NotExtended = "510",
+}
+
+export enum MimeType {
+    None = "",
+    ApplicationJson = "application/json",
+    ApplicationOctetStream = "application/octet-stream",
+    ApplicationPdf = "application/pdf",
+    ApplicationXWwwFormUrlencoded = "application/x-www-form-urlencoded",
+    ApplicationZip = "application/zip",
+    ApplicationGzip = "application/gzip",
+    ApplicationBzip = "application/bzip",
+    ApplicationBzip2 = "application/bzip2",
+    ApplicationLdJson = "application/ld+json",
+    FontWoff = "font/woff",
+    FontWoff2 = "font/woff2",
+    FontTtf = "font/ttf",
+    FontOtf = "font/otf",
+    AudioMpeg = "audio/mpeg",
+    AudioXWav = "audio/x-wav",
+    ImageGif = "image/gif",
+    ImageJpeg = "image/jpeg",
+    ImagePng = "image/png",
+    MultipartFormData = "multipart/form-data",
+    TextCss = "text/css",
+    TextCsv = "text/csv",
+    TextHtml = "text/html",
+    TextPlain = "text/plain",
+    TextXml = "text/xml",
+    VideoMpeg = "video/mpeg",
+    VideoMp4 = "video/mp4",
+    VideoQuicktime = "video/quicktime",
+    VideoXMsVideo = "video/x-msvideo",
+    VideoXFlv = "video/x-flv",
+    VideoWebm = "video/webm",
+
+
 }

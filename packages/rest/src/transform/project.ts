@@ -31,7 +31,7 @@ export const AJV_DEFAULTS: AJVBaseOptions = {
   useDefaults: true,
   coerceTypes: true,
   loopRequired: 20,
-  allErrors: true,
+  allErrors: false,
   removeAdditional: true,
 };
 

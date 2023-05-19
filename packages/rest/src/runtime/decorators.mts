@@ -1,8 +1,9 @@
 import {Nornir} from "@nornir/core";
 import {HttpRequest, HttpResponse} from "./http-event.mjs";
+import {InstanceOf} from "ts-morph";
 
 const UNTRANSFORMED_ERROR = new Error("@nornir/rest decorators have not been transformed. Have you setup ts-patch/ttypescript and added the transformer to your tsconfig.json?");
-export function Controller(_basePath: string) {
+export function Controller<const Path extends string, const ApiId extends string>(_basePath: Path, _apiId?: ApiId) {
   return <T extends { new(): unknown }>(_target: T, _ctx: ClassDecoratorContext): T => {
     throw UNTRANSFORMED_ERROR;
   };
@@ -39,4 +40,10 @@ export function HeadChain(_path: string) {
 
 export function OptionsChain(_path: string) {
   return routeChainDecorator;
+}
+
+export function Provider() {
+  return <T, K extends InstanceOf<T>>(_target: () => K, _propertyKey: ClassMethodDecoratorContext<T> & {static: true}): never => {
+    throw UNTRANSFORMED_ERROR
+  }
 }

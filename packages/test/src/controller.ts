@@ -1,16 +1,25 @@
 import { Nornir } from "@nornir/core";
-import { Controller, GetChain, type HttpRequest, HttpRequestEmpty, HttpStatusCode, PostChain } from "@nornir/rest";
+import {
+  Controller,
+  GetChain,
+  type HttpRequest,
+  HttpRequestEmpty,
+  HttpStatusCode,
+  MimeType,
+  PostChain,
+} from "@nornir/rest";
 
 interface RouteGetInput extends HttpRequestEmpty {
   headers: {
     // eslint-disable-next-line sonarjs/no-duplicate-string
-    "content-type": "text/plain";
+    "content-type": MimeType.None;
   };
 }
 
 interface RoutePostInputJSON extends HttpRequest {
   headers: {
-    "content-type": "application/json";
+    // eslint-disable-next-line sonarjs/no-duplicate-string
+    "content-type": MimeType.ApplicationJson;
   };
   body: RoutePostBodyInput;
   query: {
@@ -20,7 +29,7 @@ interface RoutePostInputJSON extends HttpRequest {
 
 interface RoutePostInputCSV extends HttpRequest {
   headers: {
-    "content-type": "text/csv";
+    "content-type": MimeType.TextCsv;
     /**
      * This is a CSV header
      * @example "cool,cool2"
@@ -86,7 +95,7 @@ export class TestController {
         statusCode: HttpStatusCode.Ok,
         body: `Content-Type: ${contentType}`,
         headers: {
-          "content-type": "text/plain" as const,
+          "content-type": MimeType.TextPlain,
         },
       }));
   }
@@ -97,7 +106,7 @@ export class TestController {
         statusCode: HttpStatusCode.Ok,
         body: `Content-Type: ${contentType}`,
         headers: {
-          "content-type": "text/plain" as const,
+          "content-type": MimeType.TextPlain,
         },
       }));
   }

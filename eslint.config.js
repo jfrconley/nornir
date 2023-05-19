@@ -70,7 +70,8 @@ const test = {
                     "match": false
                 }
             },
-        ]
+        ],
+        "sonarjs/no-duplicate-string": ["off"],
     },
 };
 

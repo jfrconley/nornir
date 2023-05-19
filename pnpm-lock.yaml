@@ -148,6 +148,9 @@ importers:
       '@nrfcloud/ts-json-schema-transformer':
         specifier: ^0.2.2
         version: 0.2.2(typescript@5.0.4)
+      '@types/aws-lambda':
+        specifier: ^8.10.115
+        version: 8.10.115
       ajv:
         specifier: ^8.12.0
         version: 8.12.0
@@ -210,8 +213,8 @@ importers:
         specifier: ^0.2.2
         version: 0.2.2(typescript@5.0.4)
       '@types/aws-lambda':
-        specifier: ^8.10.110
-        version: 8.10.110
+        specifier: ^8.10.115
+        version: 8.10.115
       '@types/jest':
         specifier: ^29.4.0
         version: 29.4.0
@@ -2677,9 +2680,8 @@ packages:
     resolution: {integrity: sha512-yOlFc+7UtL/89t2ZhjPvvB/DeAr3r+Dq58IgzsFkOAvVC6NMJXmCGjbptdXdR9qsX7pKcTL+s87FtYREi2dEEQ==}
     dev: true
 
-  /@types/aws-lambda@8.10.110:
-    resolution: {integrity: sha512-r6egf2Cwv/JaFTTrF9OXFVUB3j/SXTgM9BwrlbBRjWAa2Tu6GWoDoLflppAZ8uSfbUJdXvC7Br3DjuN9pQ2NUQ==}
-    dev: true
+  /@types/aws-lambda@8.10.115:
+    resolution: {integrity: sha512-kCZuFXKLV3y8NjSoaD5+qKTpRWvPz3uh3W/u1uwlw3Mg+MtaStg1NWgjAwUXo/VJDb6n6KF1ljykFNlNwEJ53Q==}
 
   /@types/babel__core@7.20.0:
     resolution: {integrity: sha512-+n8dL/9GWblDO0iU6eZAwEIJVr5DWigtle+Q6HLOrh/pdbXOhOtqzq8VPPE2zvNJzSKY4vH/z3iT3tn0A3ypiQ==}

@@ -25,7 +25,6 @@ export abstract class ChainRouteProcessor {
     methodDecorator: NornirDecoratorInfo,
     project: Project,
     node: ts.MethodDeclaration,
-    nornirDecorators: NornirDecoratorInfo[],
     controller: ControllerMeta,
   ): ts.MethodDeclaration {
     const path = ChainRouteProcessor.getPath(project, methodDecorator);
@@ -54,8 +53,8 @@ export abstract class ChainRouteProcessor {
     controller.addInitializationStatement(
       ChainRouteProcessor.generateRouteStatement(
         node,
-        controller.getRouteHolderIdentifier(),
-        controller.getControllerInstanceIdentifier(),
+        controller.routeHolderIdentifier,
+        controller.routeInstanceIdentifier,
         inputValidator,
         method,
         path,

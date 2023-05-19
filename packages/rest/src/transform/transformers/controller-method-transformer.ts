@@ -3,6 +3,7 @@ import { ControllerMeta } from "../controller-meta";
 import { NornirDecoratorInfo, separateNornirDecorators } from "../lib";
 import { Project } from "../project";
 import { ChainMethodDecoratorTypes, ChainRouteProcessor } from "./processors/chain-route-processor";
+import { ProviderProcessor } from "./processors/provider-processor";
 
 export abstract class ControllerMethodTransformer {
   private static transform(
@@ -26,7 +27,7 @@ export abstract class ControllerMethodTransformer {
 
     if (!method) return node;
 
-    return METHOD_DECORATOR_PROCESSORS[method](methodDecorator, project, node, nornirDecorators, controller);
+    return METHOD_DECORATOR_PROCESSORS[method](methodDecorator, project, node, controller);
   }
 
   public static transformControllerMethods(
@@ -48,11 +49,11 @@ type Task = (
   methodDecorator: NornirDecoratorInfo,
   project: Project,
   node: ts.MethodDeclaration,
-  nornirDecorators: NornirDecoratorInfo[],
   controller: ControllerMeta,
 ) => ts.MethodDeclaration;
 
 const METHOD_DECORATOR_PROCESSORS: Record<string, Task> = {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   ...Object.fromEntries(ChainMethodDecoratorTypes.map(type => [type, ChainRouteProcessor.transform])),
+  Provider: ProviderProcessor.transform,
 };
