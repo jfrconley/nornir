@@ -104,8 +104,8 @@ importers:
         specifier: ^9.8.4
         version: 9.8.4
       ts-patch:
-        specifier: ^3.0.0-beta3
-        version: 3.0.0-rc3
+        specifier: 3.0.0-beta3
+        version: 3.0.0-beta3
       turbo:
         specifier: ^1.9.2
         version: 1.9.2
@@ -137,8 +137,8 @@ importers:
         specifier: ^29.5.0
         version: 29.5.0(@types/node@18.15.11)(ts-node@10.9.1)
       ts-patch:
-        specifier: ^3.0.0-beta3
-        version: 3.0.0-rc3
+        specifier: 3.0.0-beta3
+        version: 3.0.0-beta3
       typescript:
         specifier: ^5.0.4
         version: 5.0.4
@@ -189,8 +189,8 @@ importers:
         specifier: ^29.5.0
         version: 29.5.0(@types/node@18.15.11)(ts-node@10.9.1)
       ts-patch:
-        specifier: ^3.0.0-beta3
-        version: 3.0.0-rc3
+        specifier: 3.0.0-beta3
+        version: 3.0.0-beta3
       typescript:
         specifier: ^5.0.4
         version: 5.0.4
@@ -231,8 +231,8 @@ importers:
         specifier: ^29.5.0
         version: 29.5.0(@types/node@18.15.11)(ts-node@10.9.1)
       ts-patch:
-        specifier: ^3.0.0-beta3
-        version: 3.0.0-rc3
+        specifier: 3.0.0-beta3
+        version: 3.0.0-beta3
       typescript:
         specifier: ^5.0.4
         version: 5.0.4
@@ -7692,8 +7692,8 @@ packages:
       yn: 3.1.1
     dev: true
 
-  /ts-patch@3.0.0-rc3:
-    resolution: {integrity: sha512-BDASAqVLJ+fCs0XqNXQCfdAXUZvKlxdOtg4PDYK1nkL5lYVKo+GVmTVPxiowjSf1TkBOezPUISIRutcJEmDxkA==}
+  /ts-patch@3.0.0-beta3:
+    resolution: {integrity: sha512-WAuauq0u3jPWJLJRVQi4tz01XQ1KHi05sPxUrzjGx4xUweoCzYtpLHaTlbcBVw0u7iptQQ8hPZNCS36C6Uu8vw==}
     hasBin: true
     dependencies:
       chalk: 4.1.2
