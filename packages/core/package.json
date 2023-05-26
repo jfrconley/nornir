@@ -22,7 +22,6 @@
   },
   "exports": {
     "types": "./dist/index.d.ts",
-    "require": "./dist/index.cjs",
     "import": "./dist/index.js"
   },
   "files": [
@@ -49,7 +48,7 @@
     "//98": "This is so the default scripts are project aware",
     "//99": "",
     "clean:single": "rm -rf dist bundle __tests__/dist .turbo",
-    "compile:single": "tsc && pnpm compile:single:cjs",
+    "compile:single": "tsc",
     "compile:single:cjs": "esbuild --bundle dist/index.js --target=node18 --platform=node --outdir=dist --format=cjs --out-extension:.js=.cjs --packages=external --minify --log-level=error",
     "compile:single:tests": "tsc -p __tests__/tsconfig.json",
     "compile:single:watch": "pnpm compile:single --incremental -w & pnpm compile:single:tests -w --incremental",
