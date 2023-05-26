@@ -36,6 +36,7 @@
     "README.md"
   ],
   "license": "MIT",
+  "private": true,
   "scripts": {
     "//10": "The following scripts are also available from the scripts package",
     "//20": "You can also override them by specifying them here",

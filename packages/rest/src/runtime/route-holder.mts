@@ -26,6 +26,7 @@ export class RouteHolder {
                 chain.use(request => {
                     const result = validator(request)
                     if (!result) {
+                        console.log(validator.errors)
                         throw new NornirRestRequestValidationError(request, validator.errors || [])
                     }
                     return request as Input;

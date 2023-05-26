@@ -161,8 +161,8 @@ importers:
         specifier: ^3.2.1
         version: 3.2.1
       ts-json-schema-generator:
-        specifier: ^1.2.0
-        version: 1.2.0
+        specifier: ^1.3.0-next.5
+        version: 1.3.0-next.5
       ts-morph:
         specifier: ^18.0.0
         version: 18.0.0
@@ -2255,7 +2255,7 @@ packages:
       ajv: 8.12.0
       esbuild: 0.17.18
       json-schema-faker: /@jfconley/json-schema-faker@0.5.0-rcv.48
-      ts-json-schema-generator: 1.3.0-next.4
+      ts-json-schema-generator: 1.3.0-next.5
       typescript: 5.0.4
 
   /@octokit/auth-token@3.0.3:
@@ -3553,11 +3553,6 @@ packages:
   /commander@10.0.0:
     resolution: {integrity: sha512-zS5PnTI22FIRM6ylNW8G4Ap0IEOyk62fhLSD0+uHRT9McRCLGpkVNvao4bjimpK/GShynyQkFFxHhwMcETmduA==}
     engines: {node: '>=14'}
-
-  /commander@9.5.0:
-    resolution: {integrity: sha512-KRs7WVDKg86PWiuAqhDrAQnTXZKraVcCc6vFdL14qrZ/DcWwuRo7VoiYXalXO7S5GKpqYiVEwCbgFDfxNHKJBQ==}
-    engines: {node: ^12.20.0 || >=14}
-    dev: false
 
   /compare-func@2.0.0:
     resolution: {integrity: sha512-zHig5N+tPWARooBnb0Zx1MFcdfpyJrfTJ3Y5L+IFvUm8rM74hHz66z0gw0x4tijh5CorKkKUCnW82R2vmpeCRA==}
@@ -7646,22 +7641,8 @@ packages:
       regexparam: 1.3.0
     dev: false
 
-  /ts-json-schema-generator@1.2.0:
-    resolution: {integrity: sha512-tUMeO3ZvA12d3HHh7T/AK8W5hmUhDRNtqWRHSMN3ZRbUFt+UmV0oX8k1RK4SA+a+BKNHpmW2v06MS49e8Fi3Yg==}
-    engines: {node: '>=10.0.0'}
-    hasBin: true
-    dependencies:
-      '@types/json-schema': 7.0.11
-      commander: 9.5.0
-      glob: 8.1.0
-      json5: 2.2.3
-      normalize-path: 3.0.0
-      safe-stable-stringify: 2.4.3
-      typescript: 4.9.5
-    dev: false
-
-  /ts-json-schema-generator@1.3.0-next.4:
-    resolution: {integrity: sha512-L2qfBiRIw8pvGa8jCwj5aLMpI8Xiuzze4IwOQ8wnBOGSAkSLJ1fOHGqtX01gte9TfARZ1xeVSqn4WDkTL1N5tQ==}
+  /ts-json-schema-generator@1.3.0-next.5:
+    resolution: {integrity: sha512-EOcvUTtnF7qaYmBLprnjoAbneLjJZZILRZtR5AXgiPFpmyvbZrpQGoRSE+/vbX/oqlTPr6RuOwT3okuxqGZ92w==}
     engines: {node: '>=10.0.0'}
     hasBin: true
     dependencies:
@@ -7856,12 +7837,6 @@ packages:
     resolution: {integrity: sha512-hR8JP2e8UiH7SME5JZjsobBlEiatFoxpzCP+R3ZeCo7kAaG1jXQE5X/buLzogM6GJu8le9Y4OcfNuIQX0rZskA==}
     engines: {node: '>=14.16'}
     dev: true
-
-  /typescript@4.9.5:
-    resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
-    engines: {node: '>=4.2.0'}
-    hasBin: true
-    dev: false
 
   /typescript@5.0.4:
     resolution: {integrity: sha512-cW9T5W9xY37cc+jfEnaUvX91foxtHkza3Nw3wkoF4sSlKn0MONdkdEndig/qPBWXNkmplh3NzayQzCiHM4/hqw==}

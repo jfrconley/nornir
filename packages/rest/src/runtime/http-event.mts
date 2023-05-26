@@ -47,7 +47,7 @@ export interface HttpRequestJSON extends HttpRequest {
 
 export interface HttpResponse {
     readonly statusCode: HttpStatusCode;
-    readonly headers: HttpHeaders;
+    readonly headers: HttpHeadersWithContentType;
     readonly body?: unknown;
 }
 

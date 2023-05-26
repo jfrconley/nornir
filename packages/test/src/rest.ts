@@ -1,5 +1,17 @@
-import nornir from "@nornir/core";
-import framework, { ApiGatewayProxyV2, startLocalServer } from "@nornir/rest";
+import nornir, { AttachmentRegistry } from "@nornir/core";
+import {
+  ApiGatewayProxyV2,
+  httpErrorHandler,
+  httpEventParser,
+  httpResponseSerializer,
+  HttpStatusCode,
+  mapErrorClass,
+  MimeType,
+  normalizeEventHeaders,
+  router,
+  startLocalServer,
+  UnparsedHttpEvent,
+} from "@nornir/rest";
 import type {
   APIGatewayEventRequestContextV2,
   APIGatewayProxyEventV2,
@@ -10,7 +22,30 @@ import "./controller.js";
 import "./controller2.js";
 import { getMockObject } from "@nrfcloud/ts-json-schema-transformer";
 
-const frameworkChain = framework();
+export class TestError implements NodeJS.ErrnoException {
+  public readonly name = "TestError";
+  constructor(
+    public readonly message: string,
+  ) {}
+}
+
+const frameworkChain = nornir<UnparsedHttpEvent>()
+  .use(normalizeEventHeaders)
+  .use(httpEventParser({
+    "text/csv": body => ({ cool: "stuff" }),
+  }))
+  .use(router())
+  .useResult(httpErrorHandler([
+    mapErrorClass(TestError, err => ({
+      statusCode: HttpStatusCode.InternalServerError,
+      headers: {
+        "content-type": MimeType.None,
+      },
+    })),
+  ]))
+  .use(httpResponseSerializer({
+    [MimeType.ApplicationZip]: () => Buffer.from(""),
+  }));
 
 export const handler: APIGatewayProxyHandlerV2 = nornir<APIGatewayProxyEventV2>()
   .use(ApiGatewayProxyV2.toHttpEvent)

@@ -7,17 +7,20 @@ import {
     HttpStatusCode,
     MimeType,
     normalizeEventHeaders,
+    NornirRestRequestValidationError,
     PostChain,
     router
 } from "../../dist/runtime/index.mjs";
 import {nornir, Nornir} from "@nornir/core";
 import {describe} from "@jest/globals";
+import {NornirRouteNotFoundError} from "../../dist/runtime/router.mjs";
 
 interface RouteGetInput extends HttpRequestEmpty {
     headers: {
         "content-type": MimeType.None;
     };
 }
+
 
 interface RoutePostInputJSON extends HttpRequest {
     headers: {
@@ -88,7 +91,7 @@ class TestController {
                 body: `cool`,
                 headers: {
                     // eslint-disable-next-line sonarjs/no-duplicate-string
-                    "content-type": "text/plain" as const,
+                    "content-type": MimeType.TextPlain,
                 },
             }));
     }
@@ -101,7 +104,7 @@ class TestController {
                 statusCode: HttpStatusCode.Ok,
                 body: `Content-Type: ${contentType}`,
                 headers: {
-                    "content-type": "text/plain" as const,
+                    "content-type": MimeType.TextPlain,
                 },
             }));
     }
@@ -110,7 +113,7 @@ class TestController {
 
 const handler = nornir<HttpEvent>()
     .use(normalizeEventHeaders)
-    .use(router(undefined, "rest"))
+    .use(router("rest"))
     .build();
 
 describe("REST tests", () => {
@@ -153,23 +156,22 @@ describe("REST tests", () => {
 
     describe("Invalid requests", () => {
         it("Should return a 404 for an invalid path", async () => {
-            const response = await handler({
+            await expect(handler({
                 method: "GET",
                 path: "/basepath/invalid",
                 headers: {
                     "content-type": "text/plain",
                 },
                 query: {}
-            });
-            expect(response.statusCode).toEqual(HttpStatusCode.NotFound);
+            })).rejects.toBeInstanceOf(NornirRouteNotFoundError)
         })
 
         it("Should return a 422 for an invalid body", async () => {
-            const response = await handler({
+            const request = {
                 method: "POST",
                 path: "/basepath/route",
                 headers: {
-                    "content-type": "application/json",
+                    "content-type": MimeType.ApplicationJson,
                 },
                 body: {
                     cool: "cool"
@@ -177,34 +179,31 @@ describe("REST tests", () => {
                 query: {
                     test: "true"
                 }
-            });
-
-            expect(response).toEqual({
-                statusCode: HttpStatusCode.UnprocessableEntity,
-                body: {
-                    errors: expect.arrayContaining([
-                        {
-                            instancePath: "/body/cool",
-                            keyword: "minLength",
-                            message: "must NOT have fewer than 5 characters",
-                            params: {
-                                limit: 5
-                            },
-                            schemaPath: "#/anyOf/0/properties/body/properties/cool/minLength"
-                        },
-                        {
-                            instancePath: "",
-                            keyword: "anyOf",
-                            message: "must match a schema in anyOf",
-                            params: {},
-                            schemaPath: "#/anyOf"
-                        }
-                    ])
+            } as const;
+            await expect(handler(request)).rejects.toMatchObject(new NornirRestRequestValidationError(
+                {
+                    ...request,
+                    pathParams: {},
                 },
-                headers: {
-                    "content-type": "application/json"
-                }
-            })
+                expect.arrayContaining([
+                    {
+                        instancePath: "/body/cool",
+                        keyword: "minLength",
+                        message: "must NOT have fewer than 5 characters",
+                        params: {
+                            limit: 5
+                        },
+                        schemaPath: "#/anyOf/0/properties/body/properties/cool/minLength"
+                    },
+                    {
+                        instancePath: "",
+                        keyword: "anyOf",
+                        message: "must match a schema in anyOf",
+                        params: {},
+                        schemaPath: "#/anyOf"
+                    }
+                ])
+            ));
         });
     });
 });

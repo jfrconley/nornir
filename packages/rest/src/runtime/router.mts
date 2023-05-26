@@ -2,7 +2,7 @@ import Trouter from 'trouter';
 import {RouteBuilder, RouteHolder} from './route-holder.mjs';
 import {HttpEvent, HttpMethod, HttpRequest, HttpResponse, HttpStatusCode, MimeType} from './http-event.mjs';
 import {AttachmentRegistry, Nornir, Result} from '@nornir/core';
-import {ErrorMappingSet, handleHttpErrors, NornirRestRequestError} from "./error.mjs";
+import {NornirRestRequestError} from "./error.mjs";
 
 type RouteHandler = (request: Result<HttpRequest>, registry: AttachmentRegistry) => Promise<Result<HttpResponse>>;
 
@@ -36,12 +36,12 @@ export class Router {
      * Create a Nornir REST instance.
      * The result can be used directly as a Nornir handler.
      */
-    public static build(errorMappings?: ErrorMappingSet, apiId = Router.DEFAULT_INSTANCE_ID): (request: HttpEvent, registry: AttachmentRegistry) => Promise<HttpResponse> {
-        return Router.get(apiId).build(errorMappings);
+    public static build(apiId = Router.DEFAULT_INSTANCE_ID): (request: HttpEvent, registry: AttachmentRegistry) => Promise<HttpResponse> {
+        return Router.get(apiId).build();
     }
 
     /** @internal */
-    public build(errorMappings?: ErrorMappingSet): (request: HttpEvent, registry: AttachmentRegistry) => Promise<HttpResponse> {
+    public build(): (request: HttpEvent, registry: AttachmentRegistry) => Promise<HttpResponse> {
         for (const routeHolder of this.routeHolders) {
             this.routes.push(...routeHolder.routes);
         }
@@ -53,7 +53,6 @@ export class Router {
             this.router.add(method, path, builder(new Nornir<HttpRequest>()).buildWithContext())
         }
 
-        const errorMapper = handleHttpErrors(errorMappings)
 
         return async (event, registry): Promise<HttpResponse> => {
             // eslint-disable-next-line unicorn/no-array-method-this-argument, unicorn/no-array-callback-reference
@@ -67,10 +66,10 @@ export class Router {
                 pathParams: params,
             }
             if (handler == undefined) {
-                return errorMapper(Result.err(new NornirRouteNotFoundError(request)));
+                throw new NornirRouteNotFoundError(request);
             }
             const response = await handler(Result.ok(request), registry);
-            return errorMapper(response);
+            return response.unwrap();
         }
     }
 }

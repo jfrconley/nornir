@@ -41,7 +41,7 @@ export const SCHEMA_DEFAULTS: Config = {
   sortProps: true,
   strictTuples: false,
   encodeRefs: true,
-  additionalProperties: false,
+  additionalProperties: true,
   topRef: false,
 };
 

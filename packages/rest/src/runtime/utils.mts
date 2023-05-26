@@ -1,7 +1,7 @@
 import {HttpEvent, HttpHeaders, MimeType, UnparsedHttpEvent} from "./http-event.mjs";
 
-export function getContentType(headers: HttpHeaders): MimeType[number] | undefined {
-    return (normalizeHeaders(headers))["content-type"] as MimeType[number]
+export function getContentType(headers: HttpHeaders): MimeType | undefined {
+    return (normalizeHeaders(headers))["content-type"] as MimeType
 }
 
 export function normalizeEventHeaders<T extends HttpEvent | UnparsedHttpEvent>(event: T): T {
