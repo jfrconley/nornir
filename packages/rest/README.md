@@ -11,6 +11,50 @@
 - Pluggable middleware chain
 - OpenAPI v3.1 documentation generation _**(coming soon)**_
 
+## Installation
+
+#### Requirements
+
+- typescript >= 5
+-
+
+#### First, install the package
+
+You can use any package manager. I prefer pnpm, but yarn and npm should work fine.
+
+```bash
+pnpm add -D @nrfcloud/ts-json-schema-transformer
+# OR
+yarn add -D @nrfcloud/ts-json-schema-transformer
+# OR
+npm install -D @nrfcloud/ts-json-schema-transformer
+```
+
+#### Next, install ts-patch
+
+```bash
+pnpm add -D ts-patch
+
+# You'll want to add this line to your package.json prepare script
+pnpm ts-pach install -s
+```
+
+#### Lastly, add the plugin configuration to your `tsconfig.json` file
+
+```json
+{
+  "compilerOptions": {
+    "plugins": [
+      {
+        "transform": "@nornir/rest/transform"
+      }
+    ],
+    // Nornir Rest uses native ES6 decorators, so you'll need to disable experimentalDecorators
+    "experimentalDecorators": false
+  }
+}
+```
+
 ## Basic Usage
 
 Simple API Gateway proxy handler
