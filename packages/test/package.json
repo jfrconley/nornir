@@ -8,7 +8,7 @@
   },
   "devDependencies": {
     "@jest/globals": "^29.5.0",
-    "@nrfcloud/ts-json-schema-transformer": "^0.2.2",
+    "@nrfcloud/ts-json-schema-transformer": "^1.1.1",
     "@types/aws-lambda": "^8.10.115",
     "@types/jest": "^29.4.0",
     "@types/node": "^18.15.11",
