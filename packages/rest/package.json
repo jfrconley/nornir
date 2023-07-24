@@ -1,7 +1,7 @@
 {
   "name": "@nornir/rest",
   "description": "A nornir library",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "dependencies": {
     "@nrfcloud/ts-json-schema-transformer": "^1.2.1",
     "@types/aws-lambda": "^8.10.115",
