@@ -1,3 +1,5 @@
+/* eslint-disable eslint-comments/disable-enable-pair,unicorn/no-empty-file */
+
 // import type { OpenAPIV3 } from "openapi-types";
 // import { Metadata } from "typia/lib/metadata/Metadata";
 // import { ApplicationProgrammer } from "typia/lib/programmers/ApplicationProgrammer";
@@ -122,4 +124,3 @@
 //   schema: object;
 // }
 // type MetaTupleSet = MetaTuple[];
-console.log("NOOP");
