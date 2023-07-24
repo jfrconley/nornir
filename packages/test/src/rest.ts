@@ -78,7 +78,7 @@ const testResponse = await handler(
       },
     },
   },
-  {} as any,
+  {} as never,
   console.log,
 ) as APIGatewayProxyStructuredResultV2;
 

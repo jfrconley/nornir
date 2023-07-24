@@ -8,6 +8,7 @@ import {Result} from "@nornir/core";
 export abstract class NornirRestError extends Error implements NodeJS.ErrnoException {
     public abstract toHttpResponse(): HttpResponse;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public static isNornirRestError(err: any): err is NornirRestError {
         return "toHttpResponse" in err;
     }
@@ -32,7 +33,9 @@ interface ErrorMapping {
     toHttpResponse(error: unknown): HttpResponse;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function mapErrorClass<T extends NodeJS.ErrnoException, TClass extends new (...args: any) => T>(error: TClass, toHttpResponse: (err: T) => HttpResponse): ErrorMapping;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function mapErrorClass<T extends Error, TClass extends new (...args: any) => T>(error: TClass, toHttpResponse: (err: T) => HttpResponse): ErrorMapping {
     return {
         errorMatch: (err: unknown): err is T => err instanceof error,

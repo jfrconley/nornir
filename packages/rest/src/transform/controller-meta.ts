@@ -370,7 +370,7 @@ export class ControllerMeta {
 }
 
 function deparameterizePath(path: string) {
-  return path.replace(/:[^/]+/g, ":param");
+  return path.replaceAll(/:[^/]+/g, ":param");
 }
 
 export interface RouteInfo {

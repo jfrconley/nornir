@@ -40,6 +40,7 @@ const test = {
         "dist",
         "node_modules",
         "**/*.js",
+        "**/*.cjs"
     ],
     rules: {
         // Reduce is confusing, but it shouldn't be banned
@@ -47,6 +48,7 @@ const test = {
         "unicorn/filename-case": ["error", {
             case: "kebabCase",
         }],
+        "unicorn/no-empty-files": ["off"],
         "workspaces/require-dependency": ["off"],
         "unicorn/prevent-abbreviations": ["off"],
         "no-secrets/no-secrets": ["warn", {"tolerance": 5.0}],
