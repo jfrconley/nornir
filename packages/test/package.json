@@ -3,8 +3,8 @@
   "description": "Sandbox test library for Nornir",
   "version": "1.0.0",
   "dependencies": {
-    "@nornir/core": "workspace",
-    "@nornir/rest": "workspace"
+    "@nornir/core": "workspace:^",
+    "@nornir/rest": "workspace:^"
   },
   "devDependencies": {
     "@jest/globals": "^29.5.0",

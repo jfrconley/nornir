@@ -129,7 +129,7 @@ importers:
   packages/rest:
     dependencies:
       '@nornir/core':
-        specifier: workspace
+        specifier: workspace:^
         version: link:../core
       '@nrfcloud/ts-json-schema-transformer':
         specifier: ^1.2.3
@@ -183,10 +183,10 @@ importers:
   packages/test:
     dependencies:
       '@nornir/core':
-        specifier: workspace
+        specifier: workspace:^
         version: link:../core
       '@nornir/rest':
-        specifier: workspace
+        specifier: workspace:^
         version: link:../rest
     devDependencies:
       '@jest/globals':

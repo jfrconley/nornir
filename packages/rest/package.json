@@ -3,7 +3,7 @@
   "description": "A nornir library",
   "version": "1.2.0",
   "dependencies": {
-    "@nornir/core": "workspace",
+    "@nornir/core": "workspace:^",
     "@nrfcloud/ts-json-schema-transformer": "^1.2.3",
     "@types/aws-lambda": "^8.10.115",
     "ajv": "^8.12.0",
