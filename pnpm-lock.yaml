@@ -2242,7 +2242,7 @@ packages:
       fastq: 1.15.0
 
   /@nrfcloud/ts-json-schema-transformer@1.2.3(typescript@5.1.6):
-    resolution: {integrity: sha512-64/ipN46E8ol+YYn4TJGH/ZMXcod6EImzxYlmhZpQvi+bE6ssTWPIrpSJxDYFQzzsNKBi5HfIJywC7kUEGwFWQ==, tarball: https://npm.pkg.github.com/download/@nrfcloud/ts-json-schema-transformer/1.2.3/60c0bb34da4ef5a9d9bea1420dd33eeda05caf44}
+    resolution: {integrity: sha512-0MeZGyp0noARf5P9KV9Du0mrAx5Ofx8qhGkHAHrNaaxnZ6Yim4Vuv/i+s6neMYmZoiExakMRTlLs5PMBqkwpXw==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       typescript: '>=5'
