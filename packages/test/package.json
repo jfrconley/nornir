@@ -3,12 +3,12 @@
   "description": "Sandbox test library for Nornir",
   "version": "1.0.0",
   "dependencies": {
-    "@nornir/core": "workspace:*",
-    "@nornir/rest": "workspace:*"
+    "@nornir/core": "workspace",
+    "@nornir/rest": "workspace"
   },
   "devDependencies": {
     "@jest/globals": "^29.5.0",
-    "@nrfcloud/ts-json-schema-transformer": "^1.2.1",
+    "@nrfcloud/ts-json-schema-transformer": "^1.2.2",
     "@types/aws-lambda": "^8.10.115",
     "@types/jest": "^29.4.0",
     "@types/node": "^18.15.11",
@@ -37,6 +37,7 @@
   ],
   "license": "MIT",
   "private": true,
+  "repository": "nrfcloud/account-service",
   "scripts": {
     "//10": "The following scripts are also available from the scripts package",
     "//20": "You can also override them by specifying them here",

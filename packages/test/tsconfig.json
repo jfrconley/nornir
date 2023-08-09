@@ -10,9 +10,10 @@
         "transform": "@nornir/rest/transform"
       }
     ],
-    "tsBuildInfoFile": "dist/.tsbuildinfo",
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "composite": false,
+    "incremental": false
   },
   "include": [
     "src/**/*",

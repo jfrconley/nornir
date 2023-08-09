@@ -1,9 +1,8 @@
 import { schemaToValidator } from "@nrfcloud/ts-json-schema-transformer/utils";
-import { createWrappedNode, MethodDeclaration, TypeNode, TypeReferenceNode } from "ts-morph";
 import { isTypeReference } from "tsutils";
 import ts from "typescript";
 import { ControllerMeta } from "../../controller-meta";
-import { getStringLiteralOrConst, isNornirLib, NornirDecoratorInfo, separateNornirDecorators } from "../../lib";
+import { getStringLiteralOrConst, isNornirNode, NornirDecoratorInfo, separateNornirDecorators } from "../../lib";
 import { Project } from "../../project";
 
 export const ChainMethodDecoratorTypeMap = {
@@ -24,30 +23,34 @@ export abstract class ChainRouteProcessor {
   public static transform(
     methodDecorator: NornirDecoratorInfo,
     project: Project,
+    source: ts.SourceFile,
     node: ts.MethodDeclaration,
     controller: ControllerMeta,
   ): ts.MethodDeclaration {
     const path = ChainRouteProcessor.getPath(project, methodDecorator);
     const method = ChainRouteProcessor.getMethod(project, methodDecorator);
 
-    const wrappedNode = createWrappedNode(node, { typeChecker: project.checker }) as MethodDeclaration;
+    // const wrappedNode = createWrappedNode(node, { typeChecker: project.checker }) as MethodDeclaration;
 
-    const inputType = ChainRouteProcessor.resolveInputType(wrappedNode);
+    const inputTypeNode = ChainRouteProcessor.resolveInputType(project, node);
+    const inputType = project.checker.getTypeFromTypeNode(inputTypeNode);
 
     // const outputType = ChainRouteProcessor.resolveOutputType(project, methodSignature);
 
-    const inputSchema = project.schemaGenerator.createSchemaFromNodes([inputType.compilerNode as never]);
+    const inputSchema = project.schemaGenerator.createSchemaFromNodes([inputTypeNode]);
 
     const inputValidator = schemaToValidator(inputSchema, project.options.validation);
 
     controller.registerRoute(node, {
       method,
       path,
-      input: inputType.getType().compilerType,
-      output: inputType.getType().compilerType,
+      input: inputType,
+
+      // FIXME: this should be the output type not the input type
+      output: inputType,
       // description,
       // summary,
-      filePath: node.getSourceFile().fileName,
+      filePath: source.fileName,
     });
 
     controller.addInitializationStatement(
@@ -126,23 +129,26 @@ export abstract class ChainRouteProcessor {
     return ChainMethodDecoratorTypeMap[name as keyof typeof ChainMethodDecoratorTypeMap];
   }
 
-  private static resolveInputType(method: MethodDeclaration): TypeNode {
-    const params = method.getParameters();
+  private static resolveInputType(project: Project, method: ts.MethodDeclaration): ts.TypeNode {
+    const params = method.parameters;
     if (params.length !== 1) {
       throw new Error("Handler chain must have 1 parameter");
     }
     const [param] = params;
-    const paramTypePath = param.getType().getSymbol()?.getDeclarations()?.[0].getSourceFile().getFilePath();
-    if (!isNornirLib(paramTypePath || "")) {
+    const paramType = project.checker.getTypeAtLocation(param);
+    const paramDeclaration = paramType.symbol?.declarations?.[0];
+    if (!paramDeclaration || !isNornirNode(paramDeclaration)) {
       throw new Error("Handler chain input must be a Nornir class");
     }
-    const paramTypeNode = param.getTypeNodeOrThrow() as TypeReferenceNode;
-    const paramTypeArgs = paramTypeNode.getTypeArguments();
-    if (paramTypeArgs.length !== 1) {
+
+    // eslint-disable-next-line unicorn/no-useless-undefined
+    const paramTypeNode = project.checker.typeToTypeNode(paramType, undefined, undefined) as ts.TypeReferenceNode;
+    const [paramTypeArg] = paramTypeNode.typeArguments || [];
+    if (!paramTypeArg) {
       throw new Error("Handler chain input must have a type argument");
     }
 
-    return paramTypeArgs[0];
+    return paramTypeArg;
   }
 
   private static resolveOutputType(project: Project, methodSignature: ts.Signature): ts.Type {
@@ -151,7 +157,7 @@ export abstract class ChainRouteProcessor {
     if (!returnTypeDeclaration) {
       throw new Error("Handler chain return type declaration not found");
     }
-    if (!isNornirLib(returnTypeDeclaration.getSourceFile().fileName)) {
+    if (!isNornirNode(returnTypeDeclaration)) {
       throw new Error("Handler chain return must be a Nornir class");
     }
     if (!isTypeReference(returnType)) {

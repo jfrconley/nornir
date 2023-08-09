@@ -1,17 +1,18 @@
-import path from "node:path";
 import ts from "typescript";
 import { StrictTransformationError } from "./error";
 import { Project } from "./project";
 
-const LIB_PATHS = [
-  path.join("node_modules", "@nornir/rest", "dist", "runtime"),
-  path.join("node_modules", "@nornir/core", "dist"),
-  path.join("packages", "rest", "dist", "runtime"),
-  path.join("packages", "core", "dist"),
-];
+export function isNornirNode(node: ts.Node) {
+  return hasOriginator(node, "nornir/core");
+}
 
-export function isNornirLib(file: string) {
-  return LIB_PATHS.some(libPath => file.includes(libPath));
+export function isNornirRestNode(node: ts.Node) {
+  return hasOriginator(node, "nornir/rest");
+}
+
+export function hasOriginator(node: ts.Node, originator: string): boolean {
+  const jsdoc = ts.getJSDocTags(node);
+  return jsdoc.some((tag) => tag.tagName.getText() === "originator" && tag.comment === originator);
 }
 
 export function getStringLiteralOrConst(project: Project, node: ts.Expression): string | undefined {
@@ -39,14 +40,22 @@ export function separateNornirDecorators(
   otherDecorators: ts.Decorator[];
   nornirDecorators: NornirDecoratorInfo[];
 } {
-  const nornirDecorators: { decorator: ts.Decorator; signature: ts.Signature; declaration: ts.Declaration }[] = [];
+  const nornirDecorators: {
+    decorator: ts.Decorator;
+    signature: ts.Signature;
+    declaration: ts.Declaration;
+  }[] = [];
   const decorators: ts.Decorator[] = [];
 
   for (const decorator of originalDecorators) {
     const signature = project.checker.getResolvedSignature(decorator);
-    const fileName = signature?.declaration?.getSourceFile().fileName || "";
-    if (isNornirLib(fileName) && signature && signature.declaration) {
-      nornirDecorators.push({ decorator, signature, declaration: signature.declaration });
+    const parentDeclaration = signature?.getDeclaration()?.parent;
+    if (parentDeclaration && signature && signature.declaration && isNornirRestNode(parentDeclaration)) {
+      nornirDecorators.push({
+        decorator,
+        signature,
+        declaration: signature.declaration,
+      });
     } else {
       decorators.push(decorator);
     }

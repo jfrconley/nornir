@@ -62,5 +62,6 @@
     "prepublish": "pnpm build:clean",
     "test": "pnpm tests"
   },
-  "type": "module"
+  "type": "module",
+"repository": "nrfcloud/account-service"
 }
