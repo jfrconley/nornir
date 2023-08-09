@@ -8,6 +8,7 @@ import {
   MimeType,
   PostChain,
 } from "@nornir/rest";
+import { assertValid } from "@nrfcloud/ts-json-schema-transformer";
 
 interface RouteGetInput extends HttpRequestEmpty {
   headers: {
@@ -90,6 +91,10 @@ export class TestController {
   @GetChain("/route")
   public getRoute(chain: Nornir<RouteGetInput>) {
     return chain
+      .use(input => {
+        assertValid<RouteGetInput>(input);
+        return input;
+      })
       .use(input => input.headers["content-type"])
       .use(contentType => ({
         statusCode: HttpStatusCode.Ok,

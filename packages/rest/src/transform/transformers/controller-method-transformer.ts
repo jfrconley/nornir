@@ -8,6 +8,7 @@ import { ProviderProcessor } from "./processors/provider-processor";
 export abstract class ControllerMethodTransformer {
   private static transform(
     project: Project,
+    source: ts.SourceFile,
     node: ts.MethodDeclaration,
     controller: ControllerMeta,
   ): ts.MethodDeclaration {
@@ -27,18 +28,19 @@ export abstract class ControllerMethodTransformer {
 
     if (!method) return node;
 
-    return METHOD_DECORATOR_PROCESSORS[method](methodDecorator, project, node, controller);
+    return METHOD_DECORATOR_PROCESSORS[method](methodDecorator, project, source, node, controller);
   }
 
   public static transformControllerMethods(
     project: Project,
+    source: ts.SourceFile,
     node: ts.ClassDeclaration,
     controller: ControllerMeta,
     context: ts.TransformationContext,
   ) {
     return ts.visitEachChild(node, (child) => {
       if (ts.isMethodDeclaration(child)) {
-        return ControllerMethodTransformer.transform(project, child, controller);
+        return ControllerMethodTransformer.transform(project, source, child, controller);
       }
       return child;
     }, context);
@@ -48,6 +50,7 @@ export abstract class ControllerMethodTransformer {
 type Task = (
   methodDecorator: NornirDecoratorInfo,
   project: Project,
+  source: ts.SourceFile,
   node: ts.MethodDeclaration,
   controller: ControllerMeta,
 ) => ts.MethodDeclaration;

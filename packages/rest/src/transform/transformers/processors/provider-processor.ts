@@ -7,6 +7,7 @@ export abstract class ProviderProcessor {
   public static transform(
     methodDecorator: NornirDecoratorInfo,
     project: Project,
+    source: ts.SourceFile,
     node: ts.MethodDeclaration,
     controller: ControllerMeta,
   ): ts.MethodDeclaration {

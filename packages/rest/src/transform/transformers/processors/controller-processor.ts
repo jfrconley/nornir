@@ -7,14 +7,21 @@ import { ControllerMethodTransformer } from "../controller-method-transformer";
 export abstract class ControllerProcessor {
   public static process(
     project: Project,
+    source: ts.SourceFile,
     node: ts.ClassDeclaration,
     nornirDecorators: NornirDecoratorInfo[],
     context: ts.TransformationContext,
   ): ts.Node {
-    const { basePath, apiId } = ControllerProcessor.getAruments(project, nornirDecorators);
-    const routeMeta = ControllerMeta.create(project, node, basePath, apiId);
+    const { basePath, apiId } = ControllerProcessor.getArguments(project, nornirDecorators);
+    const routeMeta = ControllerMeta.create(project, source, node, basePath, apiId);
 
-    const transformedNode = ControllerMethodTransformer.transformControllerMethods(project, node, routeMeta, context);
+    const transformedNode = ControllerMethodTransformer.transformControllerMethods(
+      project,
+      source,
+      node,
+      routeMeta,
+      context,
+    );
 
     const transformedModifiers = ts.getModifiers(transformedNode) || [];
 
@@ -32,7 +39,7 @@ export abstract class ControllerProcessor {
     );
   }
 
-  private static getAruments(project: Project, nornirDecorators: NornirDecoratorInfo[]): {
+  private static getArguments(project: Project, nornirDecorators: NornirDecoratorInfo[]): {
     basePath: string;
     apiId: string;
   } {

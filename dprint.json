@@ -12,7 +12,9 @@
     "**/node_modules",
     "**/*-lock.json",
     "**/dist",
-    "**/bundle"
+    "**/bundle",
+    "*.d.ts",
+    "coverage-final.json"
   ],
   "plugins": [
     "https://plugins.dprint.dev/typescript-0.83.0.wasm",

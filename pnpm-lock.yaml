@@ -81,7 +81,7 @@ importers:
         specifier: ^3.1.2
         version: 3.1.2
       scripts:
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:packages/scripts
       syncpack:
         specifier: ^9.8.4
@@ -102,8 +102,8 @@ importers:
         specifier: ^29.5.0
         version: 29.5.0
       '@nrfcloud/ts-json-schema-transformer':
-        specifier: ^1.2.1
-        version: 1.2.1(typescript@5.1.6)
+        specifier: ^1.2.3
+        version: 1.2.3(typescript@5.1.6)
       '@types/jest':
         specifier: ^29.4.0
         version: 29.4.0
@@ -128,9 +128,12 @@ importers:
 
   packages/rest:
     dependencies:
+      '@nornir/core':
+        specifier: workspace
+        version: link:../core
       '@nrfcloud/ts-json-schema-transformer':
-        specifier: ^1.2.1
-        version: 1.2.1(typescript@5.1.6)
+        specifier: ^1.2.3
+        version: 1.2.3(typescript@5.1.6)
       '@types/aws-lambda':
         specifier: ^8.10.115
         version: 8.10.115
@@ -156,9 +159,6 @@ importers:
       '@jest/globals':
         specifier: ^29.5.0
         version: 29.5.0
-      '@nornir/core':
-        specifier: workspace:*
-        version: link:../core
       '@types/jest':
         specifier: ^29.4.0
         version: 29.4.0
@@ -183,18 +183,18 @@ importers:
   packages/test:
     dependencies:
       '@nornir/core':
-        specifier: workspace:*
+        specifier: workspace
         version: link:../core
       '@nornir/rest':
-        specifier: workspace:*
+        specifier: workspace
         version: link:../rest
     devDependencies:
       '@jest/globals':
         specifier: ^29.5.0
         version: 29.5.0
       '@nrfcloud/ts-json-schema-transformer':
-        specifier: ^1.2.1
-        version: 1.2.1(typescript@5.1.6)
+        specifier: ^1.2.3
+        version: 1.2.3(typescript@5.1.6)
       '@types/aws-lambda':
         specifier: ^8.10.115
         version: 8.10.115
@@ -2241,8 +2241,8 @@ packages:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.15.0
 
-  /@nrfcloud/ts-json-schema-transformer@1.2.1(typescript@5.1.6):
-    resolution: {integrity: sha512-pmFMH3+DMSWPLVxPU7ooeWrllnFIupXky2MK6UyJhwmRebnsvJru6wz5dPgbNmMEz0O3HzMtkjZ++bMOUX1vHg==}
+  /@nrfcloud/ts-json-schema-transformer@1.2.3(typescript@5.1.6):
+    resolution: {integrity: sha512-64/ipN46E8ol+YYn4TJGH/ZMXcod6EImzxYlmhZpQvi+bE6ssTWPIrpSJxDYFQzzsNKBi5HfIJywC7kUEGwFWQ==, tarball: https://npm.pkg.github.com/download/@nrfcloud/ts-json-schema-transformer/1.2.3/60c0bb34da4ef5a9d9bea1420dd33eeda05caf44}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       typescript: '>=5'

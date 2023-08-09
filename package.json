@@ -27,7 +27,7 @@
     "jest-html-reporters": "^3.1.4",
     "jest-junit": "^15.0.0",
     "plop": "^3.1.2",
-    "scripts": "workspace:*",
+    "scripts": "workspace:^",
     "syncpack": "^9.8.4",
     "ts-patch": "^3.0.2",
     "turbo": "^1.9.2",
@@ -42,6 +42,7 @@
   "license": "MIT",
   "packageManager": "pnpm@6.32.4",
   "private": true,
+  "repository": "nrfcloud/account-service",
   "scripts": {
     "clean": "rm -rf coverage reports node_modules/.cache/turbo && pnpm clean:turbo && pnpm turbo clean:single",
     "clean:turbo": "rm -rf node_modules/.cache/turbo",

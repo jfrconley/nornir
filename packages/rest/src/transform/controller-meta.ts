@@ -27,7 +27,13 @@ export class ControllerMeta {
     this.cache.clear();
   }
 
-  public static create(project: Project, route: ts.ClassDeclaration, basePath: string, apiId: string): ControllerMeta {
+  public static create(
+    project: Project,
+    source: ts.SourceFile,
+    route: ts.ClassDeclaration,
+    basePath: string,
+    apiId: string,
+  ): ControllerMeta {
     const name = route.name;
     if (!name) {
       throw new Error("Route class must have a name");
@@ -35,7 +41,7 @@ export class ControllerMeta {
     if (this.cache.has(name)) {
       throw new Error("Route already exists: " + name.getText());
     }
-    const meta = new ControllerMeta(project, route, name, basePath, apiId);
+    const meta = new ControllerMeta(project, source, route, name, basePath, apiId);
     this.cache.set(name, meta);
     return meta;
   }
@@ -58,6 +64,7 @@ export class ControllerMeta {
 
   private constructor(
     private readonly project: Project,
+    public readonly source: ts.SourceFile,
     public readonly route: ts.ClassDeclaration,
     public readonly identifier: ts.Identifier,
     public readonly basePath: string,
@@ -95,7 +102,7 @@ export class ControllerMeta {
 
   private generateRouteHolderCreateStatement() {
     const nornirRestImport = FileTransformer.getOrCreateImport(
-      this.route.getSourceFile(),
+      this.source,
       "@nornir/rest",
       "RouteHolder",
     );
@@ -134,7 +141,7 @@ export class ControllerMeta {
   }
 
   private generateRegisterRouteHolderStatement() {
-    const routerIdentifier = FileTransformer.getOrCreateImport(this.route.getSourceFile(), "@nornir/rest", "Router");
+    const routerIdentifier = FileTransformer.getOrCreateImport(this.source, "@nornir/rest", "Router");
     const routerInstance = ts.factory.createCallExpression(
       ts.factory.createPropertyAccessExpression(routerIdentifier, "get"),
       [],

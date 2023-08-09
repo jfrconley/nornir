@@ -44,6 +44,11 @@ class NornirContext {
 
 export type ResultMiddleware<Input, Output> = (input: Result<Input>, registry: AttachmentRegistry) => Output;
 
+/**
+ * A Nornir is a chain of middleware that can be used to transform an input into an output.
+ *
+ * @originator nornir/core
+ */
 export class Nornir<Input, StepInput = Input> {
   constructor(private readonly context: NornirContext = new NornirContext()) {}
 
