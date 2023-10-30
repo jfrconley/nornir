@@ -7,9 +7,9 @@ export type HttpBodySerializer<T> = (body: T | undefined) => Buffer
 export type HttpBodySerializerMap = Partial<Record<MimeType | "default", HttpBodySerializer<never>>>
 
 const DEFAULT_BODY_SERIALIZERS: HttpBodySerializerMap & {default: HttpBodySerializer<never>} = {
-    "application/json": (body?: object) => Buffer.from(JSON.stringify(body), "utf8"),
+    "application/json": (body?: object) => Buffer.from(JSON.stringify(body) || "", "utf8"),
     "text/plain": (body?: string) => Buffer.from(body?.toString() || "", "utf8"),
-    "default": (body?: never) => Buffer.from(JSON.stringify(body), "utf8")
+    "default": (body?: never) => Buffer.from(JSON.stringify(body) || "", "utf8")
 }
 
 export function httpResponseSerializer(bodySerializerMap?: HttpBodySerializerMap) {

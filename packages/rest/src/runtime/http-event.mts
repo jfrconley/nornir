@@ -56,6 +56,9 @@ export interface SerializedHttpResponse extends Omit<HttpResponse, "body"> {
 }
 
 export interface HttpResponseEmpty extends HttpResponse {
+    headers: {
+        "content-type": MimeType.None;
+    },
     body?: never;
 }
 
