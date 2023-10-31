@@ -1,5 +1,11 @@
 # @nornir/rest
 
+## 1.4.0
+
+### Minor Changes
+
+- cfa8753: support async toHttpEvent with registry
+
 ## 1.3.0
 
 ### Minor Changes
