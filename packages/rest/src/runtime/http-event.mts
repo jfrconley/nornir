@@ -131,6 +131,7 @@ export type AnyMimeType = Nominal<string | undefined, "AnyMimeType">
 export const AnyMimeType = "*/*" as AnyMimeType;
 
 export enum MimeType {
+    None = "",
     ApplicationJson = "application/json",
     ApplicationOctetStream = "application/octet-stream",
     ApplicationPdf = "application/pdf",
