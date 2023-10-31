@@ -1,5 +1,6 @@
 import { Nornir } from "@nornir/core";
 import {
+  AnyMimeType,
   Controller,
   GetChain,
   HttpRequest,
@@ -16,7 +17,7 @@ interface RouteGetInput extends HttpRequestEmpty {
   headers: GetHeaders;
 }
 interface GetHeaders {
-  "content-type": MimeType.None;
+  "content-type": AnyMimeType;
   [key: string]: string;
 }
 
@@ -72,7 +73,7 @@ export class TestController {
       .use(() => ({
         statusCode: HttpStatusCode.Created,
         headers: {
-          "content-type": MimeType.TextPlain,
+          "content-type": AnyMimeType,
         },
       }));
   }

@@ -1,5 +1,6 @@
-import nornir, { AttachmentRegistry } from "@nornir/core";
+import nornir from "@nornir/core";
 import {
+  AnyMimeType,
   ApiGatewayProxyV2,
   httpErrorHandler,
   httpEventParser,
@@ -39,7 +40,7 @@ const frameworkChain = nornir<UnparsedHttpEvent>()
     mapErrorClass(TestError, err => ({
       statusCode: HttpStatusCode.InternalServerError,
       headers: {
-        "content-type": MimeType.None,
+        "content-type": AnyMimeType,
       },
     })),
   ]))

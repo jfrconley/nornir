@@ -23,3 +23,15 @@ export function normalizeHeaders(headers: HttpHeaders): HttpHeaders {
         ...lowercaseHeaders
     }
 }
+
+/**
+ * @internal
+ */
+export declare class Tagged<N extends string> {
+    protected _nominal_: N;
+}
+
+/**
+ * @internal
+ */
+export type Nominal<T, N extends string, E extends T & Tagged<string> = T & Tagged<N>> = (T & Tagged<N>) | E;

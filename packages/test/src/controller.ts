@@ -1,5 +1,6 @@
 import { Nornir } from "@nornir/core";
 import {
+  AnyMimeType,
   Controller,
   GetChain,
   type HttpRequest,
@@ -13,7 +14,7 @@ import { assertValid } from "@nrfcloud/ts-json-schema-transformer";
 interface RouteGetInput extends HttpRequestEmpty {
   headers: {
     // eslint-disable-next-line sonarjs/no-duplicate-string
-    "content-type": MimeType.None;
+    "content-type": AnyMimeType;
   };
 }
 

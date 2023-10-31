@@ -1,3 +1,5 @@
+import {Nominal} from "./utils.mjs";
+
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD" | "OPTIONS";
 
 export type HttpEvent = Omit<HttpRequest, "pathParams" | "headers"> & {
@@ -16,8 +18,9 @@ export type UnparsedHttpEvent = Omit<HttpEvent, "body" | "query"> & {
 // } & Record<string, string | number>
 
 export type HttpHeadersWithContentType = {
-    readonly "content-type": MimeType;
+    readonly "content-type": MimeType | AnyMimeType
 } & HttpHeaders;
+
 
 export type HttpHeaders = Record<string, number | string>;
 
@@ -33,9 +36,9 @@ export interface HttpRequest {
 
 export interface HttpRequestEmpty extends HttpRequest {
     headers: {
-        "content-type": MimeType.None;
+        "content-type": AnyMimeType;
     }
-    body: never;
+    // body?: undefined;
 }
 
 export interface HttpRequestJSON extends HttpRequest {
@@ -57,9 +60,9 @@ export interface SerializedHttpResponse extends Omit<HttpResponse, "body"> {
 
 export interface HttpResponseEmpty extends HttpResponse {
     headers: {
-        "content-type": MimeType.None;
+        "content-type": AnyMimeType;
     },
-    body?: never;
+    body?: undefined;
 }
 
 export enum HttpStatusCode {
@@ -124,8 +127,10 @@ export enum HttpStatusCode {
     NotExtended = "510",
 }
 
+export type AnyMimeType = Nominal<string | undefined, "AnyMimeType">
+export const AnyMimeType = "*/*" as AnyMimeType;
+
 export enum MimeType {
-    None = "",
     ApplicationJson = "application/json",
     ApplicationOctetStream = "application/octet-stream",
     ApplicationPdf = "application/pdf",
@@ -156,6 +161,4 @@ export enum MimeType {
     VideoXMsVideo = "video/x-msvideo",
     VideoXFlv = "video/x-flv",
     VideoWebm = "video/webm",
-
-
 }

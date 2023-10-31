@@ -1,6 +1,14 @@
 import Trouter from 'trouter';
 import {RouteBuilder, RouteHolder} from './route-holder.mjs';
-import {HttpEvent, HttpMethod, HttpRequest, HttpResponse, HttpStatusCode, MimeType} from './http-event.mjs';
+import {
+    HttpEvent,
+    HttpHeadersWithContentType,
+    HttpMethod,
+    HttpRequest,
+    HttpResponse,
+    HttpStatusCode,
+    MimeType
+} from './http-event.mjs';
 import {AttachmentRegistry, Nornir, Result} from '@nornir/core';
 import {NornirRestRequestError} from "./error.mjs";
 
@@ -60,9 +68,9 @@ export class Router {
             const request: HttpRequest = {
                 ...event,
                 headers: {
-                    "content-type": MimeType.None,
+                    "content-type": "" as never,
                     ...event.headers,
-                },
+                } as HttpHeadersWithContentType,
                 pathParams: params,
             }
             if (handler == undefined) {
