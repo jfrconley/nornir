@@ -37,7 +37,7 @@ const frameworkChain = nornir<UnparsedHttpEvent>()
   }))
   .use(router())
   .useResult(httpErrorHandler([
-    mapErrorClass(TestError, err => ({
+    mapErrorClass(TestError, (err) => ({
       statusCode: HttpStatusCode.InternalServerError,
       headers: {
         "content-type": AnyMimeType,
