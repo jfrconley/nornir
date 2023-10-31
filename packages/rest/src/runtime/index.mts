@@ -7,7 +7,7 @@ export {
 export {
     HttpResponse, HttpRequest, HttpEvent, HttpMethod, HttpRequestEmpty, HttpResponseEmpty,
     HttpStatusCode, HttpRequestJSON, HttpHeaders, MimeType,
-    UnparsedHttpEvent, SerializedHttpResponse
+    UnparsedHttpEvent, SerializedHttpResponse, AnyMimeType
 } from './http-event.mjs';
 export {RouteHolder, NornirRestRequestValidationError} from './route-holder.mjs'
 export {NornirRestRequestError, NornirRestError, httpErrorHandler, mapError, mapErrorClass} from './error.mjs'

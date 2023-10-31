@@ -1,9 +1,9 @@
 import {
+    AnyMimeType,
     Controller,
     GetChain,
     HttpEvent,
     HttpRequest,
-    HttpRequestEmpty,
     HttpStatusCode,
     MimeType,
     normalizeEventHeaders,
@@ -15,10 +15,7 @@ import {nornir, Nornir} from "@nornir/core";
 import {describe} from "@jest/globals";
 import {NornirRouteNotFoundError} from "../../dist/runtime/router.mjs";
 
-interface RouteGetInput extends HttpRequestEmpty {
-    headers: {
-        "content-type": MimeType.None;
-    };
+interface RouteGetInput extends HttpRequest {
 }
 
 
@@ -85,13 +82,25 @@ class TestController {
     @GetChain("/route")
     public getRoute(chain: Nornir<RouteGetInput>) {
         return chain
-            .use(input => input.headers["content-type"])
+            .use(console.log)
             .use(() => ({
                 statusCode: HttpStatusCode.Ok,
                 body: `cool`,
                 headers: {
                     // eslint-disable-next-line sonarjs/no-duplicate-string
                     "content-type": MimeType.TextPlain,
+                },
+            }));
+    }
+
+    @GetChain("/route2")
+    public getEmptyRoute(chain: Nornir<RouteGetInput>) {
+        return chain
+            .use(() => ({
+                statusCode: HttpStatusCode.Ok,
+                body: undefined,
+                headers: {
+                    "content-type": AnyMimeType
                 },
             }));
     }
@@ -149,6 +158,22 @@ describe("REST tests", () => {
                 body: "Content-Type: application/json",
                 headers: {
                     "content-type": "text/plain"
+                }
+            })
+        })
+
+        it("Should process a GET request with an empty body", async () => {
+            const response = await handler({
+                method: "GET",
+                path: "/basepath/route2",
+                headers: {},
+                query: {}
+            });
+            expect(response).toEqual({
+                statusCode: HttpStatusCode.Ok,
+                body: undefined,
+                headers: {
+                    "content-type": AnyMimeType
                 }
             })
         })
