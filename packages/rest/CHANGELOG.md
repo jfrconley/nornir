@@ -1,5 +1,15 @@
 # @nornir/rest
 
+## 1.3.0
+
+### Minor Changes
+
+- 517fb37: added AnyMimeType to replace MimeType.None
+
+### Patch Changes
+
+- e9cd9b1: fix undefined bodies
+
 ## 1.2.1
 
 ### Patch Changes
