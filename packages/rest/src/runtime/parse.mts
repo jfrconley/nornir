@@ -9,7 +9,7 @@ export type HttpBodyParser = (body: Buffer) => unknown
 
 export type HttpBodyParserMap = Partial<Record<MimeType | "default", HttpBodyParser>>
 
-export class NornirParseError extends NornirRestError {
+export class NornirRestParseError extends NornirRestError {
     constructor(cause: Error) {
         super("Failed to parse request. Bad content-type or invalid body", cause)
         this.cause = cause;
@@ -21,9 +21,7 @@ export class NornirParseError extends NornirRestError {
             headers: {
               "content-type": MimeType.TextPlain,
             },
-            body: {
-                message: this.message,
-            }
+            body: this.message
         }
     }
 }
@@ -51,7 +49,7 @@ export function httpEventParser(bodyParserMap?: HttpBodyParserMap, queryStringPa
                 query: queryStringParser(event.rawQuery),
             }
         } catch (error) {
-            throw new NornirParseError(error as Error)
+            throw new NornirRestParseError(error as Error)
         }
     }
 }
