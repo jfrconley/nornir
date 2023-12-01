@@ -1,4 +1,4 @@
-import {httpEventParser, NornirParseError, UnparsedHttpEvent} from "../../dist/runtime/index.mjs";
+import {httpEventParser, NornirRestParseError, UnparsedHttpEvent} from "../../dist/runtime/index.mjs";
 
 describe("Parsing", () => {
     it("Should throw correct error on failure to parse", () => {
@@ -14,6 +14,6 @@ describe("Parsing", () => {
             rawQuery: ""
         }
 
-        expect(() => parser(event)).toThrow(NornirParseError)
+        expect(() => parser(event)).toThrow(NornirRestParseError)
     })
 })
