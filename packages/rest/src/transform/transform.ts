@@ -54,6 +54,23 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
     schemaConfig,
   );
 
+  const compilerHost = program.getCompilerOptions().incremental
+    ? ts.createIncrementalCompilerHost(program.getCompilerOptions())
+    : ts.createCompilerHost(program.getCompilerOptions());
+
+  const parseConfigHost: ts.ParseConfigFileHost = {
+    useCaseSensitiveFileNames: true,
+    fileExists: fileName => compilerHost!.fileExists(fileName),
+    readFile: fileName => compilerHost!.readFile(fileName),
+    directoryExists: f => compilerHost!.directoryExists!(f),
+    getDirectories: f => compilerHost!.getDirectories!(f),
+    realpath: compilerHost.realpath,
+    readDirectory: (...args) => compilerHost!.readDirectory!(...args),
+    trace: compilerHost.trace,
+    getCurrentDirectory: compilerHost.getCurrentDirectory,
+    onUnRecoverableConfigFileDiagnostic: () => {},
+  };
+
   project = {
     transformOnly: false,
     program,
@@ -67,9 +84,12 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
     schemaGenerator,
     nodeParser,
     typeFormatter,
-    compilerHost: program.getCompilerOptions().incremental
-      ? ts.createIncrementalCompilerHost(program.getCompilerOptions())
-      : ts.createCompilerHost(program.getCompilerOptions()),
+    compilerHost,
+    parsedCommandLine: ts.getParsedCommandLineOfConfigFile(
+      ts.findConfigFile(process.cwd(), ts.sys.fileExists, "tsconfig.json") as string,
+      program.getCompilerOptions(),
+      parseConfigHost,
+    )!,
   };
 
   return (context) => {

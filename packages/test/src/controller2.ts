@@ -43,6 +43,10 @@ interface RoutePostBodyInput {
 
 const basePath = "/basepath/2";
 
+/**
+ * This is a second controller
+ * @summary This is a summary
+ */
 @Controller(basePath, "test")
 export class TestController {
   @Provider()
@@ -67,6 +71,10 @@ export class TestController {
       }));
   }
 
+  /**
+   * The second simple PUT route.
+   * @summary Put route
+   */
   @PutChain("/route")
   public postRoute(chain: Nornir<RoutePutInput>): Nornir<RoutePutInput, PutResponse> {
     return chain

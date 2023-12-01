@@ -18,13 +18,13 @@ export abstract class ControllerMethodTransformer {
 
     if (nornirDecorators.length === 0) return node;
     const methodDecorator = nornirDecorators.find(decorator => {
-      const name = project.checker.getTypeAtLocation(decorator.declaration.parent).symbol.name;
+      const name = decorator.symbol.name;
       return METHOD_DECORATOR_PROCESSORS[name] != undefined;
     });
 
     if (!methodDecorator) return node;
 
-    const method = project.checker.getTypeAtLocation(methodDecorator.declaration.parent).symbol.name;
+    const method = methodDecorator.symbol.name;
 
     if (!method) return node;
 

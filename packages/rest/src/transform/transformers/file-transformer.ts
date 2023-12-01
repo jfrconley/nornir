@@ -1,5 +1,7 @@
+import { rmSync } from "fs";
+import { parseJsDocOfNode } from "tsutils";
 import ts from "typescript";
-import { ControllerMeta } from "../controller-meta";
+import { ControllerMeta, OpenApiSpecHolder } from "../controller-meta";
 import { TransformationError } from "../error";
 import { Project } from "../project.js";
 import { NodeTransformer } from "./node-transformer";
@@ -10,8 +12,18 @@ export abstract class FileTransformer {
     // return file;
     const transformed = FileTransformer.iterateNode(project, context, file, file);
 
+    const outputFileNames = ts.getOutputFileNames(project.parsedCommandLine, file.fileName, false);
+    const schemaFileName = `${outputFileNames[0]}.nornir.oas.json`;
+
+    const { compilerHost } = project;
     const nodesToAdd = FileTransformer.getStatementsForFile(file);
-    if (nodesToAdd == undefined) return transformed;
+    if (nodesToAdd == undefined) {
+      // delete schema file if it exists
+      if (compilerHost.fileExists(schemaFileName)) {
+        rmSync(schemaFileName);
+      }
+      return transformed;
+    }
 
     const updated = ts.factory.updateSourceFile(
       transformed,
@@ -26,6 +38,11 @@ export abstract class FileTransformer {
       file.hasNoDefaultLib,
       file.libReferenceDirectives,
     );
+
+    const mergedSpec = OpenApiSpecHolder.getSpecForFile(file);
+    console.log("Merged Spec:", JSON.stringify(mergedSpec, null, 2));
+
+    compilerHost.writeFile(schemaFileName, JSON.stringify(mergedSpec, null, 2), false, undefined, []);
 
     FileTransformer.FILE_NODE_MAP.delete(file.fileName);
     FileTransformer.IMPORT_MAP.delete(file.fileName);

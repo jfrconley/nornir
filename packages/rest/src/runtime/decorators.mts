@@ -24,9 +24,11 @@ const routeChainDecorator = <Input extends HttpRequest, Output extends HttpRespo
  * Use to mark a method as a GET route
  *
  * @originator nornir/rest
+ *
  */
-export function GetChain(_path: string) {
-  return routeChainDecorator;
+export function GetChain<const Path extends string>(_path: Path)
+    {
+  return routeChainDecorator as IfEquals<Path, string, never, typeof routeChainDecorator>;
 }
 
 /**
@@ -34,8 +36,8 @@ export function GetChain(_path: string) {
  *
  * @originator nornir/rest
  */
-export function PostChain(_path: string) {
-  return routeChainDecorator;
+export function PostChain<const Path extends string >(_path: Path) {
+  return routeChainDecorator as IfEquals<Path, string, never, typeof routeChainDecorator>;
 }
 
 /**
@@ -43,8 +45,8 @@ export function PostChain(_path: string) {
  *
  * @originator nornir/rest
  */
-export function PutChain(_path: string) {
-  return routeChainDecorator;
+export function PutChain<const Path extends string >(_path: Path)  {
+  return routeChainDecorator as IfEquals<Path, string, never, typeof routeChainDecorator>;
 }
 
 /**
@@ -52,8 +54,8 @@ export function PutChain(_path: string) {
  *
  * @originator nornir/rest
  */
-export function PatchChain(_path: string) {
-  return routeChainDecorator;
+export function PatchChain<const Path extends string >(_path: Path)  {
+  return routeChainDecorator as IfEquals<Path, string, never, typeof routeChainDecorator>;
 }
 
 /**
@@ -61,8 +63,8 @@ export function PatchChain(_path: string) {
  *
  * @originator nornir/rest
  */
-export function DeleteChain(_path: string) {
-  return routeChainDecorator;
+export function DeleteChain<const Path extends string >(_path: Path)  {
+  return routeChainDecorator as IfEquals<Path, string, never, typeof routeChainDecorator>;
 }
 
 /**
@@ -70,8 +72,8 @@ export function DeleteChain(_path: string) {
  *
  * @originator nornir/rest
  */
-export function HeadChain(_path: string) {
-  return routeChainDecorator;
+export function HeadChain<const Path extends string >(_path: Path)  {
+  return routeChainDecorator as IfEquals<Path, string, never, typeof routeChainDecorator>;
 }
 
 /**
@@ -79,8 +81,8 @@ export function HeadChain(_path: string) {
  *
  * @originator nornir/rest
  */
-export function OptionsChain(_path: string) {
-  return routeChainDecorator;
+export function OptionsChain<const Path extends string >(_path: Path)  {
+  return routeChainDecorator as IfEquals<Path, string, never, typeof routeChainDecorator>;
 }
 
 /**
@@ -93,3 +95,7 @@ export function Provider() {
     throw UNTRANSFORMED_ERROR
   }
 }
+
+type Exact<T, U> = IfEquals<T, U, T, never>;
+type IfEquals<T, U, Y = unknown, N = never> = (<G>() => G extends T ? 1 : 2) extends (<G>() => G extends U ? 1 : 2) ? Y
+    : N;

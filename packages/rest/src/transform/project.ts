@@ -16,6 +16,7 @@ export interface Project {
   schemaGenerator: SchemaGenerator;
   typeFormatter: TypeFormatter;
   nodeParser: NodeParser;
+  parsedCommandLine: ts.ParsedCommandLine;
 }
 
 export type AJVOptions = Pick<

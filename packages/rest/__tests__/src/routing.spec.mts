@@ -87,7 +87,6 @@ class TestController {
                 statusCode: HttpStatusCode.Ok,
                 body: `cool`,
                 headers: {
-                    // eslint-disable-next-line sonarjs/no-duplicate-string
                     "content-type": MimeType.TextPlain,
                 },
             }));

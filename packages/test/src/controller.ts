@@ -13,14 +13,12 @@ import { assertValid } from "@nrfcloud/ts-json-schema-transformer";
 
 interface RouteGetInput extends HttpRequestEmpty {
   headers: {
-    // eslint-disable-next-line sonarjs/no-duplicate-string
     "content-type": AnyMimeType;
   };
 }
 
 interface RoutePostInputJSON extends HttpRequest {
   headers: {
-    // eslint-disable-next-line sonarjs/no-duplicate-string
     "content-type": MimeType.ApplicationJson;
   };
   body: RoutePostBodyInput;
@@ -77,17 +75,18 @@ export declare class Tagged<N extends string> {
  */
 export type Nominal<T, N extends string, E extends T & Tagged<string> = T & Tagged<N>> = (T & Tagged<N>) | E;
 
-const basePath = "/basepath";
+const overallBase = "/root";
 
+const basePath = `${overallBase}/basepath`;
+
+/**
+ * This is a controller
+ * @summary This is a summary
+ */
 @Controller(basePath)
 export class TestController {
-  static {
-    console.log("hello");
-  }
-
   /**
-   * A simple get route
-   * @summary Cool Route
+   * Cool get route
    */
   @GetChain("/route")
   public getRoute(chain: Nornir<RouteGetInput>) {
@@ -105,6 +104,14 @@ export class TestController {
         },
       }));
   }
+
+  /**
+   * A simple post route
+   * @summary Cool Route
+   * @tags cool, route
+   * @deprecated
+   * @operationId coolRoute
+   */
   @PostChain("/route")
   public postRoute(chain: Nornir<RoutePostInput>) {
     return chain

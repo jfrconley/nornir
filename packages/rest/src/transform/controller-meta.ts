@@ -1,6 +1,35 @@
+import { OpenAPIV3, OpenAPIV3_1 } from "openapi-types";
 import ts from "typescript";
+import { isErrorResult, merge, MergeInput } from "./openapi-merge";
 import { Project } from "./project";
 import { FileTransformer } from "./transformers/file-transformer";
+
+export abstract class OpenApiSpecHolder {
+  private static specFileMap = new Map<string, OpenAPIV3_1.Document[]>();
+
+  public static addSpecForFile(file: ts.SourceFile, spec: OpenAPIV3_1.Document) {
+    const fileSpecs = this.specFileMap.get(file.fileName) || [];
+    fileSpecs.push(spec);
+    this.specFileMap.set(file.fileName, fileSpecs);
+  }
+
+  public static getSpecForFile(file: ts.SourceFile): OpenAPIV3_1.Document {
+    const mergeInputs: MergeInput = (this.specFileMap.get(file.fileName) || [])
+      .map((spec) => ({
+        oas: spec,
+        dispute: {
+          alwaysApply: true,
+        },
+      })) as MergeInput;
+
+    const merged = merge(mergeInputs);
+    if (isErrorResult(merged)) {
+      throw new Error(merged.message);
+    }
+
+    return merged.output as OpenAPIV3_1.Document;
+  }
+}
 
 export class ControllerMeta {
   private static cache = new Map<ts.Identifier, ControllerMeta>();
@@ -174,6 +203,9 @@ export class ControllerMeta {
     input: ts.Type;
     output: ts.Type;
     filePath: string;
+    tags?: string[];
+    deprecated?: boolean;
+    operationId?: string;
   }) {
     if (this.project.transformOnly) {
       return;
@@ -186,6 +218,8 @@ export class ControllerMeta {
       throw new Error(`Route already registered: ${index.method} ${index.path}`);
     }
 
+    OpenApiSpecHolder.addSpecForFile(this.source, this.generateRouteSpec(routeInfo));
+
     methods.set(index.method, {
       method: routeInfo.method,
       path: this.basePath + routeInfo.path.toLowerCase(),
@@ -195,6 +229,32 @@ export class ControllerMeta {
       filePath: routeInfo.filePath,
       summary: routeInfo.summary,
     });
+  }
+
+  private generateRouteSpec(route: RouteInfo): OpenAPIV3_1.Document {
+    return {
+      openapi: "3.0.3",
+      info: {
+        title: "Nornir API",
+        version: "1.0.0",
+      },
+      paths: {
+        [this.basePath + route.path.toLowerCase()]: {
+          [route.method.toLowerCase()]: {
+            deprecated: route.deprecated,
+            tags: route.tags,
+            operationId: route.operationId,
+            summary: route.summary,
+            description: route.description,
+            responses: {
+              200: {
+                description: "OK",
+              },
+            },
+          },
+        },
+      },
+    } as OpenAPIV3_1.Document;
   }
 
   // private buildRequestInfo(routeIndex: RouteIndex, inputType: ts.Type): RequestInfo {
@@ -385,6 +445,9 @@ export interface RouteInfo {
   path: string;
   description?: string;
   summary?: string;
+  deprecated?: boolean;
+  operationId?: string;
+  tags?: string[];
   // requestInfo: RequestInfo;
   // responseInfo: ResponseInfo;
   filePath: string;

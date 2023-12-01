@@ -15,6 +15,20 @@ export const ChainMethodDecoratorTypeMap = {
   HeadChain: "HEAD",
 } as const;
 
+const TagMapper = {
+  summary: (value?: string) => value,
+  description: (value?: string) => value,
+  deprecated: (value?: string) => value != "false",
+  operationId: (value?: string) => value,
+  tags: (value?: string) => value?.split(",").map(tag => tag.trim()) || [],
+} as const;
+
+const SupportedTags = Object.keys(TagMapper) as (keyof typeof TagMapper)[];
+
+type RouteTags = {
+  -readonly [K in keyof typeof TagMapper]?: Exclude<ReturnType<typeof TagMapper[K]>, undefined>;
+};
+
 export const ChainMethodDecoratorTypes = Object.keys(
   ChainMethodDecoratorTypeMap,
 ) as (keyof typeof ChainMethodDecoratorTypeMap)[];
@@ -41,6 +55,8 @@ export abstract class ChainRouteProcessor {
 
     const inputValidator = schemaToValidator(inputSchema, project.options.validation);
 
+    const parsedDocComments = ChainRouteProcessor.parseJSDoc(project, node);
+
     controller.registerRoute(node, {
       method,
       path,
@@ -48,9 +64,12 @@ export abstract class ChainRouteProcessor {
 
       // FIXME: this should be the output type not the input type
       output: inputType,
-      // description,
-      // summary,
+      description: parsedDocComments.description,
+      summary: parsedDocComments.summary,
       filePath: source.fileName,
+      deprecated: parsedDocComments.deprecated,
+      operationId: parsedDocComments.operationId,
+      tags: parsedDocComments.tags,
     });
 
     controller.addInitializationStatement(
@@ -64,7 +83,7 @@ export abstract class ChainRouteProcessor {
       ),
     );
     const { otherDecorators } = separateNornirDecorators(project, ts.getDecorators(node) || []);
-    return ts.factory.createMethodDeclaration(
+    const recreatedNode = ts.factory.createMethodDeclaration(
       [...(ts.getModifiers(node) || []), ...otherDecorators],
       node.asteriskToken,
       node.name,
@@ -74,6 +93,28 @@ export abstract class ChainRouteProcessor {
       node.type,
       node.body,
     );
+
+    ts.setTextRange(recreatedNode, node);
+    ts.setOriginalNode(recreatedNode, node);
+
+    return recreatedNode;
+  }
+
+  private static parseJSDoc(project: Project, method: ts.MethodDeclaration): RouteTags {
+    const docs = ts.getJSDocCommentsAndTags(ts.getOriginalNode(method));
+    const topLevel = docs[0];
+    const description = ts.getTextOfJSDocComment(topLevel.comment);
+    if (!ts.isJSDoc(topLevel)) {
+      return {};
+    }
+
+    const tagSet = (topLevel.tags || [])
+      .map(tag => [tag.tagName.escapedText as string, ts.getTextOfJSDocComment(tag.comment)] as const)
+      .filter(tag => SupportedTags.includes(tag[0] as keyof typeof TagMapper))
+      .map(tag => [tag[0], TagMapper[tag[0] as keyof typeof TagMapper](tag[1])]);
+
+    tagSet.push(["description", description]);
+    return Object.fromEntries(tagSet) as RouteTags;
   }
 
   private static generateRouteStatement(
@@ -125,7 +166,7 @@ export abstract class ChainRouteProcessor {
   }
 
   private static getMethod(project: Project, methodDecorator: NornirDecoratorInfo): string {
-    const name = project.checker.getTypeAtLocation(methodDecorator.declaration.parent).symbol.name;
+    const name = methodDecorator.symbol.name;
     return ChainMethodDecoratorTypeMap[name as keyof typeof ChainMethodDecoratorTypeMap];
   }
 
@@ -141,7 +182,6 @@ export abstract class ChainRouteProcessor {
       throw new Error("Handler chain input must be a Nornir class");
     }
 
-    // eslint-disable-next-line unicorn/no-useless-undefined
     const paramTypeNode = project.checker.typeToTypeNode(paramType, undefined, undefined) as ts.TypeReferenceNode;
     const [paramTypeArg] = paramTypeNode.typeArguments || [];
     if (!paramTypeArg) {
