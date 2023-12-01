@@ -27,6 +27,15 @@ export abstract class ApiGatewayProxyV2 {
             statusCode: +event.statusCode
         }
     }
+
+    public static toResultUnencoded(event: SerializedHttpResponse): APIGatewayProxyStructuredResultV2 {
+        return {
+            headers: event.headers,
+            body: event.body.toString("utf8"),
+            isBase64Encoded: false,
+            statusCode: +event.statusCode
+        }
+    }
 }
 
 export async function startLocalServer(chain: Nornir<UnparsedHttpEvent, SerializedHttpResponse>, port = 8080) {
