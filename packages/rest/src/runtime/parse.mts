@@ -1,11 +1,32 @@
-import {HttpEvent, MimeType, UnparsedHttpEvent} from "./http-event.mjs";
+import {HttpEvent, HttpResponse, HttpStatusCode, MimeType, UnparsedHttpEvent} from "./http-event.mjs";
 import querystring from "node:querystring";
 
 import {getContentType} from "./utils.mjs";
+import {NornirRestError} from "./error.mjs";
+import {AttachmentRegistry} from "@nornir/core";
 
 export type HttpBodyParser = (body: Buffer) => unknown
 
 export type HttpBodyParserMap = Partial<Record<MimeType | "default", HttpBodyParser>>
+
+export class NornirParseError extends NornirRestError {
+    constructor(cause: Error) {
+        super("Failed to parse request. Bad content-type or invalid body", cause)
+        this.cause = cause;
+    }
+
+    public toHttpResponse(): HttpResponse {
+        return {
+            statusCode: HttpStatusCode.UnprocessableEntity,
+            headers: {
+              "content-type": MimeType.TextPlain,
+            },
+            body: {
+                message: this.message,
+            }
+        }
+    }
+}
 
 export type HttpQueryStringParser = (query: string) => HttpEvent["query"]
 const DEFAULT_BODY_PARSERS: HttpBodyParserMap & {"default": HttpBodyParser} = {
@@ -21,12 +42,16 @@ export function httpEventParser(bodyParserMap?: HttpBodyParserMap, queryStringPa
         ...bodyParserMap
     };
     return (event: UnparsedHttpEvent): HttpEvent => {
-        const contentType = getContentType(event.headers) || "default";
-        const bodyParser = bodyParsers[contentType] || bodyParsers["default"];
-        return {
-            ...event,
-            body: bodyParser(event.rawBody),
-            query: queryStringParser(event.rawQuery),
+        try {
+            const contentType = getContentType(event.headers) || "default";
+            const bodyParser = bodyParsers[contentType] || bodyParsers["default"];
+            return {
+                ...event,
+                body: bodyParser(event.rawBody),
+                query: queryStringParser(event.rawQuery),
+            }
+        } catch (error) {
+            throw new NornirParseError(error as Error)
         }
     }
 }

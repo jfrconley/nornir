@@ -17,7 +17,7 @@ export abstract class NornirRestError extends Error implements NodeJS.ErrnoExcep
 /**
  * Error type for exceptions that require information about the request.
  */
-export abstract class NornirRestRequestError<Request extends HttpRequest> extends NornirRestError {
+export abstract class NornirRestRequestError<Request extends HttpRequest = HttpRequest> extends NornirRestError {
     constructor(
         public readonly request: Request,
         message: string
@@ -27,6 +27,7 @@ export abstract class NornirRestRequestError<Request extends HttpRequest> extend
 
     abstract toHttpResponse(registry: AttachmentRegistry): HttpResponse | Promise<HttpResponse>;
 }
+
 
 interface ErrorMapping {
     errorMatch(error: unknown): boolean;
