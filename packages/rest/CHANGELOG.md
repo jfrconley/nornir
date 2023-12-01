@@ -1,5 +1,11 @@
 # @nornir/rest
 
+## 1.5.1
+
+### Patch Changes
+
+- 34c88c2: fix content type for parse error
+
 ## 1.5.0
 
 ### Minor Changes
