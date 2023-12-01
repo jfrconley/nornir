@@ -9,6 +9,7 @@ concurrency:
   cancel-in-progress: true
 env:
   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
 jobs:
   unit-tests:
     name: Run unit tests for this service

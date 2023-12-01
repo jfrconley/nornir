@@ -12,7 +12,7 @@ export {
 export {RouteHolder, NornirRestRequestValidationError} from './route-holder.mjs'
 export {NornirRestRequestError, NornirRestError, httpErrorHandler, mapError, mapErrorClass} from './error.mjs'
 export {ApiGatewayProxyV2, startLocalServer} from "./converters.mjs"
-export {httpEventParser, HttpBodyParser, HttpBodyParserMap, HttpQueryStringParser} from "./parse.mjs"
+export {httpEventParser, HttpBodyParser, HttpBodyParserMap, HttpQueryStringParser, NornirParseError} from "./parse.mjs"
 export {httpResponseSerializer, HttpBodySerializer, HttpBodySerializerMap} from "./serialize.mjs"
 export {normalizeEventHeaders, normalizeHeaders, getContentType} from "./utils.mjs"
 export {Router} from "./router.mjs"
