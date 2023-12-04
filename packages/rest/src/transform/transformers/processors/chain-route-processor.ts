@@ -1,4 +1,5 @@
 import { schemaToValidator } from "@nrfcloud/ts-json-schema-transformer/utils";
+import { createWrappedNode } from "ts-morph";
 import { isTypeReference } from "tsutils";
 import ts from "typescript";
 import { ControllerMeta } from "../../controller-meta";
@@ -46,8 +47,7 @@ export abstract class ChainRouteProcessor {
 
     // const wrappedNode = createWrappedNode(node, { typeChecker: project.checker }) as MethodDeclaration;
 
-    const inputTypeNode = ChainRouteProcessor.resolveInputType(project, node);
-    const inputType = project.checker.getTypeFromTypeNode(inputTypeNode);
+    const { typeNode: inputTypeNode, type: inputType } = ChainRouteProcessor.resolveInputType(project, node);
 
     // const outputType = ChainRouteProcessor.resolveOutputType(project, methodSignature);
 
@@ -60,10 +60,10 @@ export abstract class ChainRouteProcessor {
     controller.registerRoute(node, {
       method,
       path,
-      input: inputType,
+      input: inputTypeNode,
 
       // FIXME: this should be the output type not the input type
-      output: inputType,
+      output: inputTypeNode,
       description: parsedDocComments.description,
       summary: parsedDocComments.summary,
       filePath: source.fileName,
@@ -170,25 +170,39 @@ export abstract class ChainRouteProcessor {
     return ChainMethodDecoratorTypeMap[name as keyof typeof ChainMethodDecoratorTypeMap];
   }
 
-  private static resolveInputType(project: Project, method: ts.MethodDeclaration): ts.TypeNode {
+  private static resolveInputType(
+    project: Project,
+    method: ts.MethodDeclaration,
+  ): { type: ts.Type; typeNode: ts.TypeNode } {
     const params = method.parameters;
     if (params.length !== 1) {
       throw new Error("Handler chain must have 1 parameter");
     }
     const [param] = params;
-    const paramType = project.checker.getTypeAtLocation(param);
+    const paramTypeNode = param.type;
+    if (!paramTypeNode || !ts.isTypeReferenceNode(paramTypeNode)) {
+      throw new Error("Handler chain parameter must have a type");
+    }
+
+    const paramType = project.checker.getTypeFromTypeNode(paramTypeNode);
     const paramDeclaration = paramType.symbol?.declarations?.[0];
     if (!paramDeclaration || !isNornirNode(paramDeclaration)) {
       throw new Error("Handler chain input must be a Nornir class");
     }
 
-    const paramTypeNode = project.checker.typeToTypeNode(paramType, undefined, undefined) as ts.TypeReferenceNode;
+    // const paramTypeNode = project.checker.typeToTypeNode(paramType, undefined, undefined) as ts.TypeReferenceNode;
     const [paramTypeArg] = paramTypeNode.typeArguments || [];
+
+    const paramTypeArgType = project.checker.getTypeFromTypeNode(paramTypeArg);
+
     if (!paramTypeArg) {
       throw new Error("Handler chain input must have a type argument");
     }
 
-    return paramTypeArg;
+    return {
+      type: paramTypeArgType,
+      typeNode: paramTypeArg,
+    };
   }
 
   private static resolveOutputType(project: Project, methodSignature: ts.Signature): ts.Type {

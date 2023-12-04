@@ -1,8 +1,13 @@
-import { OpenAPIV3, OpenAPIV3_1 } from "openapi-types";
+import traverse from "json-schema-traverse";
+import { IJsonSchema, OpenAPIV3, OpenAPIV3_1 } from "openapi-types";
+import * as tsm from "ts-morph";
 import ts from "typescript";
 import { isErrorResult, merge, MergeInput } from "./openapi-merge";
 import { Project } from "./project";
 import { FileTransformer } from "./transformers/file-transformer";
+
+import { JSONSchemaType } from "ajv";
+import { ReferenceType, SubNodeParser, UnionType } from "ts-json-schema-generator";
 
 export abstract class OpenApiSpecHolder {
   private static specFileMap = new Map<string, OpenAPIV3_1.Document[]>();
@@ -195,18 +200,7 @@ export class ControllerMeta {
     };
   }
 
-  public registerRoute(node: ts.Node, routeInfo: {
-    method: string;
-    path: string;
-    description?: string;
-    summary?: string;
-    input: ts.Type;
-    output: ts.Type;
-    filePath: string;
-    tags?: string[];
-    deprecated?: boolean;
-    operationId?: string;
-  }) {
+  public registerRoute(node: ts.Node, routeInfo: RouteInfo) {
     if (this.project.transformOnly) {
       return;
     }
@@ -228,10 +222,16 @@ export class ControllerMeta {
       // responseInfo: this.buildResponseInfo(index, routeInfo.output),
       filePath: routeInfo.filePath,
       summary: routeInfo.summary,
+      deprecated: routeInfo.deprecated,
+      operationId: routeInfo.operationId,
+      tags: routeInfo.tags,
+      input: routeInfo.input,
+      output: routeInfo.output,
     });
   }
 
   private generateRouteSpec(route: RouteInfo): OpenAPIV3_1.Document {
+    this.generatePathParamsSpecs(route);
     return {
       openapi: "3.0.3",
       info: {
@@ -254,7 +254,48 @@ export class ControllerMeta {
           },
         },
       },
+      components: {
+        parameters: {},
+      },
     } as OpenAPIV3_1.Document;
+  }
+
+  private generatePathParamsSpecs(routeInfo: RouteInfo): OpenAPIV3_1.ParameterObject[] {
+    const wrapped = tsm.createWrappedNode(routeInfo.input, { typeChecker: this.project.checker });
+    const property = wrapped.getType().getProperty("pathParams");
+    if (property == undefined) throw new Error("No pathParams property found");
+    const declarations = property.getDeclarations() as tsm.PropertySignature[];
+    const typeNodes = declarations.map((declaration) => declaration.getTypeNodeOrThrow());
+    const paramDeclaractions = typeNodes.map(typeNode => typeNode.getType())
+      .map(type => type.getProperties())
+      .flat()
+      .reduce((acc, property) => {
+        const name = property.getName();
+        const arr = acc[name] || [];
+        const declarations = property.getDeclarations() as tsm.PropertySignature[];
+        arr.push(...declarations);
+        acc[name] = arr;
+        return acc;
+      }, {} as Record<string, tsm.PropertySignature[]>);
+
+    const paramObjectSchema = this.project.schemaGenerator.createSchemaFromNodes(
+      [ts.factory.createUnionTypeNode(typeNodes.map((typeNode) => typeNode.compilerNode))],
+    );
+    const schemas = Object.fromEntries(
+      Object.entries(paramDeclaractions).map(([name, declarations]) => {
+        const typeSymbols = declarations.map((declaration) => declaration.getSymbolOrThrow());
+        const typeRefs = typeSymbols.map(symbol => {
+          const typeRef = ts.factory.createTypeReferenceNode(name, []);
+
+          (typeRef as any).symbol = symbol.compilerSymbol;
+          return typeRef;
+        });
+        const schema = this.project.schemaGenerator.createSchemaFromNodes(typeRefs);
+        return [name, schema] as const;
+      }),
+    );
+
+    return [];
   }
 
   // private buildRequestInfo(routeIndex: RouteIndex, inputType: ts.Type): RequestInfo {
@@ -436,6 +477,27 @@ export class ControllerMeta {
   // }
 }
 
+// Traverses the schema and extracts a unified definition for the property at the given path
+// export function getUnifiedPropertySchema(schema: IJsonSchema, path: string) {
+//     // Take a path from the json schema and convert it to a path in validated object
+//     const convertJsonSchemaPathToPropertyPath = (path: string) => {
+//         return path
+//             // replace properties
+//             .replace(/\/properties\//g, ".")
+//             // replace items and index
+//             .replace(/\/items\/(\d+)\//g, "[].")
+//             // replace anyOf and index
+//             .replace(/\/anyOf\/(\d+)\//g, ".")
+//             // replace oneOf and index
+//             .replace(/\/oneOf\/(\d+)\//g, ".")
+//             // replace allOf and index
+//             .replace(/\/allOf\/(\d+)\//g, ".")
+//     }
+//     const schema
+//
+//     traverse()
+// }
+
 function deparameterizePath(path: string) {
   return path.replaceAll(/:[^/]+/g, ":param");
 }
@@ -445,12 +507,12 @@ export interface RouteInfo {
   path: string;
   description?: string;
   summary?: string;
+  input: ts.TypeNode;
+  output: ts.TypeNode;
+  filePath: string;
+  tags?: string[];
   deprecated?: boolean;
   operationId?: string;
-  tags?: string[];
-  // requestInfo: RequestInfo;
-  // responseInfo: ResponseInfo;
-  filePath: string;
 }
 
 export type RouteIndex = Pick<RouteInfo, "method" | "path">;

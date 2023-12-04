@@ -31,8 +31,13 @@ export interface HttpRequest {
 
     readonly body?: unknown;
 
-    readonly pathParams: Record<string, string | number>;
+    readonly pathParams: PathParams;
 }
+
+/**
+ * @nornirIgnore
+ */
+type PathParams = Record<string, string | number>;
 
 export interface HttpRequestEmpty extends HttpRequest {
     headers: {

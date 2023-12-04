@@ -1,4 +1,13 @@
-import { createFormatter, createParser, SchemaGenerator } from "ts-json-schema-generator";
+import {
+  BaseType,
+  Context,
+  createFormatter,
+  createParser,
+  NeverType,
+  ReferenceType,
+  SchemaGenerator,
+  SubNodeParser,
+} from "ts-json-schema-generator";
 import ts from "typescript";
 import { AJV_DEFAULTS, AJVOptions, Options, Project, SCHEMA_DEFAULTS, SchemaConfig } from "./project.js";
 import { FileTransformer } from "./transformers/file-transformer.js";
@@ -6,6 +15,18 @@ import { FileTransformer } from "./transformers/file-transformer.js";
 let project: Project;
 // let files: string[] = [];
 // let openapi: OpenAPIV3.Document;
+
+export class NornirIgnoreParser implements SubNodeParser {
+  supportsNode(node: ts.Node): boolean {
+    const tags = ts.getJSDocTags(node);
+    return tags.some((tag) => tag.tagName.getText() === "nornirIgnore");
+  }
+
+  createType(node: ts.Node, context: Context, reference?: ReferenceType): BaseType {
+    return new NeverType();
+  }
+}
+
 export function transform(program: ts.Program, options?: Options): ts.TransformerFactory<ts.SourceFile> {
   const {
     loopEnum,
@@ -42,6 +63,8 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
 
   const nodeParser = createParser(program as unknown as Parameters<typeof createParser>[0], {
     ...schemaConfig,
+  }, (prs) => {
+    // prs.addNodeParser(new NornirIgnoreParser());
   });
   const typeFormatter = createFormatter({
     ...schemaConfig,

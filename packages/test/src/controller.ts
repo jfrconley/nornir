@@ -25,6 +25,13 @@ interface RoutePostInputJSON extends HttpRequest {
   query: {
     test: "boolean";
   };
+  pathParams: {
+    /**
+     * Very cool property that does a thing
+     * @pattern ^[a-z]+$
+     */
+    reallyCool: "true" | "false";
+  }
 }
 
 interface RoutePostInputCSV extends HttpRequest {
@@ -37,8 +44,12 @@ interface RoutePostInputCSV extends HttpRequest {
      * @minLength 5
      */
     "csv-header": string;
+
   };
   body: TestStringType;
+  pathParams: {
+    reallyCool: "stuff";
+  }
 }
 
 type RoutePostInput = RoutePostInputJSON | RoutePostInputCSV;
@@ -85,25 +96,25 @@ const basePath = `${overallBase}/basepath`;
  */
 @Controller(basePath)
 export class TestController {
-  /**
-   * Cool get route
-   */
-  @GetChain("/route")
-  public getRoute(chain: Nornir<RouteGetInput>) {
-    return chain
-      .use(input => {
-        assertValid<RouteGetInput>(input);
-        return input;
-      })
-      .use(input => input.headers["content-type"])
-      .use(contentType => ({
-        statusCode: HttpStatusCode.Ok,
-        body: `Content-Type: ${contentType}`,
-        headers: {
-          "content-type": MimeType.TextPlain,
-        },
-      }));
-  }
+  // /**
+  //  * Cool get route
+  //  */
+  // @GetChain("/route")
+  // public getRoute(chain: Nornir<RouteGetInput>) {
+  //   return chain
+  //     .use(input => {
+  //       assertValid<RouteGetInput>(input);
+  //       return input;
+  //     })
+  //     .use(input => input.headers["content-type"])
+  //     .use(contentType => ({
+  //       statusCode: HttpStatusCode.Ok,
+  //       body: `Content-Type: ${contentType}`,
+  //       headers: {
+  //         "content-type": MimeType.TextPlain,
+  //       },
+  //     }));
+  // }
 
   /**
    * A simple post route
@@ -112,7 +123,7 @@ export class TestController {
    * @deprecated
    * @operationId coolRoute
    */
-  @PostChain("/route")
+  @PostChain("/route/{cool}")
   public postRoute(chain: Nornir<RoutePostInput>) {
     return chain
       .use(contentType => ({
