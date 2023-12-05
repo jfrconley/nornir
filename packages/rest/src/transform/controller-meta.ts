@@ -7,6 +7,7 @@ import { Project } from "./project";
 import { FileTransformer } from "./transformers/file-transformer";
 
 import { JSONSchemaType } from "ajv";
+import { JSONSchema7 } from "json-schema";
 import { ReferenceType, SubNodeParser, UnionType } from "ts-json-schema-generator";
 
 export abstract class OpenApiSpecHolder {
@@ -251,6 +252,7 @@ export class ControllerMeta {
                 description: "OK",
               },
             },
+            parameters: this.generatePathParamsSpecs(route),
           },
         },
       },
@@ -266,36 +268,44 @@ export class ControllerMeta {
     if (property == undefined) throw new Error("No pathParams property found");
     const declarations = property.getDeclarations() as tsm.PropertySignature[];
     const typeNodes = declarations.map((declaration) => declaration.getTypeNodeOrThrow());
-    const paramDeclaractions = typeNodes.map(typeNode => typeNode.getType())
-      .map(type => type.getProperties())
-      .flat()
-      .reduce((acc, property) => {
-        const name = property.getName();
-        const arr = acc[name] || [];
-        const declarations = property.getDeclarations() as tsm.PropertySignature[];
-        arr.push(...declarations);
-        acc[name] = arr;
-        return acc;
-      }, {} as Record<string, tsm.PropertySignature[]>);
 
     const paramObjectSchema = this.project.schemaGenerator.createSchemaFromNodes(
       [ts.factory.createUnionTypeNode(typeNodes.map((typeNode) => typeNode.compilerNode))],
     );
-    const schemas = Object.fromEntries(
-      Object.entries(paramDeclaractions).map(([name, declarations]) => {
-        const typeSymbols = declarations.map((declaration) => declaration.getSymbolOrThrow());
-        const typeRefs = typeSymbols.map(symbol => {
-          const typeRef = ts.factory.createTypeReferenceNode(name, []);
 
-          (typeRef as any).symbol = symbol.compilerSymbol;
-          return typeRef;
-        });
-        const schema = this.project.schemaGenerator.createSchemaFromNodes(typeRefs);
-        return [name, schema] as const;
-      }),
-    );
+    const propertySchemas = getUnifiedPropertySchemas(paramObjectSchema, "/");
 
-    return [];
+    return Object.entries(propertySchemas).map(([name, schema]) => {
+      // Just take the first provided description and example for now
+      const description = schema.schemaSet.find((schema) => schema.description)?.description;
+      let example = (schema.schemaSet.find((schema) => schema.examples))?.examples;
+      if (Array.isArray(example)) {
+        example = example[0];
+      }
+
+      // If every schema is deprecated, then the parameter is deprecated
+      const deprecated = schema.schemaSet.every((schema) => (schema as { deprecated?: boolean }).deprecated);
+
+      const mergedSchema = schema?.schemaSet.length === 1
+        ? schema.schemaSet[0]
+        : {
+          anyOf: schema.schemaSet,
+        };
+
+      mergedSchema.definitions = paramObjectSchema.definitions;
+
+      const paramObject: OpenAPIV3_1.ParameterObject = {
+        name,
+        in: "path",
+        required: schema.required,
+        description,
+        example,
+        deprecated,
+        schema: mergedSchema as OpenAPIV3.NonArraySchemaObject,
+      };
+
+      return paramObject;
+    });
   }
 
   // private buildRequestInfo(routeIndex: RouteIndex, inputType: ts.Type): RequestInfo {
@@ -478,25 +488,57 @@ export class ControllerMeta {
 }
 
 // Traverses the schema and extracts a unified definition for the property at the given path
-// export function getUnifiedPropertySchema(schema: IJsonSchema, path: string) {
-//     // Take a path from the json schema and convert it to a path in validated object
-//     const convertJsonSchemaPathToPropertyPath = (path: string) => {
-//         return path
-//             // replace properties
-//             .replace(/\/properties\//g, ".")
-//             // replace items and index
-//             .replace(/\/items\/(\d+)\//g, "[].")
-//             // replace anyOf and index
-//             .replace(/\/anyOf\/(\d+)\//g, ".")
-//             // replace oneOf and index
-//             .replace(/\/oneOf\/(\d+)\//g, ".")
-//             // replace allOf and index
-//             .replace(/\/allOf\/(\d+)\//g, ".")
-//     }
-//     const schema
-//
-//     traverse()
-// }
+export function getUnifiedPropertySchemas(schema: JSONSchema7, parentPath: string) {
+  // Take a path from the json schema and convert it to a path in validated object
+  const convertJsonSchemaPathIfPropertyPath = (path: string) => {
+    if (path.split("/").at(-2) !== "properties") {
+      return "/";
+    }
+
+    return path
+      // replace properties
+      .replace(/\/properties\//g, "/")
+      // replace items and index
+      .replace(/\/items\/(\d+)\//g, "/")
+      // replace anyOf and index
+      .replace(/\/anyOf\/(\d+)\//g, "/")
+      // replace oneOf and index
+      .replace(/\/oneOf\/(\d+)\//g, "/")
+      // replace allOf and index
+      .replace(/\/allOf\/(\d+)\//g, "/");
+  };
+
+  const isDirectChildPath = (childPath: string, parentPath: string) => {
+    const childPathParts = childPath.split("/").filter(part => part !== "");
+    const parentPathParts = parentPath.split("/").filter(part => part !== "");
+
+    if (childPathParts.length !== parentPathParts.length + 1) {
+      return false;
+    }
+
+    return parentPathParts.every((part, index) => part === childPathParts[index]);
+  };
+
+  const schemas: Record<string, { schemaSet: JSONSchema7[]; required: boolean }> = {};
+
+  traverse(schema, {
+    allKeys: false,
+    cb: {
+      pre: (schema, jsonPtr, rootSchema, parentJsonPtr, parentKeyword, parentSchema, keyIndex) => {
+        const convertedPath = convertJsonSchemaPathIfPropertyPath(jsonPtr);
+
+        if (isDirectChildPath(convertedPath, parentPath)) {
+          const schemaSet = schemas[keyIndex || ""] || { schemaSet: [], required: true };
+          schemaSet.required = !schemaSet.required ? false : parentSchema?.required?.includes(keyIndex) ?? false;
+          schemaSet.schemaSet.push(schema);
+          schemas[keyIndex || ""] = schemaSet;
+        }
+      },
+    },
+  });
+
+  return schemas;
+}
 
 function deparameterizePath(path: string) {
   return path.replaceAll(/:[^/]+/g, ":param");

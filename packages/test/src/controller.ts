@@ -29,9 +29,15 @@ interface RoutePostInputJSON extends HttpRequest {
     /**
      * Very cool property that does a thing
      * @pattern ^[a-z]+$
+     * @example "true"
      */
     reallyCool: "true" | "false";
-  }
+
+    /**
+     * Even cooler property
+     */
+    evenCooler?: number;
+  };
 }
 
 interface RoutePostInputCSV extends HttpRequest {
@@ -44,12 +50,14 @@ interface RoutePostInputCSV extends HttpRequest {
      * @minLength 5
      */
     "csv-header": string;
-
   };
   body: TestStringType;
   pathParams: {
+    /**
+     * @deprecated
+     */
     reallyCool: "stuff";
-  }
+  };
 }
 
 type RoutePostInput = RoutePostInputJSON | RoutePostInputCSV;

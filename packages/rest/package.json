@@ -20,6 +20,7 @@
   "devDependencies": {
     "@jest/globals": "^29.5.0",
     "@types/jest": "^29.4.0",
+    "@types/json-schema": "^7.0.15",
     "@types/lodash": "^4.14.202",
     "@types/node": "^18.15.11",
     "eslint": "^8.45.0",
