@@ -39,10 +39,7 @@ type QueryParams = Record<string, string | number | boolean | Array<string> | Ar
 type PathParams = Record<string, string | number>;
 
 export interface HttpRequestEmpty extends HttpRequest {
-    headers: {
-        "content-type": never
-    }
-    // body?: undefined;
+    body?: undefined;
 }
 
 export interface HttpRequestJSON extends HttpRequest {
@@ -63,9 +60,6 @@ export interface SerializedHttpResponse extends Omit<HttpResponse, "body"> {
 }
 
 export interface HttpResponseEmpty extends HttpResponse {
-    headers: {
-        "content-type": never
-    },
     body?: undefined;
 }
 

@@ -4,6 +4,8 @@ import ts from "typescript";
 import { TransformationError } from "./error";
 import {
   dereferenceSchema,
+  getFirstExample,
+  getSchemaOrAllOf,
   getUnifiedPropertySchemas,
   isSchemaEmpty,
   joinSchemas,
@@ -339,20 +341,23 @@ export class ControllerMeta {
 
       const content = contentTypeDiscriminatedSchemas == null ? undefined : Object.fromEntries(
         Object.entries(contentTypeDiscriminatedSchemas).map(([contentType, schema]) => {
-          const branchBodySchema = getUnifiedPropertySchemas(schema, "/")["body"];
+          const branchBodySchemaSet = getUnifiedPropertySchemas(schema, "/")["body"];
+          const branchBodySchema = rewriteRefsForOpenApi(
+            unresolveRefs(joinSchemas(branchBodySchemaSet.schemaSet)),
+          );
+          const example = getFirstExample(branchBodySchema);
           return [
             contentType,
             {
-              schema: rewriteRefsForOpenApi(
-                unresolveRefs(joinSchemas(branchBodySchema.schemaSet)),
-              ) as OpenAPIV3.NonArraySchemaObject,
+              ...(example == null ? {} : { example }),
+              schema: branchBodySchema as OpenAPIV3.NonArraySchemaObject,
             },
           ];
         }),
       );
 
       responses[statusCode] = {
-        description: schema.description || "",
+        description: getSchemaOrAllOf(schema).description || "",
         headers: Object.fromEntries(headers.map(header => [header.name, header])),
         content,
       };
@@ -374,17 +379,28 @@ export class ControllerMeta {
 
     const content = Object.fromEntries(
       Object.entries(contentTypeDiscriminatedSchemas).map(([contentType, schema]) => {
-        const branchBodySchema = getUnifiedPropertySchemas(schema, "/")["body"];
+        const branchBodySchemaSet = getUnifiedPropertySchemas(schema, "/")["body"];
+        const branchBodySchema = rewriteRefsForOpenApi(unresolveRefs(joinSchemas(branchBodySchemaSet.schemaSet)));
+        const example = getFirstExample(branchBodySchema);
+
         return [
           contentType,
           {
-            schema: rewriteRefsForOpenApi(unresolveRefs(joinSchemas(branchBodySchema.schemaSet))),
+            ...(example == null ? {} : { example }),
+            schema: branchBodySchema,
           },
         ];
       }),
     );
 
+    // If there is exactly one branch, then we can use the description from that branch.
+    // Otherwise, don't use a description.
+    const description = Object.keys(content).length === 1
+      ? getSchemaOrAllOf(Object.values(content)[0].schema).description
+      : undefined;
+
     return {
+      description,
       required: bodySchema.required,
       content,
     } as OpenAPIV3_1.RequestBodyObject;

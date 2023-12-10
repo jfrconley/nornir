@@ -25,7 +25,8 @@ interface RoutePostInputJSON extends HttpRequest {
     "content-type": "application/json";
   } | { "content-type": "text/plain" };
   /**
-   * @contentMediaType application/json
+   * A cool json input
+   * @example { "cool": "stuff" }
    */
   body: RoutePostBodyInput;
   query: {
@@ -58,7 +59,8 @@ interface RoutePostInputCSV extends HttpRequest {
     "csv-header": string;
   };
   /**
-   * @contentMediaType text/csv
+   * This is a CSV body
+   * @example "cool,cool2"
    */
   body: TestStringType;
   pathParams: {
@@ -95,6 +97,9 @@ export interface RouteGetOutputSuccess extends HttpResponse {
  */
 export interface RouteGetOutputError extends HttpResponse {
   statusCode: "400";
+  /**
+   * @example { "message": "Bad Request"}
+   */
   body: {
     message: string;
   };

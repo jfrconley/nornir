@@ -40,7 +40,6 @@ export abstract class FileTransformer {
     );
 
     const mergedSpec = OpenApiSpecHolder.getSpecForFile(file);
-    console.log("Merged Spec:", JSON.stringify(mergedSpec, null, 2));
 
     compilerHost.writeFile(schemaFileName, JSON.stringify(mergedSpec, null, 2), false, undefined, []);
 
