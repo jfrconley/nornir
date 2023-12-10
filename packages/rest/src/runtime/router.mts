@@ -90,10 +90,10 @@ export class NornirRouteNotFoundError extends NornirRestRequestError<HttpRequest
 
     toHttpResponse(): HttpResponse {
         return {
-            statusCode: HttpStatusCode.NotFound,
+            statusCode: "404",
             body: "Not Found",
             headers: {
-                "content-type": MimeType.TextPlain
+                "content-type": "text/plain"
             },
         }
     }

@@ -50,10 +50,10 @@ export class NornirRestRequestValidationError<Request extends HttpRequest> exten
 
     toHttpResponse(): HttpResponse {
         return {
-            statusCode: HttpStatusCode.UnprocessableEntity,
+            statusCode: "422",
             body: {errors: this.errors},
             headers: {
-                'content-type': MimeType.ApplicationJson,
+                'content-type': "application/json"
             },
         }
     }

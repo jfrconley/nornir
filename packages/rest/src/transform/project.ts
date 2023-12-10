@@ -44,6 +44,7 @@ export const SCHEMA_DEFAULTS: Config = {
   encodeRefs: true,
   additionalProperties: true,
   topRef: false,
+  discriminatorType: "open-api",
 };
 
 export type Options = AJVOptions & SchemaConfig;

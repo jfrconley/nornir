@@ -6,6 +6,7 @@ import {
   NeverType,
   ReferenceType,
   SchemaGenerator,
+  StringType,
   SubNodeParser,
 } from "ts-json-schema-generator";
 import ts from "typescript";
@@ -16,14 +17,13 @@ let project: Project;
 // let files: string[] = [];
 // let openapi: OpenAPIV3.Document;
 
-export class NornirIgnoreParser implements SubNodeParser {
+export class TemplateExpressionNodeParser implements SubNodeParser {
   supportsNode(node: ts.Node): boolean {
-    const tags = ts.getJSDocTags(node);
-    return tags.some((tag) => tag.tagName.getText() === "nornirIgnore");
+    return ts.isTemplateExpression(node);
   }
 
   createType(node: ts.Node, context: Context, reference?: ReferenceType): BaseType {
-    return new NeverType();
+    return new StringType();
   }
 }
 
@@ -46,7 +46,7 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
     ...SCHEMA_DEFAULTS,
     jsDoc: jsDoc || SCHEMA_DEFAULTS.jsDoc,
     strictTuples: strictTuples || SCHEMA_DEFAULTS.strictTuples,
-    encodeRefs: encodeRefs || SCHEMA_DEFAULTS.encodeRefs,
+    encodeRefs: false,
     additionalProperties: additionalProperties || SCHEMA_DEFAULTS.additionalProperties,
     sortProps: sortProps || SCHEMA_DEFAULTS.sortProps,
     expose,
@@ -65,6 +65,7 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
     ...schemaConfig,
   }, (prs) => {
     // prs.addNodeParser(new NornirIgnoreParser());
+    prs.addNodeParser(new TemplateExpressionNodeParser());
   });
   const typeFormatter = createFormatter({
     ...schemaConfig,

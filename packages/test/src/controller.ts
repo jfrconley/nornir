@@ -1,10 +1,10 @@
 import { Nornir } from "@nornir/core";
 import {
-  AnyMimeType,
   Controller,
   GetChain,
   type HttpRequest,
   HttpRequestEmpty,
+  HttpResponse,
   HttpStatusCode,
   MimeType,
   PostChain,
@@ -12,15 +12,21 @@ import {
 import { assertValid } from "@nrfcloud/ts-json-schema-transformer";
 
 interface RouteGetInput extends HttpRequestEmpty {
-  headers: {
-    "content-type": AnyMimeType;
+  pathParams: {
+    /**
+     * @pattern ^[a-z]+$
+     */
+    cool: TestStringType;
   };
 }
 
 interface RoutePostInputJSON extends HttpRequest {
   headers: {
-    "content-type": MimeType.ApplicationJson;
-  };
+    "content-type": "application/json";
+  } | { "content-type": "text/plain" };
+  /**
+   * @contentMediaType application/json
+   */
   body: RoutePostBodyInput;
   query: {
     test: "boolean";
@@ -42,7 +48,7 @@ interface RoutePostInputJSON extends HttpRequest {
 
 interface RoutePostInputCSV extends HttpRequest {
   headers: {
-    "content-type": MimeType.TextCsv;
+    "content-type": "text/csv";
     /**
      * This is a CSV header
      * @example "cool,cool2"
@@ -51,16 +57,56 @@ interface RoutePostInputCSV extends HttpRequest {
      */
     "csv-header": string;
   };
+  /**
+   * @contentMediaType text/csv
+   */
   body: TestStringType;
   pathParams: {
     /**
      * @deprecated
      */
-    reallyCool: "stuff";
+    reallyCool: TestStringType;
   };
 }
 
-type RoutePostInput = RoutePostInputJSON | RoutePostInputCSV;
+export type RoutePostInput = RoutePostInputCSV | RoutePostInputJSONAlias;
+
+export type RoutePostInputJSONAlias = RoutePostInputJSON;
+
+/**
+ * This is a comment
+ */
+export interface RouteGetOutputSuccess extends HttpResponse {
+  /**
+   * This is a property
+   */
+  statusCode: "200" | "201";
+  body: {
+    bleep: string;
+    bloop: number;
+  };
+  headers: {
+    "content-type": "application/json";
+  };
+}
+
+/**
+ * This is a comment on RouteGetOutputError
+ */
+export interface RouteGetOutputError extends HttpResponse {
+  statusCode: "400";
+  body: {
+    message: string;
+  };
+  headers: {
+    "content-type": "application/json";
+  };
+}
+
+/**
+ * Output of the GET route
+ */
+export type RouteGetOutput = RouteGetOutputSuccess | RouteGetOutputError;
 
 /**
  * this is a comment
@@ -78,7 +124,7 @@ interface RoutePostBodyInput {
  * @pattern ^[a-z]+$
  * @minLength 5
  */
-type TestStringType = Nominal<string, "TestStringType">;
+export type TestStringType = Nominal<string, "TestStringType">;
 
 export declare class Tagged<N extends string> {
   protected _nominal_: N;
@@ -104,30 +150,33 @@ const basePath = `${overallBase}/basepath`;
  */
 @Controller(basePath)
 export class TestController {
-  // /**
-  //  * Cool get route
-  //  */
-  // @GetChain("/route")
-  // public getRoute(chain: Nornir<RouteGetInput>) {
-  //   return chain
-  //     .use(input => {
-  //       assertValid<RouteGetInput>(input);
-  //       return input;
-  //     })
-  //     .use(input => input.headers["content-type"])
-  //     .use(contentType => ({
-  //       statusCode: HttpStatusCode.Ok,
-  //       body: `Content-Type: ${contentType}`,
-  //       headers: {
-  //         "content-type": MimeType.TextPlain,
-  //       },
-  //     }));
-  // }
+  /**
+   * Cool get route
+   */
+  @GetChain("/route/{cool}")
+  public getRoute(chain: Nornir<RouteGetInput>) {
+    return chain
+      .use(input => {
+        assertValid<RouteGetInput>(input);
+        return input;
+      })
+      .use(input => input.headers?.toString())
+      .use(contentType => ({
+        statusCode: "200" as const,
+        body: {
+          bleep: "bloop",
+          bloop: 5,
+        },
+        headers: {
+          "content-type": "application/json" as const,
+        } as const,
+      } as RouteGetOutput));
+  }
 
   /**
    * A simple post route
    * @summary Cool Route
-   * @tags cool, route
+   * @tags cool
    * @deprecated
    * @operationId coolRoute
    */
@@ -135,11 +184,9 @@ export class TestController {
   public postRoute(chain: Nornir<RoutePostInput>) {
     return chain
       .use(contentType => ({
-        statusCode: HttpStatusCode.Ok,
-        body: `Content-Type: ${contentType}`,
-        headers: {
-          "content-type": MimeType.TextPlain,
-        },
+        statusCode: "200" as const,
+        // body: `Content-Type: ${contentType}`,
+        headers: {},
       }));
   }
 }

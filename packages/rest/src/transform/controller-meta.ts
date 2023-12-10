@@ -1,14 +1,20 @@
-import traverse from "json-schema-traverse";
-import { IJsonSchema, OpenAPIV3, OpenAPIV3_1 } from "openapi-types";
-import * as tsm from "ts-morph";
+import { JSONSchema7 } from "json-schema";
+import { OpenAPIV3, OpenAPIV3_1 } from "openapi-types";
 import ts from "typescript";
+import { TransformationError } from "./error";
+import {
+  dereferenceSchema,
+  getUnifiedPropertySchemas,
+  isSchemaEmpty,
+  joinSchemas,
+  moveRefsToAllOf,
+  resolveDiscriminantProperty,
+  rewriteRefsForOpenApi,
+  unresolveRefs,
+} from "./json-schema-utils";
 import { isErrorResult, merge, MergeInput } from "./openapi-merge";
 import { Project } from "./project";
 import { FileTransformer } from "./transformers/file-transformer";
-
-import { JSONSchemaType } from "ajv";
-import { JSONSchema7 } from "json-schema";
-import { ReferenceType, SubNodeParser, UnionType } from "ts-json-schema-generator";
 
 export abstract class OpenApiSpecHolder {
   private static specFileMap = new Map<string, OpenAPIV3_1.Document[]>();
@@ -25,6 +31,9 @@ export abstract class OpenApiSpecHolder {
         oas: spec,
         dispute: {
           alwaysApply: true,
+          mergeDispute: true,
+          prefix: "",
+          suffix: "",
         },
       })) as MergeInput;
 
@@ -213,26 +222,33 @@ export class ControllerMeta {
       throw new Error(`Route already registered: ${index.method} ${index.path}`);
     }
 
-    OpenApiSpecHolder.addSpecForFile(this.source, this.generateRouteSpec(routeInfo));
-
-    methods.set(index.method, {
+    const modifiedRouteInfo = {
       method: routeInfo.method,
       path: this.basePath + routeInfo.path.toLowerCase(),
       description: routeInfo.description,
       // requestInfo: this.buildRequestInfo(index, routeInfo.input),
       // responseInfo: this.buildResponseInfo(index, routeInfo.output),
+      outputSchema: routeInfo.outputSchema,
+      inputSchema: routeInfo.inputSchema,
       filePath: routeInfo.filePath,
       summary: routeInfo.summary,
       deprecated: routeInfo.deprecated,
       operationId: routeInfo.operationId,
       tags: routeInfo.tags,
       input: routeInfo.input,
-      output: routeInfo.output,
-    });
+    };
+
+    OpenApiSpecHolder.addSpecForFile(this.source, this.generateRouteSpec(modifiedRouteInfo));
+
+    methods.set(index.method, modifiedRouteInfo);
   }
 
   private generateRouteSpec(route: RouteInfo): OpenAPIV3_1.Document {
-    this.generatePathParamsSpecs(route);
+    const inputSchema = moveRefsToAllOf(route.inputSchema);
+    const routeIndex = this.getRouteIndex(route);
+    const dereferencedInputSchema = dereferenceSchema(inputSchema);
+    const outputSchema = moveRefsToAllOf(route.outputSchema);
+    const dereferencedOutputSchema = dereferenceSchema(outputSchema);
     return {
       openapi: "3.0.3",
       info: {
@@ -240,40 +256,35 @@ export class ControllerMeta {
         version: "1.0.0",
       },
       paths: {
-        [this.basePath + route.path.toLowerCase()]: {
+        [route.path]: {
           [route.method.toLowerCase()]: {
             deprecated: route.deprecated,
             tags: route.tags,
             operationId: route.operationId,
             summary: route.summary,
             description: route.description,
-            responses: {
-              200: {
-                description: "OK",
-              },
-            },
-            parameters: this.generatePathParamsSpecs(route),
+            responses: this.generateOutputType(routeIndex, dereferencedOutputSchema),
+            requestBody: this.generateRequestBody(routeIndex, dereferencedInputSchema),
+            parameters: [
+              ...this.generateParametersForSchemaPath(dereferencedInputSchema, "/pathParams", "path"),
+              ...this.generateParametersForSchemaPath(dereferencedInputSchema, "/query", "query"),
+              ...this.generateParametersForSchemaPath(dereferencedInputSchema, "/headers", "header"),
+            ],
           },
         },
       },
       components: {
+        schemas: {
+          ...rewriteRefsForOpenApi(inputSchema).definitions,
+          ...rewriteRefsForOpenApi(outputSchema).definitions,
+        },
         parameters: {},
       },
     } as OpenAPIV3_1.Document;
   }
 
-  private generatePathParamsSpecs(routeInfo: RouteInfo): OpenAPIV3_1.ParameterObject[] {
-    const wrapped = tsm.createWrappedNode(routeInfo.input, { typeChecker: this.project.checker });
-    const property = wrapped.getType().getProperty("pathParams");
-    if (property == undefined) throw new Error("No pathParams property found");
-    const declarations = property.getDeclarations() as tsm.PropertySignature[];
-    const typeNodes = declarations.map((declaration) => declaration.getTypeNodeOrThrow());
-
-    const paramObjectSchema = this.project.schemaGenerator.createSchemaFromNodes(
-      [ts.factory.createUnionTypeNode(typeNodes.map((typeNode) => typeNode.compilerNode))],
-    );
-
-    const propertySchemas = getUnifiedPropertySchemas(paramObjectSchema, "/");
+  private generateParametersForSchemaPath(inputSchema: JSONSchema7, schemaPath: string, paramType: string) {
+    const propertySchemas = getUnifiedPropertySchemas(inputSchema, schemaPath);
 
     return Object.entries(propertySchemas).map(([name, schema]) => {
       // Just take the first provided description and example for now
@@ -284,7 +295,11 @@ export class ControllerMeta {
       }
 
       // If every schema is deprecated, then the parameter is deprecated
-      const deprecated = schema.schemaSet.every((schema) => (schema as { deprecated?: boolean }).deprecated);
+      const deprecated = schema.schemaSet.every((schema) =>
+        (schema as {
+          deprecated?: boolean;
+        }).deprecated
+      );
 
       const mergedSchema = schema?.schemaSet.length === 1
         ? schema.schemaSet[0]
@@ -292,252 +307,88 @@ export class ControllerMeta {
           anyOf: schema.schemaSet,
         };
 
-      mergedSchema.definitions = paramObjectSchema.definitions;
-
       const paramObject: OpenAPIV3_1.ParameterObject = {
         name,
-        in: "path",
+        in: paramType,
         required: schema.required,
         description,
         example,
         deprecated,
-        schema: mergedSchema as OpenAPIV3.NonArraySchemaObject,
+        schema: rewriteRefsForOpenApi(unresolveRefs(mergedSchema)) as OpenAPIV3.NonArraySchemaObject,
       };
 
       return paramObject;
     });
   }
 
-  // private buildRequestInfo(routeIndex: RouteIndex, inputType: ts.Type): RequestInfo {
-  //   const paramterData: { [key in ParameterType]: { [name: string]: ParameterMeta } } = {
-  //     path: {},
-  //     header: {},
-  //     query: {},
-  //   };
-  //   const body: { [contentType: string]: Metadata } = {};
-  //
-  //   const meta = MetadataFactory.generate(
-  //     this.project.checker,
-  //     ControllerMeta.metadataCollection,
-  //     inputType,
-  //     { resolve: false, constant: true },
-  //   );
-  //   for (const object of meta.objects) {
-  //     for (const property of object.properties) {
-  //       const key = MetadataUtils.getSoleLiteral(property.key);
-  //       if (key != null && !isRequestTypeField(key)) {
-  //         throw new Error(`Invalid request field: ${key}`);
-  //       }
-  //       switch (key) {
-  //         case "query":
-  //           this.buildParameterInfo(property.value, "query", paramterData);
-  //           break;
-  //         case "pathParams":
-  //           this.buildParameterInfo(property.value, "path", paramterData);
-  //           break;
-  //         case "headers":
-  //           this.buildParameterInfo(property.value, "header", paramterData);
-  //           break;
-  //       }
-  //     }
-  //     this.buildBodyInfo(routeIndex, object, body);
-  //   }
-  //
-  //   return {
-  //     body,
-  //     parameters: [
-  //       ...Object.values(paramterData.path),
-  //       ...Object.values(paramterData.header),
-  //       ...Object.values(paramterData.query),
-  //     ],
-  //   };
-  // }
+  private generateOutputType(routeIndex: RouteIndex, outputSchema: JSONSchema7): OpenAPIV3_1.ResponsesObject {
+    const responses: OpenAPIV3_1.ResponsesObject = {};
+    const statusCodeDiscriminatedSchemas = resolveDiscriminantProperty(outputSchema, "/statusCode");
 
-  // private buildResponseInfo(routeIndex: RouteIndex, outputType: ts.Type): ResponseInfo {
-  //   const responses: ResponseInfo = {};
-  //   const meta = MetadataFactory.generate(
-  //     this.project.checker,
-  //     ControllerMeta.metadataCollection,
-  //     outputType,
-  //     { resolve: false, constant: true },
-  //   );
-  //   for (const object of meta.objects) {
-  //     const statusCodeProp = MetadataUtils.getPropertyByStringIndex(object, "statusCode");
-  //     if (statusCodeProp == null) {
-  //       throw new Error("Response must have a statusCode property");
-  //     }
-  //     let statusCodes = statusCodeProp.constants.map((c) => c.values).flat().map(v => v.toString());
-  //     if (HttpStatusCodes.every((c) => statusCodes.includes(c))) {
-  //       strictError(
-  //         this.project,
-  //         new StrictTransformationError(
-  //           "Response status codes must be literal values",
-  //           "Defaulting response status code to 200",
-  //           routeIndex,
-  //         ),
-  //       );
-  //       statusCodes = ["200"];
-  //     }
-  //
-  //     if (statusCodes.length === 0) {
-  //       throw new Error("Literal status codes must be specified");
-  //     }
-  //
-  //     for (const statusCode of statusCodes) {
-  //       if (responses[statusCode] != null) {
-  //         throw new Error(`Response already defined for status code ${statusCode}`);
-  //       }
-  //       const headerParamHolder: { [key in ParameterType]: { [name: string]: ParameterMeta } } = {
-  //         path: {},
-  //         header: {},
-  //         query: {},
-  //       };
-  //       const headerProp = MetadataUtils.getPropertyByStringIndex(object, "headers");
-  //       if (headerProp != null) {
-  //         this.buildParameterInfo(headerProp, "header", headerParamHolder);
-  //       }
-  //       const result: ResponseInfo[string] = {
-  //         body: {},
-  //         headers: Object.values(headerParamHolder.header),
-  //       };
-  //       this.buildBodyInfo(routeIndex, object, result.body);
-  //       responses[statusCode] = result;
-  //     }
-  //   }
-  //   return responses;
-  // }
-
-  // private buildBodyInfo(
-  //   routeIndex: RouteIndex,
-  //   object: MetadataObject,
-  //   bodyTypes: { [contentType: string]: Metadata },
-  // ) {
-  //   let contentType = this.getContentTypeFromObject(object);
-  //   const bodyType = MetadataUtils.getPropertyByStringIndex(object, "body");
-  //   if (bodyType == null || (bodyType.empty() && !bodyType.nullable)) {
-  //     return;
-  //   }
-  //   if (contentType == null) {
-  //     strictError(
-  //       this.project,
-  //       new StrictTransformationError(
-  //         "No content type specified for body",
-  //         "No content type specified, defaulting to application/json",
-  //         routeIndex,
-  //       ),
-  //     );
-  //   }
-  //   contentType = contentType || DEFAULT_CONTENT_TYPE;
-  //   const existingBody = bodyTypes[contentType];
-  //   if (existingBody != null) {
-  //     if (MetadataUtils.equal(existingBody, bodyType)) {
-  //       return;
-  //     } else {
-  //       throw new Error(`Content type ${contentType} already defined`);
-  //     }
-  //   } else {
-  //     bodyTypes[contentType] = bodyType;
-  //   }
-  // }
-
-  // private getContentTypeFromObject(metaObject: MetadataObject): string | null {
-  //   const headers = MetadataUtils.getPropertyByStringIndex(metaObject, "headers");
-  //   if (headers == null) {
-  //     return null;
-  //   }
-  //   if (headers.objects.length !== 1) {
-  //     return null;
-  //   }
-  //   const headerObject = headers.objects[0];
-  //   const contentType = MetadataUtils.getPropertyByStringIndex(headerObject, "content-type");
-  //   if (contentType == null) {
-  //     return null;
-  //   }
-  //   return MetadataUtils.getSoleLiteral(contentType);
-  // }
-
-  // private buildParameterInfo(
-  //   inputMeta: Metadata,
-  //   parameterType: ParameterType,
-  //   parameterData: { [key in ParameterType]: { [name: string]: ParameterMeta } },
-  // ) {
-  //   for (const object of inputMeta.objects) {
-  //     for (const property of object.properties) {
-  //       const key = MetadataUtils.getSoleLiteral(property.key);
-  //       if (key == null) {
-  //         continue;
-  //       }
-  //       const meta = property.value;
-  //       const existingParameter = parameterData[parameterType][key];
-  //       if (existingParameter != null) {
-  //         parameterData[parameterType][key] = {
-  //           name: key,
-  //           meta: Metadata.merge(existingParameter.meta, meta),
-  //           type: parameterType,
-  //         };
-  //       } else {
-  //         parameterData[parameterType][key] = {
-  //           name: key,
-  //           meta,
-  //           type: parameterType,
-  //         };
-  //       }
-  //     }
-  //   }
-  // }
-}
-
-// Traverses the schema and extracts a unified definition for the property at the given path
-export function getUnifiedPropertySchemas(schema: JSONSchema7, parentPath: string) {
-  // Take a path from the json schema and convert it to a path in validated object
-  const convertJsonSchemaPathIfPropertyPath = (path: string) => {
-    if (path.split("/").at(-2) !== "properties") {
-      return "/";
+    if (statusCodeDiscriminatedSchemas == null) {
+      throw new TransformationError("Could not resolve status codes for some responses", routeIndex);
     }
 
-    return path
-      // replace properties
-      .replace(/\/properties\//g, "/")
-      // replace items and index
-      .replace(/\/items\/(\d+)\//g, "/")
-      // replace anyOf and index
-      .replace(/\/anyOf\/(\d+)\//g, "/")
-      // replace oneOf and index
-      .replace(/\/oneOf\/(\d+)\//g, "/")
-      // replace allOf and index
-      .replace(/\/allOf\/(\d+)\//g, "/");
-  };
+    for (const [statusCode, schema] of Object.entries(statusCodeDiscriminatedSchemas)) {
+      const headers = this.generateParametersForSchemaPath(schema, "/headers", "header");
+      const contentTypeDiscriminatedSchemas = resolveDiscriminantProperty(schema, "/headers/content-type");
+      const bodySchema = getUnifiedPropertySchemas(schema, "/")["body"];
+      if (contentTypeDiscriminatedSchemas == null && bodySchema != null) {
+        throw new TransformationError(`Could not resolve content types for "${statusCode}" responses`, routeIndex);
+      }
 
-  const isDirectChildPath = (childPath: string, parentPath: string) => {
-    const childPathParts = childPath.split("/").filter(part => part !== "");
-    const parentPathParts = parentPath.split("/").filter(part => part !== "");
+      const content = contentTypeDiscriminatedSchemas == null ? undefined : Object.fromEntries(
+        Object.entries(contentTypeDiscriminatedSchemas).map(([contentType, schema]) => {
+          const branchBodySchema = getUnifiedPropertySchemas(schema, "/")["body"];
+          return [
+            contentType,
+            {
+              schema: rewriteRefsForOpenApi(
+                unresolveRefs(joinSchemas(branchBodySchema.schemaSet)),
+              ) as OpenAPIV3.NonArraySchemaObject,
+            },
+          ];
+        }),
+      );
 
-    if (childPathParts.length !== parentPathParts.length + 1) {
-      return false;
+      responses[statusCode] = {
+        description: schema.description || "",
+        headers: Object.fromEntries(headers.map(header => [header.name, header])),
+        content,
+      };
     }
 
-    return parentPathParts.every((part, index) => part === childPathParts[index]);
-  };
+    return responses;
+  }
 
-  const schemas: Record<string, { schemaSet: JSONSchema7[]; required: boolean }> = {};
+  private generateRequestBody(routeIndex: RouteIndex, inputSchema: JSONSchema7): OpenAPIV3_1.RequestBodyObject | void {
+    const bodySchema = getUnifiedPropertySchemas(inputSchema, "/")["body"];
+    const contentTypeDiscriminatedSchemas = resolveDiscriminantProperty(inputSchema, "/headers/content-type");
+    if (bodySchema == null) {
+      return;
+    }
 
-  traverse(schema, {
-    allKeys: false,
-    cb: {
-      pre: (schema, jsonPtr, rootSchema, parentJsonPtr, parentKeyword, parentSchema, keyIndex) => {
-        const convertedPath = convertJsonSchemaPathIfPropertyPath(jsonPtr);
+    if (contentTypeDiscriminatedSchemas == null) {
+      throw new TransformationError("Could not resolve content types for request body", routeIndex);
+    }
 
-        if (isDirectChildPath(convertedPath, parentPath)) {
-          const schemaSet = schemas[keyIndex || ""] || { schemaSet: [], required: true };
-          schemaSet.required = !schemaSet.required ? false : parentSchema?.required?.includes(keyIndex) ?? false;
-          schemaSet.schemaSet.push(schema);
-          schemas[keyIndex || ""] = schemaSet;
-        }
-      },
-    },
-  });
+    const content = Object.fromEntries(
+      Object.entries(contentTypeDiscriminatedSchemas).map(([contentType, schema]) => {
+        const branchBodySchema = getUnifiedPropertySchemas(schema, "/")["body"];
+        return [
+          contentType,
+          {
+            schema: rewriteRefsForOpenApi(unresolveRefs(joinSchemas(branchBodySchema.schemaSet))),
+          },
+        ];
+      }),
+    );
 
-  return schemas;
+    return {
+      required: bodySchema.required,
+      content,
+    } as OpenAPIV3_1.RequestBodyObject;
+  }
 }
 
 function deparameterizePath(path: string) {
@@ -550,7 +401,8 @@ export interface RouteInfo {
   description?: string;
   summary?: string;
   input: ts.TypeNode;
-  output: ts.TypeNode;
+  inputSchema: JSONSchema7;
+  outputSchema: JSONSchema7;
   filePath: string;
   tags?: string[];
   deprecated?: boolean;

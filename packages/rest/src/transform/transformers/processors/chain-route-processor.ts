@@ -1,8 +1,9 @@
 import { schemaToValidator } from "@nrfcloud/ts-json-schema-transformer/utils";
-import { createWrappedNode } from "ts-morph";
+import tsp from "ts-morph";
 import { isTypeReference } from "tsutils";
 import ts from "typescript";
 import { ControllerMeta } from "../../controller-meta";
+import { moveRefsToAllOf } from "../../json-schema-utils";
 import { getStringLiteralOrConst, isNornirNode, NornirDecoratorInfo, separateNornirDecorators } from "../../lib";
 import { Project } from "../../project";
 
@@ -49,11 +50,13 @@ export abstract class ChainRouteProcessor {
 
     const { typeNode: inputTypeNode, type: inputType } = ChainRouteProcessor.resolveInputType(project, node);
 
-    // const outputType = ChainRouteProcessor.resolveOutputType(project, methodSignature);
+    const outputType = ChainRouteProcessor.resolveOutputType(project, node);
+
+    const outputSchema = project.schemaGenerator.createSchemaFromNodes([outputType.node]);
 
     const inputSchema = project.schemaGenerator.createSchemaFromNodes([inputTypeNode]);
 
-    const inputValidator = schemaToValidator(inputSchema, project.options.validation);
+    const inputValidator = schemaToValidator(moveRefsToAllOf(inputSchema, false), project.options.validation);
 
     const parsedDocComments = ChainRouteProcessor.parseJSDoc(project, node);
 
@@ -61,9 +64,9 @@ export abstract class ChainRouteProcessor {
       method,
       path,
       input: inputTypeNode,
-
+      inputSchema,
+      outputSchema: outputSchema,
       // FIXME: this should be the output type not the input type
-      output: inputTypeNode,
       description: parsedDocComments.description,
       summary: parsedDocComments.summary,
       filePath: source.fileName,
@@ -205,20 +208,21 @@ export abstract class ChainRouteProcessor {
     };
   }
 
-  private static resolveOutputType(project: Project, methodSignature: ts.Signature): ts.Type {
-    const returnType = methodSignature.getReturnType();
-    const returnTypeDeclaration = returnType.symbol?.declarations?.[0];
-    if (!returnTypeDeclaration) {
-      throw new Error("Handler chain return type declaration not found");
-    }
-    if (!isNornirNode(returnTypeDeclaration)) {
-      throw new Error("Handler chain return must be a Nornir class");
-    }
-    if (!isTypeReference(returnType)) {
-      throw new Error("Handler chain return must use a type reference");
-    }
-    const typeArguments = project.checker.getTypeArguments(returnType);
-    const [outputType] = typeArguments;
-    return outputType;
+  private static resolveOutputType(
+    project: Project,
+    methodDeclaration: ts.MethodDeclaration,
+  ): { type: ts.Type; node: ts.Node } {
+    const wrapped = tsp.createWrappedNode(methodDeclaration, { typeChecker: project.checker });
+    const type = wrapped.getReturnType();
+    const typeArgs = type.getTypeArguments();
+
+    const [, outputType] = typeArgs;
+    const symbol = outputType.getSymbol();
+    const declaration = symbol?.getDeclarations()?.[0];
+    return {
+      type: outputType.compilerType,
+      node: declaration?.compilerNode
+        || project.checker.typeToTypeNode(outputType.compilerType, undefined, undefined) as ts.TypeReferenceNode,
+    };
   }
 }

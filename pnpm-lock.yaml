@@ -96,8 +96,8 @@ importers:
         specifier: ^29.5.0
         version: 29.5.0
       '@nrfcloud/ts-json-schema-transformer':
-        specifier: ^1.2.4
-        version: 1.2.4(typescript@5.2.2)
+        specifier: ^1.2.5
+        version: 1.2.5(typescript@5.2.2)
       '@types/jest':
         specifier: ^29.4.0
         version: 29.4.0
@@ -122,12 +122,15 @@ importers:
 
   packages/rest:
     dependencies:
+      '@apidevtools/json-schema-ref-parser':
+        specifier: ^11.1.0
+        version: 11.1.0
       '@nornir/core':
         specifier: workspace:^
         version: link:../core
       '@nrfcloud/ts-json-schema-transformer':
-        specifier: ^1.2.4
-        version: 1.2.4(typescript@5.2.2)
+        specifier: ^1.2.5
+        version: 1.2.5(typescript@5.2.2)
       '@types/aws-lambda':
         specifier: ^8.10.115
         version: 8.10.115
@@ -153,8 +156,8 @@ importers:
         specifier: ^1.2.2
         version: 1.2.2
       ts-json-schema-generator:
-        specifier: ^1.4.0
-        version: 1.4.0
+        specifier: ^1.5.0
+        version: 1.5.0
       ts-morph:
         specifier: ^20.0.0
         version: 20.0.0
@@ -205,8 +208,8 @@ importers:
         specifier: ^29.5.0
         version: 29.5.0
       '@nrfcloud/ts-json-schema-transformer':
-        specifier: ^1.2.4
-        version: 1.2.4(typescript@5.2.2)
+        specifier: ^1.2.5
+        version: 1.2.5(typescript@5.2.2)
       '@types/aws-lambda':
         specifier: ^8.10.115
         version: 8.10.115
@@ -256,6 +259,17 @@ packages:
       '@types/lodash.clonedeep': 4.5.7
       js-yaml: 4.1.0
       lodash.clonedeep: 4.5.0
+
+  /@apidevtools/json-schema-ref-parser@11.1.0:
+    resolution: {integrity: sha512-g/VW9ZQEFJAOwAyUb8JFf7MLiLy2uEB4rU270rGzDwICxnxMlPy0O11KVePSgS36K1NI29gSlK84n5INGhd4Ag==}
+    engines: {node: '>= 16'}
+    dependencies:
+      '@jsdevtools/ono': 7.1.3
+      '@types/json-schema': 7.0.15
+      '@types/lodash.clonedeep': 4.5.7
+      js-yaml: 4.1.0
+      lodash.clonedeep: 4.5.0
+    dev: false
 
   /@babel/code-frame@7.21.4:
     resolution: {integrity: sha512-LYvhNKfwWSPpocw8GI7gpK2nq3HSDuEPC/uSYaALSJu9xjsalaaYFOq0Pwt5KmVqwEbZlDu81aLXwBOmD/Fv9g==}
@@ -2248,8 +2262,8 @@ packages:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.15.0
 
-  /@nrfcloud/ts-json-schema-transformer@1.2.4(typescript@5.2.2):
-    resolution: {integrity: sha512-JyZkblORtJCRzE2wOYQC3pIeXjkxg/irNYtC7ufcErCPBB9NHzvqMoAaIPu0bZJdxCLvLKL4qTh7NYpm1gg/Gg==}
+  /@nrfcloud/ts-json-schema-transformer@1.2.5(typescript@5.2.2):
+    resolution: {integrity: sha512-AL1ZYkwtusprB4Hsf5CuySaRT0hPUhVA8rWb58FS13FcZd9DKi8mKg6s09Jmy7Ersud0Q5WnkxHvEM+ltz8tqA==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       typescript: '>=5'
@@ -2258,7 +2272,7 @@ packages:
       ajv: 8.12.0
       esbuild: 0.17.18
       json-schema-faker: /@jfconley/json-schema-faker@0.5.0-rcv.48
-      ts-json-schema-generator: 1.4.0
+      ts-json-schema-generator: 1.5.0
       typescript: 5.2.2
 
   /@parcel/source-map@2.1.1:
@@ -2369,10 +2383,6 @@ packages:
     dependencies:
       expect: 29.5.0
       pretty-format: 29.5.0
-    dev: true
-
-  /@types/json-schema@7.0.12:
-    resolution: {integrity: sha512-Hr5Jfhc9eYOQNPYO5WLDq/n4jqijdHNlDXjuAQkkt+mWdQR+XJToOHrsD4cPaMXpn6KO7y2+wM8AZEs8VpBLVA==}
     dev: true
 
   /@types/json-schema@7.0.15:
@@ -2583,7 +2593,7 @@ packages:
       eslint: ^6.0.0 || ^7.0.0 || ^8.0.0
     dependencies:
       '@eslint-community/eslint-utils': 4.4.0(eslint@8.45.0)
-      '@types/json-schema': 7.0.12
+      '@types/json-schema': 7.0.15
       '@types/semver': 7.5.0
       '@typescript-eslint/scope-manager': 5.59.2
       '@typescript-eslint/types': 5.59.2
@@ -2603,7 +2613,7 @@ packages:
       eslint: ^7.0.0 || ^8.0.0
     dependencies:
       '@eslint-community/eslint-utils': 4.4.0(eslint@8.45.0)
-      '@types/json-schema': 7.0.12
+      '@types/json-schema': 7.0.15
       '@types/semver': 7.5.0
       '@typescript-eslint/scope-manager': 6.2.0
       '@typescript-eslint/types': 6.2.0
@@ -6520,8 +6530,8 @@ packages:
     resolution: {integrity: sha512-cA5MPLWGWYXvnlJb4TamUUx858HVHBsxxdy8l7jxODOLDyGYnQOllob2A2jyDghGa5iJHs2gzFNHvwGJ0ZfR8g==}
     dev: false
 
-  /ts-json-schema-generator@1.4.0:
-    resolution: {integrity: sha512-wm8vyihmGgYpxrqRshmYkWGNwEk+sf3xV2rUgxv8Ryeh7bSpMO7pZQOht+2rS002eDkFTxR7EwRPXVzrS0WJTg==}
+  /ts-json-schema-generator@1.5.0:
+    resolution: {integrity: sha512-RkiaJ6YxGc5EWVPfyHxszTmpGxX8HC2XBvcFlAl1zcvpOG4tjjh+eXioStXJQYTvr9MoK8zCOWzAUlko3K0DiA==}
     engines: {node: '>=10.0.0'}
     hasBin: true
     dependencies:
@@ -6531,7 +6541,7 @@ packages:
       json5: 2.2.3
       normalize-path: 3.0.0
       safe-stable-stringify: 2.4.3
-      typescript: 5.2.2
+      typescript: 5.3.3
 
   /ts-morph@20.0.0:
     resolution: {integrity: sha512-JVmEJy2Wow5n/84I3igthL9sudQ8qzjh/6i4tmYCm6IqYyKFlNbJZi7oBdjyqcWSWYRu3CtL0xbT6fS03ESZIg==}
@@ -6720,6 +6730,11 @@ packages:
 
   /typescript@5.2.2:
     resolution: {integrity: sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+  /typescript@5.3.3:
+    resolution: {integrity: sha512-pXWcraxM0uxAS+tN0AG/BF2TyqmHO014Z070UsJ+pFvYuRSq8KH8DmWpnbXe0pEPDHXZV3FcAbJkijJ5oNEnWw==}
     engines: {node: '>=14.17'}
     hasBin: true
 

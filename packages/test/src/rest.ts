@@ -1,6 +1,5 @@
 import nornir from "@nornir/core";
 import {
-  AnyMimeType,
   ApiGatewayProxyV2,
   httpErrorHandler,
   httpEventParser,
@@ -38,14 +37,12 @@ const frameworkChain = nornir<UnparsedHttpEvent>()
   .use(router())
   .useResult(httpErrorHandler([
     mapErrorClass(TestError, (err) => ({
-      statusCode: HttpStatusCode.InternalServerError,
-      headers: {
-        "content-type": AnyMimeType,
-      },
+      statusCode: "500",
+      headers: {},
     })),
   ]))
   .use(httpResponseSerializer({
-    [MimeType.ApplicationZip]: () => Buffer.from(""),
+    ["application/bzip"]: () => Buffer.from(""),
   }));
 
 export const handler: APIGatewayProxyHandlerV2 = nornir<APIGatewayProxyEventV2>()
