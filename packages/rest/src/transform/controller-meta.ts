@@ -31,12 +31,7 @@ export abstract class OpenApiSpecHolder {
     const mergeInputs: MergeInput = (this.specFileMap.get(file.fileName) || [])
       .map((spec) => ({
         oas: spec,
-        dispute: {
-          alwaysApply: true,
-          mergeDispute: true,
-          prefix: "",
-          suffix: "",
-        },
+        dispute: {},
       })) as MergeInput;
 
     const merged = merge(mergeInputs);

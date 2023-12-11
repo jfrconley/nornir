@@ -1,0 +1,753 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Test API",
+    "version": "1.0.0",
+    "description": "A test api"
+  },
+  "paths": {
+    "/basepath/2/route": {
+      "get": {
+        "summary": "Get route",
+        "description": "The second simple GET route.",
+        "responses": {
+          "200": {
+            "description": "",
+            "headers": {
+              "content-type": {
+                "name": "content-type",
+                "in": "header",
+                "required": true,
+                "deprecated": false,
+                "schema": {
+                  "type": "string",
+                  "const": "text/plain"
+                }
+              }
+            },
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "content-type",
+            "in": "header",
+            "required": false,
+            "deprecated": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MimeType"
+                    }
+                  ]
+                },
+                {
+                  "not": {}
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "put": {
+        "summary": "Put route",
+        "description": "The second simple PUT route.",
+        "responses": {
+          "201": {
+            "description": "",
+            "headers": {
+              "content-type": {
+                "name": "content-type",
+                "in": "header",
+                "required": false,
+                "deprecated": false,
+                "schema": {
+                  "anyOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/MimeType"
+                        }
+                      ]
+                    },
+                    {
+                      "not": {}
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "",
+            "headers": {
+              "content-type": {
+                "name": "content-type",
+                "in": "header",
+                "required": true,
+                "deprecated": false,
+                "schema": {
+                  "type": "string",
+                  "const": "application/json"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "potato": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "potato"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "cool": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "cool"
+                ]
+              }
+            },
+            "text/csv": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "content-type",
+            "in": "header",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "application/json"
+                },
+                {
+                  "type": "string",
+                  "const": "text/csv"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "/root/basepath/route/{cool}": {
+      "get": {
+        "description": "Cool get route",
+        "responses": {
+          "200": {
+            "description": "This is a comment",
+            "headers": {
+              "content-type": {
+                "name": "content-type",
+                "in": "header",
+                "required": true,
+                "deprecated": false,
+                "schema": {
+                  "type": "string",
+                  "const": "application/json"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "bleep": {
+                      "type": "string"
+                    },
+                    "bloop": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "bleep",
+                    "bloop"
+                  ]
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "This is a comment",
+            "headers": {
+              "content-type": {
+                "name": "content-type",
+                "in": "header",
+                "required": true,
+                "deprecated": false,
+                "schema": {
+                  "type": "string",
+                  "const": "application/json"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "bleep": {
+                      "type": "string"
+                    },
+                    "bloop": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "bleep",
+                    "bloop"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "This is a comment on RouteGetOutputError",
+            "headers": {
+              "content-type": {
+                "name": "content-type",
+                "in": "header",
+                "required": true,
+                "deprecated": false,
+                "schema": {
+                  "type": "string",
+                  "const": "application/json"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Bad Request"
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "examples": [
+                    {
+                      "message": "Bad Request"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "cool",
+            "in": "path",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "pattern": "^[a-z]+$",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/TestStringType"
+                }
+              ]
+            }
+          },
+          {
+            "name": "content-type",
+            "in": "header",
+            "required": false,
+            "deprecated": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MimeType"
+                    }
+                  ]
+                },
+                {
+                  "not": {}
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "post": {
+        "deprecated": true,
+        "tags": [
+          "cool"
+        ],
+        "operationId": "coolRoute",
+        "summary": "Cool Route",
+        "description": "A simple post route",
+        "responses": {
+          "200": {
+            "description": "",
+            "headers": {}
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "text/csv": {
+              "schema": {
+                "description": "This is a CSV body",
+                "examples": [
+                  "cool,cool2"
+                ],
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/TestStringType"
+                  }
+                ]
+              }
+            },
+            "application/json": {
+              "example": {
+                "cool": "stuff"
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "cool": {
+                    "type": "string",
+                    "description": "This is a cool property",
+                    "minLength": 5
+                  }
+                },
+                "required": [
+                  "cool"
+                ],
+                "description": "A cool json input",
+                "examples": [
+                  {
+                    "cool": "stuff"
+                  }
+                ]
+              }
+            },
+            "text/plain": {
+              "example": {
+                "cool": "stuff"
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "cool": {
+                    "type": "string",
+                    "description": "This is a cool property",
+                    "minLength": 5
+                  }
+                },
+                "required": [
+                  "cool"
+                ],
+                "description": "A cool json input",
+                "examples": [
+                  {
+                    "cool": "stuff"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "reallyCool",
+            "in": "path",
+            "required": true,
+            "description": "Very cool property that does a thing",
+            "example": "true",
+            "deprecated": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "deprecated": true,
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/TestStringType"
+                    }
+                  ]
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "true",
+                    "false"
+                  ],
+                  "description": "Very cool property that does a thing",
+                  "examples": [
+                    "true"
+                  ],
+                  "pattern": "^[a-z]+$"
+                }
+              ]
+            }
+          },
+          {
+            "name": "evenCooler",
+            "in": "path",
+            "required": false,
+            "description": "Even cooler property",
+            "deprecated": false,
+            "schema": {
+              "type": "number",
+              "description": "Even cooler property"
+            }
+          },
+          {
+            "name": "test",
+            "in": "query",
+            "required": false,
+            "deprecated": false,
+            "schema": {
+              "type": "string",
+              "const": "boolean"
+            }
+          },
+          {
+            "name": "content-type",
+            "in": "header",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "text/csv"
+                },
+                {
+                  "type": "string",
+                  "const": "application/json"
+                },
+                {
+                  "type": "string",
+                  "const": "text/plain"
+                }
+              ]
+            }
+          },
+          {
+            "name": "csv-header",
+            "in": "header",
+            "required": false,
+            "description": "This is a CSV header",
+            "example": "cool,cool2",
+            "deprecated": false,
+            "schema": {
+              "type": "string",
+              "description": "This is a CSV header",
+              "examples": [
+                "cool,cool2"
+              ],
+              "pattern": "^[a-z]+,[a-z]+$",
+              "minLength": 5
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HttpHeadersWithContentType": {
+        "type": "object",
+        "properties": {
+          "content-type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MimeType"
+              }
+            ]
+          }
+        },
+        "required": [
+          "content-type"
+        ]
+      },
+      "MimeType": {
+        "type": "string",
+        "enum": [
+          "*/*",
+          "application/json",
+          "application/octet-stream",
+          "application/pdf",
+          "application/x-www-form-urlencoded",
+          "application/zip",
+          "application/gzip",
+          "application/bzip",
+          "application/bzip2",
+          "application/ld+json",
+          "font/woff",
+          "font/woff2",
+          "font/ttf",
+          "font/otf",
+          "audio/mpeg",
+          "audio/x-wav",
+          "image/gif",
+          "image/jpeg",
+          "image/png",
+          "multipart/form-data",
+          "text/css",
+          "text/csv",
+          "text/html",
+          "text/plain",
+          "text/xml",
+          "video/mpeg",
+          "video/mp4",
+          "video/quicktime",
+          "video/x-msvideo",
+          "video/x-flv",
+          "video/webm"
+        ]
+      },
+      "HttpHeadersWithoutContentType": {
+        "type": "object",
+        "properties": {
+          "content-type": {
+            "not": {}
+          }
+        }
+      },
+      "TestStringType": {
+        "description": "Amazing string",
+        "pattern": "^[a-z]+$",
+        "minLength": 5,
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Nominal<string,\"TestStringType\">"
+          }
+        ]
+      },
+      "Nominal<string,\"TestStringType\">": {
+        "type": [
+          "string"
+        ],
+        "description": "Constructs a nominal type of type `T`. Useful to prevent any value of type `T` from being used or modified in places it shouldn't (think `id`s)."
+      },
+      "RouteGetOutputSuccess": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "enum": [
+              "200",
+              "201"
+            ],
+            "description": "This is a property"
+          },
+          "headers": {
+            "type": "object",
+            "properties": {
+              "content-type": {
+                "type": "string",
+                "const": "application/json"
+              }
+            },
+            "required": [
+              "content-type"
+            ]
+          },
+          "body": {
+            "type": "object",
+            "properties": {
+              "bleep": {
+                "type": "string"
+              },
+              "bloop": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "bleep",
+              "bloop"
+            ]
+          }
+        },
+        "required": [
+          "body",
+          "headers",
+          "statusCode"
+        ],
+        "description": "This is a comment"
+      },
+      "RouteGetOutputError": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "string",
+            "const": "400"
+          },
+          "headers": {
+            "type": "object",
+            "properties": {
+              "content-type": {
+                "type": "string",
+                "const": "application/json"
+              }
+            },
+            "required": [
+              "content-type"
+            ]
+          },
+          "body": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "message"
+            ],
+            "examples": [
+              {
+                "message": "Bad Request"
+              }
+            ]
+          }
+        },
+        "required": [
+          "body",
+          "headers",
+          "statusCode"
+        ],
+        "description": "This is a comment on RouteGetOutputError"
+      },
+      "RoutePostInputJSONAlias": {
+        "type": "object",
+        "properties": {
+          "headers": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "content-type": {
+                    "type": "string",
+                    "const": "application/json"
+                  }
+                },
+                "required": [
+                  "content-type"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "content-type": {
+                    "type": "string",
+                    "const": "text/plain"
+                  }
+                },
+                "required": [
+                  "content-type"
+                ]
+              }
+            ]
+          },
+          "query": {
+            "type": "object",
+            "properties": {
+              "test": {
+                "type": "string",
+                "const": "boolean"
+              }
+            },
+            "required": [
+              "test"
+            ]
+          },
+          "body": {
+            "type": "object",
+            "properties": {
+              "cool": {
+                "type": "string",
+                "description": "This is a cool property",
+                "minLength": 5
+              }
+            },
+            "required": [
+              "cool"
+            ],
+            "description": "A cool json input",
+            "examples": [
+              {
+                "cool": "stuff"
+              }
+            ]
+          },
+          "pathParams": {
+            "type": "object",
+            "properties": {
+              "reallyCool": {
+                "type": "string",
+                "enum": [
+                  "true",
+                  "false"
+                ],
+                "description": "Very cool property that does a thing",
+                "examples": [
+                  "true"
+                ],
+                "pattern": "^[a-z]+$"
+              },
+              "evenCooler": {
+                "type": "number",
+                "description": "Even cooler property"
+              }
+            },
+            "required": [
+              "reallyCool"
+            ]
+          }
+        },
+        "required": [
+          "body",
+          "headers",
+          "pathParams",
+          "query"
+        ]
+      }
+    },
+    "parameters": {}
+  }
+}
