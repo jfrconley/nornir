@@ -1,0 +1,18 @@
+name: Snapshot Release
+description: Publish a snapshot release
+inputs:
+  tag:
+    description: 'The tag to use for the snapshot release'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Build
+      shell: bash
+      run: pnpm build
+    - name: Version Snapshot
+      shell: bash
+      run: pnpm changeset version --snapshot ${{ inputs.tag }}
+    - name: Snapshot Publish
+      shell: bash
+      run: pnpm changeset publish --tag ${{ inputs.tag }} --no-git-tag
