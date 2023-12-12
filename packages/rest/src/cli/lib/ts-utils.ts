@@ -1,4 +1,3 @@
-import fs from "node:fs";
 import { dirname, resolve } from "node:path";
 import ts from "typescript";
 

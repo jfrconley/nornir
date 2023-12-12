@@ -1,5 +1,6 @@
 import ts from "typescript";
 import { ControllerMeta } from "../controller-meta";
+import { TransformationError } from "../error";
 import { NornirDecoratorInfo, separateNornirDecorators } from "../lib";
 import { Project } from "../project";
 import { ChainMethodDecoratorTypes, ChainRouteProcessor } from "./processors/chain-route-processor";
@@ -28,7 +29,15 @@ export abstract class ControllerMethodTransformer {
 
     if (!method) return node;
 
-    return METHOD_DECORATOR_PROCESSORS[method](methodDecorator, project, source, node, controller);
+    try {
+      return METHOD_DECORATOR_PROCESSORS[method](methodDecorator, project, source, node, controller);
+    } catch (e) {
+      console.error(e);
+      if (e instanceof TransformationError) {
+        throw e;
+      }
+      return node;
+    }
   }
 
   public static transformControllerMethods(

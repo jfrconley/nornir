@@ -1,29 +1,51 @@
 import {
   BaseType,
-  Context,
   createFormatter,
   createParser,
-  NeverType,
-  ReferenceType,
+  Definition,
   SchemaGenerator,
   StringType,
   SubNodeParser,
+  SubTypeFormatter,
+  UndefinedType,
 } from "ts-json-schema-generator";
 import ts from "typescript";
 import { AJV_DEFAULTS, AJVOptions, Options, Project, SCHEMA_DEFAULTS, SchemaConfig } from "./project.js";
 import { FileTransformer } from "./transformers/file-transformer.js";
 
 let project: Project;
-// let files: string[] = [];
-// let openapi: OpenAPIV3.Document;
 
 export class TemplateExpressionNodeParser implements SubNodeParser {
   supportsNode(node: ts.Node): boolean {
     return ts.isTemplateExpression(node);
   }
 
-  createType(node: ts.Node, context: Context, reference?: ReferenceType): BaseType {
+  createType(): BaseType {
     return new StringType();
+  }
+}
+
+export class UndefinedIdentifierParser implements SubNodeParser {
+  supportsNode(node: ts.Node): boolean {
+    return ts.isIdentifier(node) && node.text === "undefined";
+  }
+
+  createType(): BaseType {
+    return new UndefinedType();
+  }
+}
+
+export class UndefinedFormatter implements SubTypeFormatter {
+  public supportsType(type: BaseType): boolean {
+    return type instanceof UndefinedType;
+  }
+
+  getChildren(): BaseType[] {
+    return [];
+  }
+
+  getDefinition(): Definition {
+    return {};
   }
 }
 
@@ -32,7 +54,6 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
     loopEnum,
     loopRequired,
     additionalProperties,
-    encodeRefs,
     strictTuples,
     jsDoc,
     removeAdditional,
@@ -46,7 +67,6 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
     ...SCHEMA_DEFAULTS,
     jsDoc: jsDoc || SCHEMA_DEFAULTS.jsDoc,
     strictTuples: strictTuples || SCHEMA_DEFAULTS.strictTuples,
-    encodeRefs: false,
     additionalProperties: additionalProperties || SCHEMA_DEFAULTS.additionalProperties,
     sortProps: sortProps || SCHEMA_DEFAULTS.sortProps,
     expose,
@@ -66,9 +86,12 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
   }, (prs) => {
     // prs.addNodeParser(new NornirIgnoreParser());
     prs.addNodeParser(new TemplateExpressionNodeParser());
+    prs.addNodeParser(new UndefinedIdentifierParser());
   });
   const typeFormatter = createFormatter({
     ...schemaConfig,
+  }, frm => {
+    frm.addTypeFormatter(new UndefinedFormatter());
   });
 
   const schemaGenerator = new SchemaGenerator(
@@ -81,6 +104,8 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
   const compilerHost = program.getCompilerOptions().incremental
     ? ts.createIncrementalCompilerHost(program.getCompilerOptions())
     : ts.createCompilerHost(program.getCompilerOptions());
+
+  const configPath = program.getCompilerOptions().configFilePath as string;
 
   const parseConfigHost: ts.ParseConfigFileHost = {
     useCaseSensitiveFileNames: true,
@@ -110,7 +135,7 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
     typeFormatter,
     compilerHost,
     parsedCommandLine: ts.getParsedCommandLineOfConfigFile(
-      ts.findConfigFile(process.cwd(), ts.sys.fileExists, "tsconfig.json") as string,
+      configPath,
       program.getCompilerOptions(),
       parseConfigHost,
     )!,

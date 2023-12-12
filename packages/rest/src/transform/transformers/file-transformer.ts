@@ -1,5 +1,4 @@
 import { rmSync } from "fs";
-import { parseJsDocOfNode } from "tsutils";
 import ts from "typescript";
 import { ControllerMeta, OpenApiSpecHolder } from "../controller-meta";
 import { TransformationError } from "../error";

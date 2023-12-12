@@ -4,7 +4,6 @@ import dereference from "@apidevtools/json-schema-ref-parser/dist/lib/dereferenc
 import { JSONSchema7 } from "json-schema";
 import traverse from "json-schema-traverse";
 import { cloneDeep } from "lodash";
-import { OpenAPIV3_1 } from "openapi-types";
 
 const refParser = new $RefParser();
 
@@ -36,11 +35,9 @@ export function joinSchemas(schemaSet: JSONSchema7[]): JSONSchema7 {
     return schemaSet[0];
   }
 
-  const joinedSchema: JSONSchema7 = {
+  return {
     allOf: schemaSet,
   };
-
-  return joinedSchema;
 }
 
 export function getUnifiedPropertySchemas(
@@ -94,7 +91,7 @@ export function getUnifiedPropertySchemas(
   traverse(schema, {
     allKeys: false,
     cb: {
-      pre(schema, jsonPtr, rootSchema, parentJsonPtr, parentKeyword, parentSchema, keyIndex) {
+      pre(schema, jsonPtr, rootSchema, parentJsonPtr) {
         const convertedPath = convertJsonSchemaPathIfPropertyPath(jsonPtr);
         if (convertedPath === parentPath && parentJsonPtr != "") {
           parentSchemas++;
@@ -102,8 +99,6 @@ export function getUnifiedPropertySchemas(
       },
       post: (schema, jsonPtr, rootSchema, parentJsonPtr, parentKeyword, parentSchema, keyIndex) => {
         const convertedPath = convertJsonSchemaPathIfPropertyPath(jsonPtr);
-
-        const convertedParentPath = convertJsonSchemaPathIfPropertyPath(parentJsonPtr || "/");
 
         if (convertedPath != null && isDirectChildPath(convertedPath, parentPath)) {
           const schemaSet = schemas[keyIndex || ""] || {
@@ -146,7 +141,7 @@ export function unresolveRefs(schema: JSONSchema7) {
 }
 
 const MOVED_REF_MARKER = Symbol("moved-ref-marker");
-export function moveRefsToAllOf(schema: JSONSchema7, markMovedRef = true) {
+export function moveRefsToAllOf(schema: JSONSchema7) {
   const clonedSchema = cloneDeep(schema);
   traverse(clonedSchema, {
     cb: {
@@ -284,9 +279,6 @@ export function isSchemaEmpty(schema: JSONSchema7): boolean {
   const keys = Object.keys(schema);
   for (const key of keys) {
     if (key.startsWith("x-") || key.startsWith("$")) {
-      continue;
-    }
-    if (key === "not" && isSchemaEmpty(schema.not as JSONSchema7)) {
       continue;
     }
     return false;

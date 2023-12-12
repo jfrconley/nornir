@@ -1,14 +1,6 @@
 import Trouter from 'trouter';
 import {RouteBuilder, RouteHolder} from './route-holder.mjs';
-import {
-    HttpEvent,
-    HttpHeadersWithContentType,
-    HttpMethod,
-    HttpRequest,
-    HttpResponse,
-    HttpStatusCode,
-    MimeType
-} from './http-event.mjs';
+import {HttpEvent, HttpHeadersWithContentType, HttpMethod, HttpRequest, HttpResponse} from './http-event.mjs';
 import {AttachmentRegistry, Nornir, Result} from '@nornir/core';
 import {NornirRestRequestError} from "./error.mjs";
 

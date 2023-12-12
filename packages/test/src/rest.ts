@@ -4,9 +4,7 @@ import {
   httpErrorHandler,
   httpEventParser,
   httpResponseSerializer,
-  HttpStatusCode,
   mapErrorClass,
-  MimeType,
   normalizeEventHeaders,
   router,
   startLocalServer,
@@ -32,11 +30,11 @@ export class TestError implements NodeJS.ErrnoException {
 const frameworkChain = nornir<UnparsedHttpEvent>()
   .use(normalizeEventHeaders)
   .use(httpEventParser({
-    "text/csv": body => ({ cool: "stuff" }),
+    "text/csv": _body => ({ cool: "stuff" }),
   }))
   .use(router())
   .useResult(httpErrorHandler([
-    mapErrorClass(TestError, (err) => ({
+    mapErrorClass(TestError, (_err) => ({
       statusCode: "500",
       headers: {},
     })),

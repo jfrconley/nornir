@@ -7,7 +7,6 @@ import {
   getFirstExample,
   getSchemaOrAllOf,
   getUnifiedPropertySchemas,
-  isSchemaEmpty,
   joinSchemas,
   moveRefsToAllOf,
   resolveDiscriminantProperty,
@@ -34,6 +33,16 @@ export abstract class OpenApiSpecHolder {
         dispute: {},
       })) as MergeInput;
 
+    if (mergeInputs.length === 0) {
+      return {
+        openapi: "3.0.3",
+        info: {
+          title: "Nornir API",
+          version: "1.0.0",
+        },
+        components: {},
+      };
+    }
     const merged = merge(mergeInputs);
     if (isErrorResult(merged)) {
       throw new Error(merged.message);
@@ -51,18 +60,6 @@ export class ControllerMeta {
   public readonly routeInstanceIdentifier = ts.factory.createUniqueName("route_instance");
   public readonly initializationStatements: ts.Statement[] = [];
   private instanceProviderExpression: ts.Expression;
-
-  // public static getRoutes(): RouteInfo[] {
-  //   const methods = ControllerMeta.routes.values();
-  //   const routes = Array.from(methods).map((method) => Array.from(method.values()));
-  //   return routes.flat();
-  // }
-
-  // public static getAndClearRoutes(): RouteInfo[] {
-  //   const routes = this.getRoutes();
-  //   this.routes.clear();
-  //   return routes;
-  // }
 
   public static clearCache() {
     this.cache.clear();
@@ -93,14 +90,6 @@ export class ControllerMeta {
       throw new Error("Route class must have a name");
     }
     return this.cache.get(name);
-  }
-
-  public static getAssert(route: ts.ClassDeclaration): ControllerMeta {
-    const meta = this.get(route);
-    if (!meta) {
-      throw new Error("Route not found: " + route.getText());
-    }
-    return meta;
   }
 
   private constructor(
@@ -337,10 +326,12 @@ export class ControllerMeta {
       const content = contentTypeDiscriminatedSchemas == null ? undefined : Object.fromEntries(
         Object.entries(contentTypeDiscriminatedSchemas).map(([contentType, schema]) => {
           const branchBodySchemaSet = getUnifiedPropertySchemas(schema, "/")["body"];
-          const branchBodySchema = rewriteRefsForOpenApi(
-            unresolveRefs(joinSchemas(branchBodySchemaSet.schemaSet)),
-          );
-          const example = getFirstExample(branchBodySchema);
+          const branchBodySchema = branchBodySchemaSet != null
+            ? rewriteRefsForOpenApi(
+              unresolveRefs(joinSchemas(branchBodySchemaSet.schemaSet)),
+            )
+            : undefined;
+          const example = branchBodySchema != null ? getFirstExample(branchBodySchema) : undefined;
           return [
             contentType,
             {
@@ -364,7 +355,7 @@ export class ControllerMeta {
   private generateRequestBody(routeIndex: RouteIndex, inputSchema: JSONSchema7): OpenAPIV3_1.RequestBodyObject | void {
     const bodySchema = getUnifiedPropertySchemas(inputSchema, "/")["body"];
     const contentTypeDiscriminatedSchemas = resolveDiscriminantProperty(inputSchema, "/headers/content-type");
-    if (bodySchema == null) {
+    if (bodySchema == null || (bodySchema.schemaSet.length === 1)) {
       return;
     }
 

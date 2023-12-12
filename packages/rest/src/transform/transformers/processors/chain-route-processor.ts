@@ -1,6 +1,5 @@
 import { schemaToValidator } from "@nrfcloud/ts-json-schema-transformer/utils";
 import tsp from "ts-morph";
-import { isTypeReference } from "tsutils";
 import ts from "typescript";
 import { ControllerMeta } from "../../controller-meta";
 import { moveRefsToAllOf } from "../../json-schema-utils";
@@ -48,7 +47,7 @@ export abstract class ChainRouteProcessor {
 
     // const wrappedNode = createWrappedNode(node, { typeChecker: project.checker }) as MethodDeclaration;
 
-    const { typeNode: inputTypeNode, type: inputType } = ChainRouteProcessor.resolveInputType(project, node);
+    const { typeNode: inputTypeNode } = ChainRouteProcessor.resolveInputType(project, node);
 
     const outputType = ChainRouteProcessor.resolveOutputType(project, node);
 
@@ -56,7 +55,7 @@ export abstract class ChainRouteProcessor {
 
     const inputSchema = project.schemaGenerator.createSchemaFromNodes([inputTypeNode]);
 
-    const inputValidator = schemaToValidator(moveRefsToAllOf(inputSchema, false), project.options.validation);
+    const inputValidator = schemaToValidator(moveRefsToAllOf(inputSchema), project.options.validation);
 
     const parsedDocComments = ChainRouteProcessor.parseJSDoc(project, node);
 
@@ -103,9 +102,12 @@ export abstract class ChainRouteProcessor {
     return recreatedNode;
   }
 
-  private static parseJSDoc(project: Project, method: ts.MethodDeclaration): RouteTags {
+  private static parseJSDoc(_project: Project, method: ts.MethodDeclaration): RouteTags {
     const docs = ts.getJSDocCommentsAndTags(ts.getOriginalNode(method));
     const topLevel = docs[0];
+    if (!topLevel) {
+      return {};
+    }
     const description = ts.getTextOfJSDocComment(topLevel.comment);
     if (!ts.isJSDoc(topLevel)) {
       return {};
@@ -168,7 +170,7 @@ export abstract class ChainRouteProcessor {
     return path;
   }
 
-  private static getMethod(project: Project, methodDecorator: NornirDecoratorInfo): string {
+  private static getMethod(_project: Project, methodDecorator: NornirDecoratorInfo): string {
     const name = methodDecorator.symbol.name;
     return ChainMethodDecoratorTypeMap[name as keyof typeof ChainMethodDecoratorTypeMap];
   }

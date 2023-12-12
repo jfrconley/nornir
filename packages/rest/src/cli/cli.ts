@@ -3,7 +3,7 @@ import { merge } from "lodash";
 import path from "path";
 import yargs from "yargs";
 import { isErrorResult } from "../transform/openapi-merge";
-import { getMergedSpec, getSpecFiles } from "./lib/collect";
+import { getMergedSpec } from "./lib/collect";
 import { resolveTsConfigOutdir } from "./lib/ts-utils";
 
 yargs

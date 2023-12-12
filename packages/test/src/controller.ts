@@ -1,14 +1,5 @@
 import { Nornir } from "@nornir/core";
-import {
-  Controller,
-  GetChain,
-  type HttpRequest,
-  HttpRequestEmpty,
-  HttpResponse,
-  HttpStatusCode,
-  MimeType,
-  PostChain,
-} from "@nornir/rest";
+import { Controller, GetChain, type HttpRequest, HttpRequestEmpty, HttpResponse, PostChain } from "@nornir/rest";
 import { assertValid } from "@nrfcloud/ts-json-schema-transformer";
 
 interface RouteGetInput extends HttpRequestEmpty {
@@ -97,12 +88,13 @@ export interface RouteGetOutputSuccess extends HttpResponse {
  */
 export interface RouteGetOutputError extends HttpResponse {
   statusCode: "400";
-  /**
-   * @example { "message": "Bad Request"}
-   */
-  body: {
-    message: string;
-  };
+  // /**
+  //  * @example { "message": "Bad Request"}
+  //  */
+  // body: {
+  //   message: string;
+  // };
+  body: undefined;
   headers: {
     "content-type": "application/json";
   };
@@ -166,7 +158,7 @@ export class TestController {
         return input;
       })
       .use(input => input.headers?.toString())
-      .use(contentType => ({
+      .use(_contentType => ({
         statusCode: "200" as const,
         body: {
           bleep: "bloop",
@@ -188,8 +180,9 @@ export class TestController {
   @PostChain("/route/{cool}")
   public postRoute(chain: Nornir<RoutePostInput>) {
     return chain
-      .use(contentType => ({
+      .use(_contentType => ({
         statusCode: "200" as const,
+        body: undefined,
         // body: `Content-Type: ${contentType}`,
         headers: {},
       }));

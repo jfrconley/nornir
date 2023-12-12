@@ -1,11 +1,9 @@
 import {
-    AnyMimeType,
     Controller,
     GetChain,
     HttpEvent,
     HttpRequest,
-    HttpStatusCode,
-    MimeType,
+    HttpRequestEmpty,
     normalizeEventHeaders,
     NornirRestRequestValidationError,
     PostChain,
@@ -15,13 +13,13 @@ import {nornir, Nornir} from "@nornir/core";
 import {describe} from "@jest/globals";
 import {NornirRouteNotFoundError} from "../../dist/runtime/router.mjs";
 
-interface RouteGetInput extends HttpRequest {
+interface RouteGetInput extends HttpRequestEmpty {
 }
 
 
 interface RoutePostInputJSON extends HttpRequest {
     headers: {
-        "content-type": MimeType.ApplicationJson;
+        "content-type": "application/json";
     };
     body: RoutePostBodyInput;
     query: {
@@ -31,7 +29,7 @@ interface RoutePostInputJSON extends HttpRequest {
 
 interface RoutePostInputCSV extends HttpRequest {
     headers: {
-        "content-type": MimeType.TextCsv;
+        "content-type": "text/csv";
         /**
          * This is a CSV header
          * @example "cool,cool2"
@@ -84,24 +82,24 @@ class TestController {
         return chain
             .use(console.log)
             .use(() => ({
-                statusCode: HttpStatusCode.Ok,
+                statusCode: "200",
                 body: `cool`,
                 headers: {
-                    "content-type": MimeType.TextPlain,
+                    "content-type": "text/plain"
                 },
-            }));
+            } as const));
     }
 
     @GetChain("/route2")
     public getEmptyRoute(chain: Nornir<RouteGetInput>) {
         return chain
-            .use(() => ({
-                statusCode: HttpStatusCode.Ok,
-                body: undefined,
-                headers: {
-                    "content-type": AnyMimeType
-                },
-            }));
+            .use(() => {
+                return {
+                    statusCode: "200" as const,
+                    body: undefined,
+                    headers: {},
+                }
+            });
     }
 
     @PostChain("/route")
@@ -109,12 +107,12 @@ class TestController {
         return chain
             .use(input => input.headers["content-type"])
             .use(contentType => ({
-                statusCode: HttpStatusCode.Ok,
+                statusCode: "200",
                 body: `Content-Type: ${contentType}`,
                 headers: {
-                    "content-type": MimeType.TextPlain,
+                    "content-type": "text/plain"
                 },
-            }));
+            } as const));
     }
 }
 
@@ -133,7 +131,7 @@ describe("REST tests", () => {
                 headers: {},
                 query: {}
             });
-            expect(response.statusCode).toEqual(HttpStatusCode.Ok);
+            expect(response.statusCode).toEqual("200");
             expect(response.body).toBe("cool");
             expect(response.headers["content-type"]).toBe("text/plain");
         })
@@ -153,7 +151,7 @@ describe("REST tests", () => {
                 }
             });
             expect(response).toEqual({
-                statusCode: HttpStatusCode.Ok,
+                statusCode: "200",
                 body: "Content-Type: application/json",
                 headers: {
                     "content-type": "text/plain"
@@ -169,10 +167,9 @@ describe("REST tests", () => {
                 query: {}
             });
             expect(response).toEqual({
-                statusCode: HttpStatusCode.Ok,
+                statusCode: "200",
                 body: undefined,
                 headers: {
-                    "content-type": AnyMimeType
                 }
             })
         })
@@ -195,7 +192,7 @@ describe("REST tests", () => {
                 method: "POST",
                 path: "/basepath/route",
                 headers: {
-                    "content-type": MimeType.ApplicationJson,
+                    "content-type": "application/json",
                 },
                 body: {
                     cool: "cool"

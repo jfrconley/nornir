@@ -1,4 +1,4 @@
-import {HttpMethod, HttpRequest, HttpResponse, HttpStatusCode, MimeType} from './http-event.mjs';
+import {HttpMethod, HttpRequest, HttpResponse} from './http-event.mjs';
 import {Nornir} from '@nornir/core';
 import {NornirRestRequestError} from './error.mjs';
 import {type ErrorObject, type ValidateFunction} from 'ajv'

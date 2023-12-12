@@ -41,7 +41,7 @@ export const SCHEMA_DEFAULTS: Config = {
   jsDoc: "extended",
   sortProps: true,
   strictTuples: false,
-  encodeRefs: true,
+  encodeRefs: false,
   additionalProperties: true,
   topRef: false,
   discriminatorType: "open-api",
