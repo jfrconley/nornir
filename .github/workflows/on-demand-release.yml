@@ -1,0 +1,36 @@
+name: On demand snapshot release
+on:
+  workflow_dispatch:
+    inputs:
+        tag:
+            description: 'The tag to use for the snapshot release'
+            required: true
+
+env:
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+jobs:
+  snapshot:
+    name: Snapshot Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inject slug/short variables
+        uses: rlespinasse/github-slug-action@v3.x
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8.2.0
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Prepare
+        run: pnpm i
+      - name: Publish
+        uses: ./.github/actions/snapshot-release
+        with:
+          tag: ${{ github.event.inputs.tag }}
+

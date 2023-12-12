@@ -1,5 +1,27 @@
 # @nornir/rest
 
+## 1.5.1
+
+### Patch Changes
+
+- 34c88c2: fix content type for parse error
+
+## 1.5.0
+
+### Minor Changes
+
+- 35c0972: Add toResultUnencoded method.
+
+### Patch Changes
+
+- df1d865: Handle bad content types and invalid payloads
+
+## 1.4.0
+
+### Minor Changes
+
+- cfa8753: support async toHttpEvent with registry
+
 ## 1.3.0
 
 ### Minor Changes
