@@ -1,9 +1,8 @@
-import {HttpEvent, HttpResponse, HttpStatusCode, MimeType, UnparsedHttpEvent} from "./http-event.mjs";
+import {HttpEvent, HttpResponse, MimeType, UnparsedHttpEvent} from "./http-event.mjs";
 import querystring from "node:querystring";
 
 import {getContentType} from "./utils.mjs";
 import {NornirRestError} from "./error.mjs";
-import {AttachmentRegistry} from "@nornir/core";
 
 export type HttpBodyParser = (body: Buffer) => unknown
 
@@ -17,9 +16,9 @@ export class NornirRestParseError extends NornirRestError {
 
     public toHttpResponse(): HttpResponse {
         return {
-            statusCode: HttpStatusCode.UnprocessableEntity,
+            statusCode: "422",
             headers: {
-              "content-type": MimeType.TextPlain,
+              "content-type": "text/plain",
             },
             body: this.message
         }
