@@ -1,7 +1,7 @@
 {
   "name": "@nornir/rest",
   "description": "A nornir library",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "bin": {
     "nornir-oas": "./dist/cli/cli.js"
   },
@@ -33,7 +33,7 @@
     "@types/yargs": "^17.0.32",
     "eslint": "^8.45.0",
     "jest": "^29.5.0",
-    "ts-patch": "^3.0.2",
+    "ts-patch": "^3.1.1",
     "typescript": "^5.2.2"
   },
   "engines": {
@@ -82,5 +82,10 @@
     "prepare": "patch-typescript",
     "prepublish": "pnpm build:clean",
     "test": "pnpm tests"
+  },
+  "tsp": {
+    "tscOptions": {
+      "parseAllJsDoc": true
+    }
   }
 }

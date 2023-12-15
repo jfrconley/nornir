@@ -189,10 +189,10 @@ export class ControllerMeta {
     return ts.factory.createExpressionStatement(callExpression);
   }
 
-  private getRouteIndex(info: RouteIndex) {
+  public getRouteIndex(info: RouteIndex) {
     return {
       method: info.method,
-      path: this.basePath + deparameterizePath(info.path).toLowerCase(),
+      path: this.basePath + info.path.toLowerCase(),
     };
   }
 
@@ -249,8 +249,8 @@ export class ControllerMeta {
             operationId: route.operationId,
             summary: route.summary,
             description: route.description,
-            responses: this.generateOutputType(routeIndex, dereferencedOutputSchema),
-            requestBody: this.generateRequestBody(routeIndex, dereferencedInputSchema),
+            responses: this.generateOutputType(route, dereferencedOutputSchema),
+            requestBody: this.generateRequestBody(route, dereferencedInputSchema),
             parameters: [
               ...this.generateParametersForSchemaPath(dereferencedInputSchema, "/pathParams", "path"),
               ...this.generateParametersForSchemaPath(dereferencedInputSchema, "/query", "query"),
@@ -307,12 +307,12 @@ export class ControllerMeta {
     });
   }
 
-  private generateOutputType(routeIndex: RouteIndex, outputSchema: JSONSchema7): OpenAPIV3_1.ResponsesObject {
+  private generateOutputType(routeInfo: RouteInfo, outputSchema: JSONSchema7): OpenAPIV3_1.ResponsesObject {
     const responses: OpenAPIV3_1.ResponsesObject = {};
     const statusCodeDiscriminatedSchemas = resolveDiscriminantProperty(outputSchema, "/statusCode");
 
     if (statusCodeDiscriminatedSchemas == null) {
-      throw new TransformationError("Could not resolve status codes for some responses", routeIndex);
+      throw new TransformationError("Could not resolve status codes for some responses", routeInfo);
     }
 
     for (const [statusCode, schema] of Object.entries(statusCodeDiscriminatedSchemas)) {
@@ -320,7 +320,7 @@ export class ControllerMeta {
       const contentTypeDiscriminatedSchemas = resolveDiscriminantProperty(schema, "/headers/content-type");
       const bodySchema = getUnifiedPropertySchemas(schema, "/")["body"];
       if (contentTypeDiscriminatedSchemas == null && bodySchema != null) {
-        throw new TransformationError(`Could not resolve content types for "${statusCode}" responses`, routeIndex);
+        throw new TransformationError(`Could not resolve content types for "${statusCode}" responses`, routeInfo);
       }
 
       const content = contentTypeDiscriminatedSchemas == null ? undefined : Object.fromEntries(

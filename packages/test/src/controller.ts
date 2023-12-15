@@ -151,7 +151,7 @@ export class TestController {
    * Cool get route
    */
   @GetChain("/route/{cool}")
-  public getRoute(chain: Nornir<RouteGetInput>) {
+  public getRoute(chain: Nornir<RouteGetInput>): Nornir<RouteGetInput, RouteGetOutput> {
     return chain
       .use(input => {
         assertValid<RouteGetInput>(input);
@@ -178,7 +178,9 @@ export class TestController {
    * @operationId coolRoute
    */
   @PostChain("/route/{cool}")
-  public postRoute(chain: Nornir<RoutePostInput>) {
+  public postRoute(
+    chain: Nornir<RoutePostInput>,
+  ): Nornir<RoutePostInput, { statusCode: "200"; headers: NonNullable<unknown> }> {
     return chain
       .use(_contentType => ({
         statusCode: "200" as const,

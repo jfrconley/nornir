@@ -1,7 +1,8 @@
 import { schemaToValidator } from "@nrfcloud/ts-json-schema-transformer/utils";
 import tsp from "ts-morph";
 import ts from "typescript";
-import { ControllerMeta } from "../../controller-meta";
+import { ControllerMeta, RouteIndex } from "../../controller-meta";
+import { TransformationError } from "../../error";
 import { moveRefsToAllOf } from "../../json-schema-utils";
 import { getStringLiteralOrConst, isNornirNode, NornirDecoratorInfo, separateNornirDecorators } from "../../lib";
 import { Project } from "../../project";
@@ -45,11 +46,13 @@ export abstract class ChainRouteProcessor {
     const path = ChainRouteProcessor.getPath(project, methodDecorator);
     const method = ChainRouteProcessor.getMethod(project, methodDecorator);
 
+    const routeIndex = controller.getRouteIndex({ method, path });
+
     // const wrappedNode = createWrappedNode(node, { typeChecker: project.checker }) as MethodDeclaration;
 
-    const { typeNode: inputTypeNode } = ChainRouteProcessor.resolveInputType(project, node);
+    const { typeNode: inputTypeNode } = ChainRouteProcessor.resolveInputType(project, node, routeIndex);
 
-    const outputType = ChainRouteProcessor.resolveOutputType(project, node);
+    const outputType = ChainRouteProcessor.resolveOutputType(project, node, routeIndex);
 
     const outputSchema = project.schemaGenerator.createSchemaFromNodes([outputType.node]);
 
@@ -178,21 +181,22 @@ export abstract class ChainRouteProcessor {
   private static resolveInputType(
     project: Project,
     method: ts.MethodDeclaration,
+    routeIndex: RouteIndex,
   ): { type: ts.Type; typeNode: ts.TypeNode } {
     const params = method.parameters;
     if (params.length !== 1) {
-      throw new Error("Handler chain must have 1 parameter");
+      throw new TransformationError("Handler chain must have 1 parameter", routeIndex);
     }
     const [param] = params;
     const paramTypeNode = param.type;
     if (!paramTypeNode || !ts.isTypeReferenceNode(paramTypeNode)) {
-      throw new Error("Handler chain parameter must have a type");
+      throw new TransformationError("Handler chain parameter must have a type", routeIndex);
     }
 
     const paramType = project.checker.getTypeFromTypeNode(paramTypeNode);
     const paramDeclaration = paramType.symbol?.declarations?.[0];
     if (!paramDeclaration || !isNornirNode(paramDeclaration)) {
-      throw new Error("Handler chain input must be a Nornir class");
+      throw new TransformationError("Handler chain input must be a Nornir class", routeIndex);
     }
 
     // const paramTypeNode = project.checker.typeToTypeNode(paramType, undefined, undefined) as ts.TypeReferenceNode;
@@ -201,7 +205,7 @@ export abstract class ChainRouteProcessor {
     const paramTypeArgType = project.checker.getTypeFromTypeNode(paramTypeArg);
 
     if (!paramTypeArg) {
-      throw new Error("Handler chain input must have a type argument");
+      throw new TransformationError("Handler chain input must have a type argument", routeIndex);
     }
 
     return {
@@ -213,18 +217,34 @@ export abstract class ChainRouteProcessor {
   private static resolveOutputType(
     project: Project,
     methodDeclaration: ts.MethodDeclaration,
+    routeIndex: RouteIndex,
   ): { type: ts.Type; node: ts.Node } {
     const wrapped = tsp.createWrappedNode(methodDeclaration, { typeChecker: project.checker });
-    const type = wrapped.getReturnType();
-    const typeArgs = type.getTypeArguments();
+    const returnedTypeNode = wrapped.getReturnTypeNode()?.compilerNode;
+    if (returnedTypeNode == null) {
+      throw new TransformationError(
+        "Endpoint is missing an explicit return type. Explicit return types are required for all endpoints to promote contract stability",
+        routeIndex,
+      );
+    }
+    if (!ts.isTypeReferenceNode(returnedTypeNode)) {
+      throw new TransformationError("Endpoint return type must be a type reference", routeIndex);
+    }
 
-    const [, outputType] = typeArgs;
-    const symbol = outputType.getSymbol();
-    const declaration = symbol?.getDeclarations()?.[0];
+    const returnType = project.checker.getTypeFromTypeNode(returnedTypeNode);
+    const returnTypeDeclaration = returnType.symbol.getDeclarations()?.[0];
+    if (!returnTypeDeclaration || !isNornirNode(returnTypeDeclaration)) {
+      throw new TransformationError("Handler chain output must be a Nornir class", routeIndex);
+    }
+
+    const [, returnTypeArg] = returnedTypeNode.typeArguments || [];
+    if (returnTypeArg == null) {
+      throw new TransformationError("Could not get the output type arguments", routeIndex);
+    }
+
     return {
-      type: outputType.compilerType,
-      node: declaration?.compilerNode
-        || project.checker.typeToTypeNode(outputType.compilerType, undefined, undefined) as ts.TypeReferenceNode,
+      type: project.checker.getTypeFromTypeNode(returnTypeArg),
+      node: returnTypeArg,
     };
   }
 }
