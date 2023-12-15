@@ -7,7 +7,9 @@ import {
     normalizeEventHeaders,
     NornirRestRequestValidationError,
     PostChain,
-    router
+    router,
+    MimeType,
+    HttpStatusCode
 } from "../../dist/runtime/index.mjs";
 import {nornir, Nornir} from "@nornir/core";
 import {describe} from "@jest/globals";
@@ -19,7 +21,7 @@ interface RouteGetInput extends HttpRequestEmpty {
 
 interface RoutePostInputJSON extends HttpRequest {
     headers: {
-        "content-type": "application/json";
+        "content-type": MimeType.ApplicationJson;
     };
     body: RoutePostBodyInput;
     query: {
@@ -29,7 +31,7 @@ interface RoutePostInputJSON extends HttpRequest {
 
 interface RoutePostInputCSV extends HttpRequest {
     headers: {
-        "content-type": "text/csv";
+        "content-type": MimeType.TextCsv;
         /**
          * This is a CSV header
          * @example "cool,cool2"
@@ -78,24 +80,24 @@ class TestController {
      * @summary Cool Route
      */
     @GetChain("/route")
-    public getRoute(chain: Nornir<RouteGetInput>) {
+    public getRoute(chain: Nornir<RouteGetInput>): Nornir<RouteGetInput, {statusCode: HttpStatusCode.Ok, body: string, headers: {"content-type": MimeType.TextPlain}}> {
         return chain
             .use(console.log)
             .use(() => ({
-                statusCode: "200",
+                statusCode: HttpStatusCode.Ok,
                 body: `cool`,
                 headers: {
-                    "content-type": "text/plain"
+                    "content-type": MimeType.TextPlain
                 },
-            } as const));
+            }));
     }
 
     @GetChain("/route2")
-    public getEmptyRoute(chain: Nornir<RouteGetInput>) {
+    public getEmptyRoute(chain: Nornir<RouteGetInput>): Nornir<RouteGetInput, {statusCode: HttpStatusCode.Ok, headers: NonNullable<unknown>}> {
         return chain
             .use(() => {
                 return {
-                    statusCode: "200" as const,
+                    statusCode: HttpStatusCode.Ok,
                     body: undefined,
                     headers: {},
                 }
@@ -103,14 +105,14 @@ class TestController {
     }
 
     @PostChain("/route")
-    public postRoute(chain: Nornir<RoutePostInput>) {
+    public postRoute(chain: Nornir<RoutePostInput>): Nornir<RoutePostInput, {statusCode: HttpStatusCode.Ok, body: string, headers: {"content-type": MimeType.TextPlain}}> {
         return chain
             .use(input => input.headers["content-type"])
             .use(contentType => ({
-                statusCode: "200",
+                statusCode: HttpStatusCode.Ok,
                 body: `Content-Type: ${contentType}`,
                 headers: {
-                    "content-type": "text/plain"
+                    "content-type": MimeType.TextPlain
                 },
             } as const));
     }
@@ -192,7 +194,7 @@ describe("REST tests", () => {
                 method: "POST",
                 path: "/basepath/route",
                 headers: {
-                    "content-type": "application/json",
+                    "content-type": MimeType.ApplicationJson,
                 },
                 body: {
                     cool: "cool"
