@@ -23,21 +23,21 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
 
   const schemaConfig: SchemaConfig = {
     ...SCHEMA_DEFAULTS,
-    jsDoc: jsDoc || SCHEMA_DEFAULTS.jsDoc,
-    strictTuples: strictTuples || SCHEMA_DEFAULTS.strictTuples,
-    encodeRefs: encodeRefs || SCHEMA_DEFAULTS.encodeRefs,
-    additionalProperties: additionalProperties || SCHEMA_DEFAULTS.additionalProperties,
-    sortProps: sortProps || SCHEMA_DEFAULTS.sortProps,
+    jsDoc: jsDoc ?? SCHEMA_DEFAULTS.jsDoc,
+    strictTuples: strictTuples ?? SCHEMA_DEFAULTS.strictTuples,
+    encodeRefs: encodeRefs ?? SCHEMA_DEFAULTS.encodeRefs,
+    additionalProperties: additionalProperties ?? SCHEMA_DEFAULTS.additionalProperties,
+    sortProps: sortProps ?? SCHEMA_DEFAULTS.sortProps,
     expose,
   };
 
   const validationConfig: AJVOptions = {
     ...AJV_DEFAULTS,
-    loopRequired: loopRequired || AJV_DEFAULTS.loopRequired,
-    loopEnum: loopEnum || AJV_DEFAULTS.loopEnum,
-    removeAdditional: removeAdditional || AJV_DEFAULTS.removeAdditional,
-    useDefaults: useDefaults || AJV_DEFAULTS.useDefaults,
-    allErrors: allErrors || AJV_DEFAULTS.allErrors,
+    loopRequired: loopRequired ?? AJV_DEFAULTS.loopRequired,
+    loopEnum: loopEnum ?? AJV_DEFAULTS.loopEnum,
+    removeAdditional: removeAdditional ?? AJV_DEFAULTS.removeAdditional,
+    useDefaults: useDefaults ?? AJV_DEFAULTS.useDefaults,
+    allErrors: allErrors ?? AJV_DEFAULTS.allErrors,
   };
 
   const nodeParser = createParser(program as unknown as Parameters<typeof createParser>[0], {
