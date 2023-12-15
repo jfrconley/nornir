@@ -42,7 +42,7 @@ export const SCHEMA_DEFAULTS: Config = {
   sortProps: true,
   strictTuples: false,
   encodeRefs: false,
-  additionalProperties: true,
+  additionalProperties: false,
   topRef: false,
   discriminatorType: "open-api",
 };
