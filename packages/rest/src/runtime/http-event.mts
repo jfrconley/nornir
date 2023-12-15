@@ -62,97 +62,158 @@ export interface HttpResponseEmpty extends HttpResponse {
     readonly body?: undefined
 }
 
+export enum HttpStatusCode {
+    Continue = "100",
+    SwitchingProtocols = "101",
+    Processing = "102",
+    Ok = "200",
+    Created = "201",
+    Accepted = "202",
+    NonAuthoritativeInformation = "203",
+    NoContent = "204",
+    ResetContent = "205",
+    PartialContent = "206",
+    MultiStatus = "207",
+    AlreadyReported = "208",
+    IMUsed = "226",
+    MultipleChoices = "300",
+    MovedPermanently = "301",
+    Found = "302",
+    SeeOther = "303",
+    NotModified = "304",
+    UseProxy = "305",
+    TemporaryRedirect = "307",
+    PermanentRedirect = "308",
+    BadRequest = "400",
+    Unauthorized = "401",
+    PaymentRequired = "402",
+    Forbidden = "403",
+    NotFound = "404",
+    MethodNotAllowed = "405",
+    NotAcceptable = "406",
+    ProxyAuthenticationRequired = "407",
+    RequestTimeout = "408",
+    Conflict = "409",
+    Gone = "410",
+    LengthRequired = "411",
+    PreconditionFailed = "412",
+    PayloadTooLarge = "413",
+    RequestURITooLong = "414",
+    UnsupportedMediaType = "415",
+    RequestedRangeNotSatisfiable = "416",
+    ExpectationFailed = "417",
+    ImATeapot = "418",
+    MisdirectedRequest = "421",
+    UnprocessableEntity = "422",
+    Locked = "423",
+    FailedDependency = "424",
+    UpgradeRequired = "426",
+    PreconditionRequired = "428",
+    TooManyRequests = "429",
+    RequestHeaderFieldsTooLarge = "431",
+    UnavailableForLegalReasons = "451",
+    InternalServerError = "500",
+    NotImplemented = "501",
+    BadGateway = "502",
+    ServiceUnavailable = "503",
+    GatewayTimeout = "504",
+    HTTPVersionNotSupported = "505",
+    VariantAlsoNegotiates = "506",
+    InsufficientStorage = "507",
+    LoopDetected = "508",
+    NotExtended = "510",
+}
+//
+// export type HttpStatusCode =
+//     | "100"
+//     | "101"
+//     | "102"
+//     | "200"
+//     | "201"
+//     | "202"
+//     | "203"
+//     | "204"
+//     | "205"
+//     | "206"
+//     | "207"
+//     | "208"
+//     | "226"
+//     | "300"
+//     | "301"
+//     | "302"
+//     | "303"
+//     | "304"
+//     | "305"
+//     | "307"
+//     | "308"
+//     | "400"
+//     | "401"
+//     | "402"
+//     | "403"
+//     | "404"
+//     | "405"
+//     | "406"
+//     | "407"
+//     | "408"
+//     | "409"
+//     | "410"
+//     | "411"
+//     | "412"
+//     | "413"
+//     | "414"
+//     | "415"
+//     | "416"
+//     | "417"
+//     | "418"
+//     | "421"
+//     | "422"
+//     | "423"
+//     | "424"
+//     | "426"
+//     | "428"
+//     | "429"
+//     | "431"
+//     | "451"
+//     | "500"
+//     | "501"
+//     | "502"
+//     | "503"
+//     | "504"
+//     | "505"
+//     | "506"
+//     | "507"
+//     | "508"
+//     | "510";
 
-export type HttpStatusCode =
-    | "100"
-    | "101"
-    | "102"
-    | "200"
-    | "201"
-    | "202"
-    | "203"
-    | "204"
-    | "205"
-    | "206"
-    | "207"
-    | "208"
-    | "226"
-    | "300"
-    | "301"
-    | "302"
-    | "303"
-    | "304"
-    | "305"
-    | "307"
-    | "308"
-    | "400"
-    | "401"
-    | "402"
-    | "403"
-    | "404"
-    | "405"
-    | "406"
-    | "407"
-    | "408"
-    | "409"
-    | "410"
-    | "411"
-    | "412"
-    | "413"
-    | "414"
-    | "415"
-    | "416"
-    | "417"
-    | "418"
-    | "421"
-    | "422"
-    | "423"
-    | "424"
-    | "426"
-    | "428"
-    | "429"
-    | "431"
-    | "451"
-    | "500"
-    | "501"
-    | "502"
-    | "503"
-    | "504"
-    | "505"
-    | "506"
-    | "507"
-    | "508"
-    | "510";
-
-export type MimeType =
-    | "*/*"
-    | "application/json"
-    | "application/octet-stream"
-    | "application/pdf"
-    | "application/x-www-form-urlencoded"
-    | "application/zip"
-    | "application/gzip"
-    | "application/bzip"
-    | "application/bzip2"
-    | "application/ld+json"
-    | "font/woff"
-    | "font/woff2"
-    | "font/ttf"
-    | "font/otf"
-    | "audio/mpeg"
-    | "audio/x-wav"
-    | "image/gif"
-    | "image/jpeg"
-    | "image/png"
-    | "multipart/form-data"
-    | "text/css"
-    | "text/csv"
-    | "text/html"
-    | "text/plain"
-    | "text/xml"
-    | "video/mpeg"
-    | "video/mp4"
-    | "video/quicktime"
-    | "video/x-msvideo"
-    | "video/x-flv"
-    | "video/webm";
+export enum MimeType {
+    ApplicationJson = "application/json",
+    ApplicationOctetStream = "application/octet-stream",
+    ApplicationPdf = "application/pdf",
+    ApplicationXWwwFormUrlencoded = "application/x-www-form-urlencoded",
+    ApplicationZip = "application/zip",
+    ApplicationGzip = "application/gzip",
+    ApplicationBzip = "application/bzip",
+    ApplicationBzip2 = "application/bzip2",
+    ApplicationLdJson = "application/ld+json",
+    FontWoff = "font/woff",
+    FontWoff2 = "font/woff2",
+    FontTtf = "font/ttf",
+    FontOtf = "font/otf",
+    AudioMpeg = "audio/mpeg",
+    AudioXWav = "audio/x-wav",
+    ImageGif = "image/gif",
+    ImageJpeg = "image/jpeg",
+    ImagePng = "image/png",
+    MultipartFormData = "multipart/form-data",
+    TextCss = "text/css",
+    TextCsv = "text/csv",
+    TextHtml = "text/html",
+    TextPlain = "text/plain",
+    TextXml = "text/xml",
+    VideoMpeg = "video/mpeg",
+    VideoMp4 = "video/mp4",
+    VideoQuicktime = "video/quicktime",
+    VideoXMsVideo = "video/x-msvideo",
+    VideoXFlv = "video/x-flv",
+    VideoWebm = "video/webm",
+}

@@ -1,4 +1,4 @@
-import {HttpMethod, HttpRequest, HttpResponse} from './http-event.mjs';
+import {HttpMethod, HttpRequest, HttpResponse, HttpStatusCode, MimeType} from './http-event.mjs';
 import {Nornir} from '@nornir/core';
 import {NornirRestRequestError} from './error.mjs';
 import {type ErrorObject, type ValidateFunction} from 'ajv'
@@ -50,10 +50,10 @@ export class NornirRestRequestValidationError<Request extends HttpRequest> exten
 
     toHttpResponse(): HttpResponse {
         return {
-            statusCode: "422",
+            statusCode: HttpStatusCode.UnprocessableEntity,
             body: {errors: this.errors},
             headers: {
-                'content-type': "application/json"
+                'content-type': MimeType.ApplicationJson
             },
         }
     }

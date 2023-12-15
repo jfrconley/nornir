@@ -4,6 +4,7 @@ import {
   httpErrorHandler,
   httpEventParser,
   httpResponseSerializer,
+  HttpStatusCode,
   mapErrorClass,
   normalizeEventHeaders,
   router,
@@ -35,7 +36,7 @@ const frameworkChain = nornir<UnparsedHttpEvent>()
   .use(router())
   .useResult(httpErrorHandler([
     mapErrorClass(TestError, (_err) => ({
-      statusCode: "500",
+      statusCode: HttpStatusCode.BadRequest,
       headers: {},
     })),
   ]))

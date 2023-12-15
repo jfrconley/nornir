@@ -1,6 +1,14 @@
 import Trouter from 'trouter';
 import {RouteBuilder, RouteHolder} from './route-holder.mjs';
-import {HttpEvent, HttpHeadersWithContentType, HttpMethod, HttpRequest, HttpResponse} from './http-event.mjs';
+import {
+    HttpEvent,
+    HttpHeadersWithContentType,
+    HttpMethod,
+    HttpRequest,
+    HttpResponse,
+    HttpStatusCode,
+    MimeType
+} from './http-event.mjs';
 import {AttachmentRegistry, Nornir, Result} from '@nornir/core';
 import {NornirRestRequestError} from "./error.mjs";
 
@@ -82,10 +90,10 @@ export class NornirRouteNotFoundError extends NornirRestRequestError<HttpRequest
 
     toHttpResponse(): HttpResponse {
         return {
-            statusCode: "404",
+            statusCode: HttpStatusCode.NotFound,
             body: "Not Found",
             headers: {
-                "content-type": "text/plain"
+                "content-type": MimeType.TextPlain
             },
         }
     }
