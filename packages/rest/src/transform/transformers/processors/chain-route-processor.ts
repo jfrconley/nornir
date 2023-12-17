@@ -48,15 +48,16 @@ export abstract class ChainRouteProcessor {
 
     const routeIndex = controller.getRouteIndex({ method, path });
 
-    // const wrappedNode = createWrappedNode(node, { typeChecker: project.checker }) as MethodDeclaration;
-
     const { typeNode: inputTypeNode } = ChainRouteProcessor.resolveInputType(project, node, routeIndex);
 
     const outputType = ChainRouteProcessor.resolveOutputType(project, node, routeIndex);
 
-    const outputSchema = project.schemaGenerator.createSchemaFromNodes([outputType.node]);
-
-    const inputSchema = project.schemaGenerator.createSchemaFromNodes([inputTypeNode]);
+    const { inputSchema, outputSchema } = ChainRouteProcessor.generateInputOutputSchema(
+      project,
+      routeIndex,
+      inputTypeNode,
+      outputType.node,
+    );
 
     const inputValidator = schemaToValidator(moveRefsToAllOf(inputSchema), project.options.validation);
 
@@ -103,6 +104,25 @@ export abstract class ChainRouteProcessor {
     ts.setOriginalNode(recreatedNode, node);
 
     return recreatedNode;
+  }
+
+  private static generateInputOutputSchema(
+    project: Project,
+    routeIndex: RouteIndex,
+    inputTypeNode: ts.TypeNode,
+    outputTypeNode: ts.TypeNode,
+  ) {
+    try {
+      const inputSchema = project.schemaGenerator.createSchemaFromNodes([inputTypeNode]);
+      const outputSchema = project.schemaGenerator.createSchemaFromNodes([outputTypeNode]);
+      return {
+        inputSchema,
+        outputSchema,
+      };
+    } catch (e) {
+      console.error(e);
+      throw new TransformationError(`Could not generate schema for route`, routeIndex);
+    }
   }
 
   private static parseJSDoc(_project: Project, method: ts.MethodDeclaration): RouteTags {
@@ -218,7 +238,7 @@ export abstract class ChainRouteProcessor {
     project: Project,
     methodDeclaration: ts.MethodDeclaration,
     routeIndex: RouteIndex,
-  ): { type: ts.Type; node: ts.Node } {
+  ): { type: ts.Type; node: ts.TypeNode } {
     const wrapped = tsp.createWrappedNode(methodDeclaration, { typeChecker: project.checker });
     const returnedTypeNode = wrapped.getReturnTypeNode()?.compilerNode;
     if (returnedTypeNode == null) {

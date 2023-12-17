@@ -8,10 +8,12 @@ import {
   HttpStatusCode,
   MimeType,
   PostChain,
+  ValidateRequestType,
+  ValidateResponseType,
 } from "@nornir/rest";
 import { assertValid } from "@nrfcloud/ts-json-schema-transformer";
 
-interface RouteGetInput extends HttpRequestEmpty {
+interface RouteGetInput extends HttpRequest {
   pathParams: {
     /**
      * @pattern ^[a-z]+$
@@ -193,9 +195,9 @@ export class TestController {
     return chain
       .use(_contentType => ({
         statusCode: HttpStatusCode.Ok,
-        body: undefined,
         // body: `Content-Type: ${contentType}`,
         headers: {},
+        body: "",
       }));
   }
 }

@@ -32,6 +32,7 @@ export abstract class ControllerMethodTransformer {
     try {
       return METHOD_DECORATOR_PROCESSORS[method](methodDecorator, project, source, node, controller);
     } catch (e) {
+      throw e;
       console.error(e);
       if (e instanceof TransformationError) {
         throw e;

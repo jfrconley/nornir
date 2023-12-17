@@ -10,30 +10,18 @@ import {
   UndefinedType,
 } from "ts-json-schema-generator";
 import ts from "typescript";
-import { AJV_DEFAULTS, AJVOptions, Options, Project, SCHEMA_DEFAULTS, SchemaConfig } from "./project.js";
+import {
+  AJV_DEFAULTS,
+  AJVOptions,
+  getSchemaNodeParser,
+  Options,
+  Project,
+  SCHEMA_DEFAULTS,
+  SchemaConfig,
+} from "./project.js";
 import { FileTransformer } from "./transformers/file-transformer.js";
 
 let project: Project;
-
-export class TemplateExpressionNodeParser implements SubNodeParser {
-  supportsNode(node: ts.Node): boolean {
-    return ts.isTemplateExpression(node);
-  }
-
-  createType(): BaseType {
-    return new StringType();
-  }
-}
-
-export class UndefinedIdentifierParser implements SubNodeParser {
-  supportsNode(node: ts.Node): boolean {
-    return ts.isIdentifier(node) && node.text === "undefined";
-  }
-
-  createType(): BaseType {
-    return new UndefinedType();
-  }
-}
 
 export class UndefinedFormatter implements SubTypeFormatter {
   public supportsType(type: BaseType): boolean {
@@ -48,7 +36,6 @@ export class UndefinedFormatter implements SubTypeFormatter {
     return {};
   }
 }
-
 export function transform(program: ts.Program, options?: Options): ts.TransformerFactory<ts.SourceFile> {
   const {
     loopEnum,
@@ -83,13 +70,7 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
     allErrors: allErrors ?? AJV_DEFAULTS.allErrors,
   };
 
-  const nodeParser = createParser(program as unknown as Parameters<typeof createParser>[0], {
-    ...schemaConfig,
-  }, (prs) => {
-    // prs.addNodeParser(new NornirIgnoreParser());
-    prs.addNodeParser(new TemplateExpressionNodeParser());
-    prs.addNodeParser(new UndefinedIdentifierParser());
-  });
+  const nodeParser = getSchemaNodeParser(program, schemaConfig);
   const typeFormatter = createFormatter({
     ...schemaConfig,
   }, frm => {

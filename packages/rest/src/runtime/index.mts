@@ -9,7 +9,7 @@ import {httpErrorHandler} from "./error.mjs";
 
 export {
     GetChain, Controller, PostChain, DeleteChain, HeadChain, OptionsChain, PatchChain, PutChain,
-    Provider
+    Provider, ValidateRequestType, ValidateResponseType
 } from './decorators.mjs';
 export {
     HttpResponse, HttpRequest, HttpEvent, HttpMethod, HttpRequestEmpty, HttpResponseEmpty,

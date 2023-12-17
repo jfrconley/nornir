@@ -1,5 +1,5 @@
 import {Nornir} from "@nornir/core";
-import {HttpRequest, HttpResponse} from "./http-event.mjs";
+import {HttpRequest, HttpResponse, HttpStatusCode, MimeType} from "./http-event.mjs";
 import {InstanceOf} from "ts-morph";
 
 const UNTRANSFORMED_ERROR = new Error("nornir/rest decorators have not been transformed. Have you setup ts-patch/ttypescript and added the originator to your tsconfig.json?");
@@ -15,10 +15,30 @@ export function Controller<const Path extends string, const ApiId extends string
   };
 }
 
-const routeChainDecorator = <Input extends HttpRequest, Output extends HttpResponse>(
-  _target: (chain: Nornir<Input>) => Nornir<Input, Output>,
+const routeChainDecorator = <Input extends HttpRequest, Output extends HttpResponse >(
+  _target: (chain: Nornir<ValidateRequestType<Input>>) => Nornir<ValidateRequestType<Input>, ValidateResponseType<Output>>,
   _propertyKey: ClassMethodDecoratorContext,
 ): never => {throw UNTRANSFORMED_ERROR};
+
+export type ValidateRequestType<T extends HttpRequest> = RequestResponseWithBodyHasContentType<T> extends true ? T : "Request type with a body must have a content-type header";
+export type ValidateResponseType<T extends HttpResponse> = RequestResponseWithBodyHasContentType<T> extends true ?
+    OutputHasSpecifiedStatusCode<T> extends true
+        ? T : "Response type must have a status code specified" : "Response type with a body must have a content-type header";
+
+type OutputHasSpecifiedStatusCode<Output extends HttpResponse> = IfEquals<Output["statusCode"], HttpStatusCode, false, true>;
+
+type RequestResponseWithBodyHasContentType<T extends HttpResponse | HttpRequest> =
+  // No body spec is valid
+  HasBody<T> extends false ? true :
+      // Empty body is valid
+      T extends { body?: undefined | null } ? true :
+      T["headers"]["content-type"] extends string ?
+          IfEquals<T["headers"]["content-type"], MimeType | undefined, false, true>
+      : false;
+
+type HasBody<T extends HttpResponse | HttpRequest> = T extends { body: any } ? true : false
+
+type Test = { statusCode: HttpStatusCode.Ok, headers: NonNullable<unknown>, body: string}
 
 /**
  * Use to mark a method as a GET route

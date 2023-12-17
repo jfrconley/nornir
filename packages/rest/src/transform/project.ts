@@ -1,5 +1,17 @@
 import type { Options as AJVBaseOptions } from "ajv";
-import { Config, NodeParser, SchemaGenerator, TypeFormatter } from "ts-json-schema-generator";
+import {
+  BaseType,
+  Config,
+  createParser,
+  NodeParser,
+  ReferenceType,
+  SchemaGenerator,
+  StringType,
+  SubNodeParser,
+  TypeFormatter,
+  UndefinedType,
+  UnknownType,
+} from "ts-json-schema-generator";
 import ts from "typescript";
 
 export interface Project {
@@ -48,3 +60,54 @@ export const SCHEMA_DEFAULTS: Config = {
 };
 
 export type Options = AJVOptions & SchemaConfig;
+
+export class TemplateExpressionNodeParser implements SubNodeParser {
+  supportsNode(node: ts.Node): boolean {
+    return ts.isTemplateExpression(node);
+  }
+
+  createType(): BaseType {
+    return new StringType();
+  }
+}
+
+export class UndefinedIdentifierParser implements SubNodeParser {
+  supportsNode(node: ts.Node): boolean {
+    return ts.isIdentifier(node) && node.text === "undefined";
+  }
+
+  createType(): BaseType {
+    return new UndefinedType();
+  }
+}
+
+export class NornirIgnoreParser implements SubNodeParser {
+  supportsNode(node: ts.Node): boolean {
+    // check if the ignore tag is present
+    return ts.getJSDocTags(node).some(tag => tag.tagName.getText() === "ignore");
+  }
+
+  createType(): BaseType {
+    return new UnknownType();
+  }
+}
+
+export class NornirParserThrow implements SubNodeParser {
+  supportsNode(node: ts.Node) {
+    return ts.getJSDocTags(node).some(tag => tag.tagName.getText() === "nodeParseThrow");
+  }
+
+  createType(node: ts.Node): BaseType {
+    const throwTagText = ts.getJSDocTags(node).find(tag => tag.tagName.getText() === "nodeParseThrow")?.comment;
+    throw new Error(`ParserFailure: ${throwTagText}`);
+  }
+}
+
+export function getSchemaNodeParser(program: ts.Program, config: Config): NodeParser {
+  return createParser(program as unknown as Parameters<typeof createParser>[0], config, prs => {
+    prs.addNodeParser(new TemplateExpressionNodeParser());
+    prs.addNodeParser(new UndefinedIdentifierParser());
+    prs.addNodeParser(new NornirIgnoreParser());
+    prs.addNodeParser(new NornirParserThrow());
+  });
+}

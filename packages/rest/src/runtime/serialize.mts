@@ -2,14 +2,14 @@ import {HttpResponse, MimeType, SerializedHttpResponse} from "./http-event.mjs";
 
 import {getContentType} from "./utils.mjs";
 
-export type HttpBodySerializer<T> = (body: T | undefined) => Buffer
+export type HttpBodySerializer = (body: unknown | undefined) => Buffer
 
-export type HttpBodySerializerMap = Partial<Record<MimeType | "default", HttpBodySerializer<never>>>
+export type HttpBodySerializerMap = Partial<Record<MimeType | "default", HttpBodySerializer>>
 
-const DEFAULT_BODY_SERIALIZERS: HttpBodySerializerMap & {default: HttpBodySerializer<never>} = {
-    "application/json": (body?: object) => Buffer.from(JSON.stringify(body) || "", "utf8"),
-    "text/plain": (body?: string) => Buffer.from(body?.toString() || "", "utf8"),
-    "default": (body?: never) => Buffer.from(JSON.stringify(body) || "", "utf8")
+const DEFAULT_BODY_SERIALIZERS: HttpBodySerializerMap & {default: HttpBodySerializer} = {
+    "application/json": (body) => Buffer.from(JSON.stringify(body) || "", "utf8"),
+    "text/plain": (body) => Buffer.from(body?.toString() || "", "utf8"),
+    "default": (body) => Buffer.from(JSON.stringify(body) || "", "utf8")
 }
 
 export function httpResponseSerializer(bodySerializerMap?: HttpBodySerializerMap) {

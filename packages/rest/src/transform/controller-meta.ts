@@ -8,6 +8,7 @@ import {
   getSchemaOrAllOf,
   getUnifiedPropertySchemas,
   joinSchemas,
+  moveExamplesToExample,
   moveRefsToAllOf,
   resolveDiscriminantProperty,
   rewriteRefsForOpenApi,
@@ -224,14 +225,20 @@ export class ControllerMeta {
       input: routeInfo.input,
     };
 
-    OpenApiSpecHolder.addSpecForFile(this.source, this.generateRouteSpec(modifiedRouteInfo));
-
+    try {
+      OpenApiSpecHolder.addSpecForFile(this.source, this.generateRouteSpec(modifiedRouteInfo));
+    } catch (e) {
+      if (e instanceof TransformationError) {
+        throw e;
+      }
+      console.error(e);
+      throw new TransformationError("Could not generate OpenAPI spec for route", modifiedRouteInfo);
+    }
     methods.set(index.method, modifiedRouteInfo);
   }
 
   private generateRouteSpec(route: RouteInfo): OpenAPIV3_1.Document {
     const inputSchema = moveRefsToAllOf(route.inputSchema);
-    const routeIndex = this.getRouteIndex(route);
     const dereferencedInputSchema = dereferenceSchema(inputSchema);
     const outputSchema = moveRefsToAllOf(route.outputSchema);
     const dereferencedOutputSchema = dereferenceSchema(outputSchema);
@@ -261,8 +268,8 @@ export class ControllerMeta {
       },
       components: {
         schemas: {
-          ...rewriteRefsForOpenApi(inputSchema).definitions,
-          ...rewriteRefsForOpenApi(outputSchema).definitions,
+          ...rewriteRefsForOpenApi(moveExamplesToExample(inputSchema)).definitions,
+          ...rewriteRefsForOpenApi(moveExamplesToExample(outputSchema)).definitions,
         },
         parameters: {},
       },

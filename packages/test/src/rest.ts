@@ -19,6 +19,7 @@ import type {
 } from "aws-lambda";
 import "./controller.js";
 import "./controller2.js";
+import "./docs-controller.js";
 import { getMockObject } from "@nrfcloud/ts-json-schema-transformer";
 
 export class TestError implements NodeJS.ErrnoException {
@@ -42,6 +43,8 @@ const frameworkChain = nornir<UnparsedHttpEvent>()
   ]))
   .use(httpResponseSerializer({
     ["application/bzip"]: () => Buffer.from(""),
+    ["text/csv"]: (input) => Buffer.from(input as string),
+    ["text/html"]: (input) => Buffer.from(input as string),
   }));
 
 export const handler: APIGatewayProxyHandlerV2 = nornir<APIGatewayProxyEventV2>()

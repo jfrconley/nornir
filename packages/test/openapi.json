@@ -1,15 +1,12 @@
 {
-  "openapi": "3.1.0",
+  "openapi": "3.0.3",
   "info": {
-    "title": "Test API",
-    "version": "1.0.0",
-    "description": "A test api"
+    "title": "Nornir API",
+    "version": "1.0.0"
   },
   "paths": {
-    "/basepath/2/route": {
+    "/docs": {
       "get": {
-        "summary": "Get route",
-        "description": "The second simple GET route.",
         "responses": {
           "200": {
             "description": "",
@@ -21,12 +18,12 @@
                 "deprecated": false,
                 "schema": {
                   "type": "string",
-                  "const": "text/plain"
+                  "const": "text/html"
                 }
               }
             },
             "content": {
-              "text/plain": {
+              "text/html": {
                 "schema": {
                   "type": "string"
                 }
@@ -34,59 +31,13 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "content-type",
-            "in": "header",
-            "required": false,
-            "deprecated": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/MimeType"
-                    }
-                  ]
-                },
-                {
-                  "not": {}
-                }
-              ]
-            }
-          }
-        ]
-      },
-      "put": {
-        "summary": "Put route",
-        "description": "The second simple PUT route.",
+        "parameters": []
+      }
+    },
+    "/openapi.json": {
+      "get": {
         "responses": {
-          "201": {
-            "description": "",
-            "headers": {
-              "content-type": {
-                "name": "content-type",
-                "in": "header",
-                "required": false,
-                "deprecated": false,
-                "schema": {
-                  "anyOf": [
-                    {
-                      "allOf": [
-                        {
-                          "$ref": "#/components/schemas/MimeType"
-                        }
-                      ]
-                    },
-                    {
-                      "not": {}
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
+          "200": {
             "description": "",
             "headers": {
               "content-type": {
@@ -104,62 +55,13 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {
-                    "potato": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": [
-                    "potato"
-                  ]
+                  "additionalProperties": {}
                 }
               }
             }
           }
         },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "cool": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "cool"
-                ]
-              }
-            },
-            "text/csv": {
-              "schema": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "content-type",
-            "in": "header",
-            "required": true,
-            "deprecated": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "const": "application/json"
-                },
-                {
-                  "type": "string",
-                  "const": "text/csv"
-                }
-              ]
-            }
-          }
-        ]
+        "parameters": []
       }
     },
     "/root/basepath/route/{cool}": {
@@ -195,7 +97,8 @@
                   "required": [
                     "bleep",
                     "bloop"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -229,7 +132,8 @@
                   "required": [
                     "bleep",
                     "bloop"
-                  ]
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -249,27 +153,7 @@
               }
             },
             "content": {
-              "application/json": {
-                "example": {
-                  "message": "Bad Request"
-                },
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "message"
-                  ],
-                  "examples": [
-                    {
-                      "message": "Bad Request"
-                    }
-                  ]
-                }
-              }
+              "application/json": {}
             }
           }
         },
@@ -284,26 +168,6 @@
               "allOf": [
                 {
                   "$ref": "#/components/schemas/TestStringType"
-                }
-              ]
-            }
-          },
-          {
-            "name": "content-type",
-            "in": "header",
-            "required": false,
-            "deprecated": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/MimeType"
-                    }
-                  ]
-                },
-                {
-                  "not": {}
                 }
               ]
             }
@@ -356,6 +220,7 @@
                 "required": [
                   "cool"
                 ],
+                "additionalProperties": false,
                 "description": "A cool json input",
                 "examples": [
                   {
@@ -380,6 +245,7 @@
                 "required": [
                   "cool"
                 ],
+                "additionalProperties": false,
                 "description": "A cool json input",
                 "examples": [
                   {
@@ -489,63 +355,16 @@
   },
   "components": {
     "schemas": {
-      "HttpHeadersWithContentType": {
-        "type": "object",
-        "properties": {
-          "content-type": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/MimeType"
-              }
-            ]
-          }
-        },
-        "required": [
-          "content-type"
-        ]
-      },
-      "MimeType": {
-        "type": "string",
-        "enum": [
-          "*/*",
-          "application/json",
-          "application/octet-stream",
-          "application/pdf",
-          "application/x-www-form-urlencoded",
-          "application/zip",
-          "application/gzip",
-          "application/bzip",
-          "application/bzip2",
-          "application/ld+json",
-          "font/woff",
-          "font/woff2",
-          "font/ttf",
-          "font/otf",
-          "audio/mpeg",
-          "audio/x-wav",
-          "image/gif",
-          "image/jpeg",
-          "image/png",
-          "multipart/form-data",
-          "text/css",
-          "text/csv",
-          "text/html",
-          "text/plain",
-          "text/xml",
-          "video/mpeg",
-          "video/mp4",
-          "video/quicktime",
-          "video/x-msvideo",
-          "video/x-flv",
-          "video/webm"
-        ]
-      },
       "HttpHeadersWithoutContentType": {
         "type": "object",
+        "additionalProperties": {
+          "type": [
+            "number",
+            "string"
+          ]
+        },
         "properties": {
-          "content-type": {
-            "not": {}
-          }
+          "content-type": {}
         }
       },
       "TestStringType": {
@@ -585,7 +404,8 @@
             },
             "required": [
               "content-type"
-            ]
+            ],
+            "additionalProperties": false
           },
           "body": {
             "type": "object",
@@ -600,7 +420,8 @@
             "required": [
               "bleep",
               "bloop"
-            ]
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -608,6 +429,7 @@
           "headers",
           "statusCode"
         ],
+        "additionalProperties": false,
         "description": "This is a comment"
       },
       "RouteGetOutputError": {
@@ -627,30 +449,16 @@
             },
             "required": [
               "content-type"
-            ]
-          },
-          "body": {
-            "type": "object",
-            "properties": {
-              "message": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "message"
             ],
-            "examples": [
-              {
-                "message": "Bad Request"
-              }
-            ]
-          }
+            "additionalProperties": false
+          },
+          "body": {}
         },
         "required": [
-          "body",
           "headers",
           "statusCode"
         ],
+        "additionalProperties": false,
         "description": "This is a comment on RouteGetOutputError"
       },
       "RoutePostInputJSONAlias": {
@@ -668,7 +476,8 @@
                 },
                 "required": [
                   "content-type"
-                ]
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "object",
@@ -680,7 +489,8 @@
                 },
                 "required": [
                   "content-type"
-                ]
+                ],
+                "additionalProperties": false
               }
             ]
           },
@@ -694,7 +504,8 @@
             },
             "required": [
               "test"
-            ]
+            ],
+            "additionalProperties": false
           },
           "body": {
             "type": "object",
@@ -708,6 +519,7 @@
             "required": [
               "cool"
             ],
+            "additionalProperties": false,
             "description": "A cool json input",
             "examples": [
               {
@@ -737,7 +549,8 @@
             },
             "required": [
               "reallyCool"
-            ]
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -745,7 +558,8 @@
           "headers",
           "pathParams",
           "query"
-        ]
+        ],
+        "additionalProperties": false
       }
     },
     "parameters": {}

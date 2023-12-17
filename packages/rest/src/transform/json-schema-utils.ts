@@ -13,7 +13,7 @@ export function dereferenceSchema(schema: JSONSchema7) {
   refParser.schema = clonedSchema;
   dereference(refParser, {
     dereference: {
-      circular: true,
+      circular: "ignore",
       onDereference(path: string, value: JSONSchema7) {
         (value as { "x-resolved-ref": string })["x-resolved-ref"] = path;
       },
@@ -88,30 +88,37 @@ export function getUnifiedPropertySchemas(
   }> = {};
   let parentSchemas = 0;
 
-  traverse(schema, {
-    allKeys: false,
-    cb: {
-      pre(schema, jsonPtr, rootSchema, parentJsonPtr) {
-        const convertedPath = convertJsonSchemaPathIfPropertyPath(jsonPtr);
-        if (convertedPath === parentPath && parentJsonPtr != "") {
-          parentSchemas++;
-        }
-      },
-      post: (schema, jsonPtr, rootSchema, parentJsonPtr, parentKeyword, parentSchema, keyIndex) => {
-        const convertedPath = convertJsonSchemaPathIfPropertyPath(jsonPtr);
+  try {
+    traverse(schema, {
+      allKeys: false,
+      cb: {
+        pre(schema, jsonPtr, rootSchema, parentJsonPtr) {
+          const convertedPath = convertJsonSchemaPathIfPropertyPath(jsonPtr);
+          if (convertedPath === parentPath && parentJsonPtr != "") {
+            parentSchemas++;
+          }
+        },
+        post: (schema, jsonPtr, rootSchema, parentJsonPtr, parentKeyword, parentSchema, keyIndex) => {
+          const convertedPath = convertJsonSchemaPathIfPropertyPath(jsonPtr);
 
-        if (convertedPath != null && isDirectChildPath(convertedPath, parentPath)) {
-          const schemaSet = schemas[keyIndex || ""] || {
-            schemaSet: [],
-            required: true,
-          };
-          schemaSet.required = !schemaSet.required ? false : parentSchema?.required?.includes(keyIndex) ?? false;
-          schemaSet.schemaSet.push(schema);
-          schemas[keyIndex || ""] = schemaSet;
-        }
+          if (convertedPath != null && isDirectChildPath(convertedPath, parentPath)) {
+            const schemaSet = schemas[keyIndex || ""] || {
+              schemaSet: [],
+              required: true,
+            };
+            schemaSet.required = !schemaSet.required ? false : parentSchema?.required?.includes(keyIndex) ?? false;
+            schemaSet.schemaSet.push(schema);
+            schemas[keyIndex || ""] = schemaSet;
+          }
+        },
       },
-    },
-  });
+    });
+  } catch (e) {
+    if (e instanceof RangeError) {
+      throw new Error("Infinite loop detected in json schema");
+    }
+    throw e;
+  }
 
   return Object.fromEntries(
     Object.entries(schemas).map(([key, value]) => {
@@ -157,6 +164,22 @@ export function moveRefsToAllOf(schema: JSONSchema7) {
               [MOVED_REF_MARKER]: true,
             },
           ];
+        }
+      },
+    },
+  });
+
+  return clonedSchema;
+}
+
+export function moveExamplesToExample(schema: JSONSchema7) {
+  const clonedSchema = cloneDeep(schema);
+  traverse(clonedSchema, {
+    cb: {
+      pre: (schema) => {
+        if (schema.example == null && schema.examples != null && schema.examples.length > 0) {
+          schema.example = schema.examples[0];
+          delete schema.examples;
         }
       },
     },
@@ -239,18 +262,19 @@ export function resolveDiscriminantProperty(schema: JSONSchema7, propertyPath: s
     const discriminatorValues: string[] = [];
 
     for (const schema of discriminantProperty.schemaSet) {
+      const resolvedAllOfSchema = getSchemaOrAllOf(schema);
       if (
-        !(schema.type === "string" || schema.type === "number")
-        || (schema.const == null && schema.enum == null)
+        !(resolvedAllOfSchema.type === "string" || resolvedAllOfSchema.type === "number")
+        || (resolvedAllOfSchema.const == null && resolvedAllOfSchema.enum == null)
       ) {
         return;
       }
 
-      if (schema.const != null) {
-        discriminatorValues.push(schema.const as string);
+      if (resolvedAllOfSchema.const != null) {
+        discriminatorValues.push(resolvedAllOfSchema.const as string);
       }
-      if (schema.enum != null) {
-        discriminatorValues.push(...(schema.enum as string[]));
+      if (resolvedAllOfSchema.enum != null) {
+        discriminatorValues.push(...(resolvedAllOfSchema.enum as string[]));
       }
     }
 
