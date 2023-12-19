@@ -36,6 +36,7 @@ type RequestResponseWithBodyHasContentType<T extends HttpResponse | HttpRequest>
           IfEquals<T["headers"]["content-type"], MimeType | undefined, false, true>
       : false;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type HasBody<T extends HttpResponse | HttpRequest> = T extends { body: any } ? true : false
 
 type Test = { statusCode: HttpStatusCode.Ok, headers: NonNullable<unknown>, body: string}

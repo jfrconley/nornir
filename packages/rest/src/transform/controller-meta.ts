@@ -362,7 +362,7 @@ export class ControllerMeta {
   private generateRequestBody(routeIndex: RouteIndex, inputSchema: JSONSchema7): OpenAPIV3_1.RequestBodyObject | void {
     const bodySchema = getUnifiedPropertySchemas(inputSchema, "/")["body"];
     const contentTypeDiscriminatedSchemas = resolveDiscriminantProperty(inputSchema, "/headers/content-type");
-    if (bodySchema == null || (bodySchema.schemaSet.length === 1)) {
+    if (bodySchema == null || (bodySchema.schemaSet.length === 0)) {
       return;
     }
 
