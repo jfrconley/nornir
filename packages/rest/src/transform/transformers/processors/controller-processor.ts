@@ -39,7 +39,7 @@ export abstract class ControllerProcessor {
     );
 
     ts.setTextRange(recreatedNode, node);
-    ts.setOriginalNode(recreatedNode, node);
+    // ts.setOriginalNode(recreatedNode, node);
 
     return recreatedNode;
   }

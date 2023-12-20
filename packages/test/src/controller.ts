@@ -161,7 +161,7 @@ export class TestController {
   /**
    * Cool get route
    */
-  @GetChain("/route/{cool}")
+  @GetChain("/route/:cool")
   public getRoute(chain: Nornir<RouteGetInput>): Nornir<RouteGetInput, RouteGetOutput> {
     return chain
       .use(input => {
@@ -188,7 +188,7 @@ export class TestController {
    * @deprecated
    * @operationId coolRoute
    */
-  @PostChain("/route/{cool}")
+  @PostChain("/route/:cool")
   public postRoute(
     chain: Nornir<RoutePostInput>,
   ): Nornir<RoutePostInput, { statusCode: HttpStatusCode.Ok; headers: NonNullable<unknown> }> {

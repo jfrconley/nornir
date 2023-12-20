@@ -101,7 +101,7 @@ export abstract class ChainRouteProcessor {
     );
 
     ts.setTextRange(recreatedNode, node);
-    ts.setOriginalNode(recreatedNode, node);
+    // ts.setOriginalNode(recreatedNode, node);
 
     return recreatedNode;
   }
@@ -126,7 +126,7 @@ export abstract class ChainRouteProcessor {
   }
 
   private static parseJSDoc(_project: Project, method: ts.MethodDeclaration): RouteTags {
-    const docs = ts.getJSDocCommentsAndTags(ts.getOriginalNode(method));
+    const docs = ts.getJSDocCommentsAndTags(method);
     const topLevel = docs[0];
     if (!topLevel) {
       return {};
@@ -239,8 +239,8 @@ export abstract class ChainRouteProcessor {
     methodDeclaration: ts.MethodDeclaration,
     routeIndex: RouteIndex,
   ): { type: ts.Type; node: ts.TypeNode } {
-    const wrapped = tsp.createWrappedNode(methodDeclaration, { typeChecker: project.checker });
-    const returnedTypeNode = wrapped.getReturnTypeNode()?.compilerNode;
+    const returnedTypeNode = methodDeclaration.type;
+
     if (returnedTypeNode == null) {
       throw new TransformationError(
         "Endpoint is missing an explicit return type. Explicit return types are required for all endpoints to promote contract stability",
