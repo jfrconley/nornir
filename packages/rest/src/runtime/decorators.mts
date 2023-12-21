@@ -1,5 +1,5 @@
 import {Nornir} from "@nornir/core";
-import {HttpRequest, HttpResponse} from "./http-event.mjs";
+import {HttpRequest, HttpResponse, HttpStatusCode, MimeType} from "./http-event.mjs";
 import {InstanceOf} from "ts-morph";
 
 const UNTRANSFORMED_ERROR = new Error("nornir/rest decorators have not been transformed. Have you setup ts-patch/ttypescript and added the originator to your tsconfig.json?");
@@ -15,18 +15,41 @@ export function Controller<const Path extends string, const ApiId extends string
   };
 }
 
-const routeChainDecorator = <Input extends HttpRequest, Output extends HttpResponse>(
-  _target: (chain: Nornir<Input>) => Nornir<Input, Output>,
+const routeChainDecorator = <Input extends HttpRequest, Output extends HttpResponse >(
+  _target: (chain: Nornir<ValidateRequestType<Input>>) => Nornir<ValidateRequestType<Input>, ValidateResponseType<Output>>,
   _propertyKey: ClassMethodDecoratorContext,
 ): never => {throw UNTRANSFORMED_ERROR};
+
+export type ValidateRequestType<T extends HttpRequest> = RequestResponseWithBodyHasContentType<T> extends true ? T : "Request type with a body must have a content-type header";
+export type ValidateResponseType<T extends HttpResponse> = RequestResponseWithBodyHasContentType<T> extends true ?
+    OutputHasSpecifiedStatusCode<T> extends true
+        ? T : "Response type must have a status code specified" : "Response type with a body must have a content-type header";
+
+type OutputHasSpecifiedStatusCode<Output extends HttpResponse> = IfEquals<Output["statusCode"], HttpStatusCode, false, true>;
+
+type RequestResponseWithBodyHasContentType<T extends HttpResponse | HttpRequest> =
+  // No body spec is valid
+  HasBody<T> extends false ? true :
+      // Empty body is valid
+      T extends { body?: undefined | null } ? true :
+      T["headers"]["content-type"] extends string ?
+          IfEquals<T["headers"]["content-type"], MimeType | undefined, false, true>
+      : false;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type HasBody<T extends HttpResponse | HttpRequest> = T extends { body: any } ? true : false
+
+type Test = { statusCode: HttpStatusCode.Ok, headers: NonNullable<unknown>, body: string}
 
 /**
  * Use to mark a method as a GET route
  *
  * @originator nornir/rest
+ *
  */
-export function GetChain(_path: string) {
-  return routeChainDecorator;
+export function GetChain<const Path extends string>(_path: Path)
+    {
+  return routeChainDecorator as IfEquals<Path, string, never, typeof routeChainDecorator>;
 }
 
 /**
@@ -34,8 +57,8 @@ export function GetChain(_path: string) {
  *
  * @originator nornir/rest
  */
-export function PostChain(_path: string) {
-  return routeChainDecorator;
+export function PostChain<const Path extends string >(_path: Path) {
+  return routeChainDecorator as IfEquals<Path, string, never, typeof routeChainDecorator>;
 }
 
 /**
@@ -43,8 +66,8 @@ export function PostChain(_path: string) {
  *
  * @originator nornir/rest
  */
-export function PutChain(_path: string) {
-  return routeChainDecorator;
+export function PutChain<const Path extends string >(_path: Path)  {
+  return routeChainDecorator as IfEquals<Path, string, never, typeof routeChainDecorator>;
 }
 
 /**
@@ -52,8 +75,8 @@ export function PutChain(_path: string) {
  *
  * @originator nornir/rest
  */
-export function PatchChain(_path: string) {
-  return routeChainDecorator;
+export function PatchChain<const Path extends string >(_path: Path)  {
+  return routeChainDecorator as IfEquals<Path, string, never, typeof routeChainDecorator>;
 }
 
 /**
@@ -61,8 +84,8 @@ export function PatchChain(_path: string) {
  *
  * @originator nornir/rest
  */
-export function DeleteChain(_path: string) {
-  return routeChainDecorator;
+export function DeleteChain<const Path extends string >(_path: Path)  {
+  return routeChainDecorator as IfEquals<Path, string, never, typeof routeChainDecorator>;
 }
 
 /**
@@ -70,8 +93,8 @@ export function DeleteChain(_path: string) {
  *
  * @originator nornir/rest
  */
-export function HeadChain(_path: string) {
-  return routeChainDecorator;
+export function HeadChain<const Path extends string >(_path: Path)  {
+  return routeChainDecorator as IfEquals<Path, string, never, typeof routeChainDecorator>;
 }
 
 /**
@@ -79,8 +102,8 @@ export function HeadChain(_path: string) {
  *
  * @originator nornir/rest
  */
-export function OptionsChain(_path: string) {
-  return routeChainDecorator;
+export function OptionsChain<const Path extends string >(_path: Path)  {
+  return routeChainDecorator as IfEquals<Path, string, never, typeof routeChainDecorator>;
 }
 
 /**
@@ -93,3 +116,6 @@ export function Provider() {
     throw UNTRANSFORMED_ERROR
   }
 }
+
+type IfEquals<T, U, Y = unknown, N = never> = (<G>() => G extends T ? 1 : 2) extends (<G>() => G extends U ? 1 : 2) ? Y
+    : N;

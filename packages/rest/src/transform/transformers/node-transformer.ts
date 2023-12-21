@@ -10,7 +10,7 @@ export abstract class NodeTransformer {
     context: ts.TransformationContext,
   ): ts.Node {
     if (ts.isClassDeclaration(node)) {
-      return ClassTransformer.transform(project, source, node, context);
+      return ClassTransformer.transform(project, source, node as ts.ClassDeclaration, context);
     }
 
     return node;

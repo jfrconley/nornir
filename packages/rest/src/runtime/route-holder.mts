@@ -53,7 +53,7 @@ export class NornirRestRequestValidationError<Request extends HttpRequest> exten
             statusCode: HttpStatusCode.UnprocessableEntity,
             body: {errors: this.errors},
             headers: {
-                'content-type': MimeType.ApplicationJson,
+                'content-type': MimeType.ApplicationJson
             },
         }
     }

@@ -1,17 +1,46 @@
-import { createFormatter, createParser, SchemaGenerator } from "ts-json-schema-generator";
+import {
+  BaseType,
+  createFormatter,
+  createParser,
+  Definition,
+  SchemaGenerator,
+  StringType,
+  SubNodeParser,
+  SubTypeFormatter,
+  UndefinedType,
+} from "ts-json-schema-generator";
 import ts from "typescript";
-import { AJV_DEFAULTS, AJVOptions, Options, Project, SCHEMA_DEFAULTS, SchemaConfig } from "./project.js";
+import {
+  AJV_DEFAULTS,
+  AJVOptions,
+  getSchemaNodeParser,
+  Options,
+  Project,
+  SCHEMA_DEFAULTS,
+  SchemaConfig,
+} from "./project.js";
 import { FileTransformer } from "./transformers/file-transformer.js";
 
 let project: Project;
-// let files: string[] = [];
-// let openapi: OpenAPIV3.Document;
+
+export class UndefinedFormatter implements SubTypeFormatter {
+  public supportsType(type: BaseType): boolean {
+    return type instanceof UndefinedType;
+  }
+
+  getChildren(): BaseType[] {
+    return [];
+  }
+
+  getDefinition(): Definition {
+    return {};
+  }
+}
 export function transform(program: ts.Program, options?: Options): ts.TransformerFactory<ts.SourceFile> {
   const {
     loopEnum,
     loopRequired,
     additionalProperties,
-    encodeRefs,
     strictTuples,
     jsDoc,
     removeAdditional,
@@ -19,6 +48,7 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
     allErrors,
     sortProps,
     expose,
+    encodeRefs,
   } = options ?? {};
 
   const schemaConfig: SchemaConfig = {
@@ -40,11 +70,11 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
     allErrors: allErrors ?? AJV_DEFAULTS.allErrors,
   };
 
-  const nodeParser = createParser(program as unknown as Parameters<typeof createParser>[0], {
-    ...schemaConfig,
-  });
+  const nodeParser = getSchemaNodeParser(program, schemaConfig);
   const typeFormatter = createFormatter({
     ...schemaConfig,
+  }, frm => {
+    frm.addTypeFormatter(new UndefinedFormatter());
   });
 
   const schemaGenerator = new SchemaGenerator(
@@ -53,6 +83,25 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
     typeFormatter,
     schemaConfig,
   );
+
+  const compilerHost = program.getCompilerOptions().incremental
+    ? ts.createIncrementalCompilerHost(program.getCompilerOptions())
+    : ts.createCompilerHost(program.getCompilerOptions());
+
+  const configPath = program.getCompilerOptions().configFilePath as string;
+
+  const parseConfigHost: ts.ParseConfigFileHost = {
+    useCaseSensitiveFileNames: true,
+    fileExists: fileName => compilerHost!.fileExists(fileName),
+    readFile: fileName => compilerHost!.readFile(fileName),
+    directoryExists: f => compilerHost!.directoryExists!(f),
+    getDirectories: f => compilerHost!.getDirectories!(f),
+    realpath: compilerHost.realpath,
+    readDirectory: (...args) => compilerHost!.readDirectory!(...args),
+    trace: compilerHost.trace,
+    getCurrentDirectory: compilerHost.getCurrentDirectory,
+    onUnRecoverableConfigFileDiagnostic: () => {},
+  };
 
   project = {
     transformOnly: false,
@@ -67,9 +116,12 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
     schemaGenerator,
     nodeParser,
     typeFormatter,
-    compilerHost: program.getCompilerOptions().incremental
-      ? ts.createIncrementalCompilerHost(program.getCompilerOptions())
-      : ts.createCompilerHost(program.getCompilerOptions()),
+    compilerHost,
+    parsedCommandLine: ts.getParsedCommandLineOfConfigFile(
+      configPath,
+      program.getCompilerOptions(),
+      parseConfigHost,
+    )!,
   };
 
   return (context) => {

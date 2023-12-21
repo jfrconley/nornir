@@ -3,7 +3,6 @@ import querystring from "node:querystring";
 
 import {getContentType} from "./utils.mjs";
 import {NornirRestError} from "./error.mjs";
-import {AttachmentRegistry} from "@nornir/core";
 
 export type HttpBodyParser = (body: Buffer) => unknown
 
@@ -19,7 +18,7 @@ export class NornirRestParseError extends NornirRestError {
         return {
             statusCode: HttpStatusCode.UnprocessableEntity,
             headers: {
-              "content-type": MimeType.TextPlain,
+              "content-type": MimeType.ApplicationJson,
             },
             body: this.message
         }

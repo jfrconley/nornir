@@ -29,7 +29,8 @@ export function getStringLiteralOrConst(project: Project, node: ts.Expression): 
 
 export interface NornirDecoratorInfo {
   decorator: ts.Decorator;
-  signature: ts.Signature;
+  symbol: ts.Symbol;
+  // signature: ts.Signature;
   declaration: ts.Declaration;
 }
 
@@ -42,19 +43,34 @@ export function separateNornirDecorators(
 } {
   const nornirDecorators: {
     decorator: ts.Decorator;
-    signature: ts.Signature;
+    symbol: ts.Symbol;
+    // signature: ts.Signature;
     declaration: ts.Declaration;
   }[] = [];
   const decorators: ts.Decorator[] = [];
 
   for (const decorator of originalDecorators) {
-    const signature = project.checker.getResolvedSignature(decorator);
-    const parentDeclaration = signature?.getDeclaration()?.parent;
-    if (parentDeclaration && signature && signature.declaration && isNornirRestNode(parentDeclaration)) {
+    const identifier = ts.isIdentifier(decorator.expression)
+      ? decorator.expression
+      : ts.isCallExpression(decorator.expression)
+      ? decorator.expression.expression as ts.Identifier
+      : undefined;
+    if (!identifier) continue;
+    const identifierSymbol = project.checker.getSymbolAtLocation(identifier);
+    if (!identifierSymbol) continue;
+    const symbol = project.checker.getAliasedSymbol(identifierSymbol);
+    const declaration = symbol?.declarations?.[0];
+    if (!declaration) continue;
+
+    // const signature = project.checker.getResolvedSignature(decorator);
+    //
+    // const parentDeclaration = signature?.getDeclaration()?.parent;
+    if (isNornirRestNode(declaration)) {
       nornirDecorators.push({
         decorator,
-        signature,
-        declaration: signature.declaration,
+        symbol,
+        // signature,
+        declaration,
       });
     } else {
       decorators.push(decorator);

@@ -1,5 +1,3 @@
-import {Nominal} from "./utils.mjs";
-
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "HEAD" | "OPTIONS";
 
 export type HttpEvent = Omit<HttpRequest, "pathParams" | "headers"> & {
@@ -13,32 +11,34 @@ export type UnparsedHttpEvent = Omit<HttpEvent, "body" | "query"> & {
     rawQuery: string
 }
 
-// export type HttpHeaders = {
-//     readonly "content-type": MimeType;
-// } & Record<string, string | number>
-
 export type HttpHeadersWithContentType = {
-    readonly "content-type": MimeType | AnyMimeType
+    readonly "content-type": MimeType
 } & HttpHeaders;
 
+export type HttpHeadersWithoutContentType = {
+    readonly "content-type"?: undefined
+} & HttpHeaders
 
-export type HttpHeaders = Record<string, number | string>;
+
+export type HttpHeaders = Record<string, number | string >;
 
 export interface HttpRequest {
-    readonly headers: HttpHeadersWithContentType;
+    readonly headers: HttpHeadersWithoutContentType | HttpHeadersWithContentType;
 
-    readonly query: Record<string, string | number | boolean | Array<string> | Array<number>>;
+    readonly query: QueryParams;
 
     readonly body?: unknown;
 
-    readonly pathParams: Record<string, string | number>;
+    readonly pathParams: PathParams;
 }
 
+type QueryParams = Record<string, string | number | boolean | Array<string> | Array<number>>;
+
+type PathParams = Record<string, string | number>;
+
 export interface HttpRequestEmpty extends HttpRequest {
-    headers: {
-        "content-type": AnyMimeType;
-    }
-    // body?: undefined;
+    headers: HttpHeadersWithoutContentType
+    body?: undefined
 }
 
 export interface HttpRequestJSON extends HttpRequest {
@@ -50,7 +50,7 @@ export interface HttpRequestJSON extends HttpRequest {
 
 export interface HttpResponse {
     readonly statusCode: HttpStatusCode;
-    readonly headers: HttpHeadersWithContentType;
+    readonly headers: HttpHeadersWithContentType | HttpHeadersWithoutContentType;
     readonly body?: unknown;
 }
 
@@ -59,12 +59,12 @@ export interface SerializedHttpResponse extends Omit<HttpResponse, "body"> {
 }
 
 export interface HttpResponseEmpty extends HttpResponse {
-    headers: {
-        "content-type": AnyMimeType;
-    },
-    body?: undefined;
+    readonly body?: undefined
 }
 
+/**
+ * @ignore
+ */
 export enum HttpStatusCode {
     Continue = "100",
     SwitchingProtocols = "101",
@@ -127,10 +127,13 @@ export enum HttpStatusCode {
     NotExtended = "510",
 }
 
-export type AnyMimeType = Nominal<string | undefined, "AnyMimeType">
-export const AnyMimeType = "*/*" as AnyMimeType;
-
+/**
+ * @ignore
+ */
 export enum MimeType {
+    /**
+     * @ignore
+     */
     None = "",
     ApplicationJson = "application/json",
     ApplicationOctetStream = "application/octet-stream",

@@ -1,21 +1,21 @@
 import {
-    AnyMimeType,
     Controller,
     GetChain,
     HttpEvent,
     HttpRequest,
-    HttpStatusCode,
-    MimeType,
+    HttpRequestEmpty,
     normalizeEventHeaders,
     NornirRestRequestValidationError,
     PostChain,
-    router
+    router,
+    MimeType,
+    HttpStatusCode
 } from "../../dist/runtime/index.mjs";
 import {nornir, Nornir} from "@nornir/core";
 import {describe} from "@jest/globals";
 import {NornirRouteNotFoundError} from "../../dist/runtime/router.mjs";
 
-interface RouteGetInput extends HttpRequest {
+interface RouteGetInput extends HttpRequestEmpty {
 }
 
 
@@ -80,42 +80,41 @@ class TestController {
      * @summary Cool Route
      */
     @GetChain("/route")
-    public getRoute(chain: Nornir<RouteGetInput>) {
+    public getRoute(chain: Nornir<RouteGetInput>): Nornir<RouteGetInput, {statusCode: HttpStatusCode.Ok, body: string, headers: {"content-type": MimeType.TextPlain}}> {
         return chain
             .use(console.log)
             .use(() => ({
                 statusCode: HttpStatusCode.Ok,
                 body: `cool`,
                 headers: {
-                    // eslint-disable-next-line sonarjs/no-duplicate-string
-                    "content-type": MimeType.TextPlain,
+                    "content-type": MimeType.TextPlain
                 },
             }));
     }
 
     @GetChain("/route2")
-    public getEmptyRoute(chain: Nornir<RouteGetInput>) {
+    public getEmptyRoute(chain: Nornir<RouteGetInput>): Nornir<RouteGetInput, {statusCode: HttpStatusCode.Ok, headers: NonNullable<unknown>}> {
         return chain
-            .use(() => ({
-                statusCode: HttpStatusCode.Ok,
-                body: undefined,
-                headers: {
-                    "content-type": AnyMimeType
-                },
-            }));
+            .use(() => {
+                return {
+                    statusCode: HttpStatusCode.Ok,
+                    body: undefined,
+                    headers: {},
+                }
+            });
     }
 
     @PostChain("/route")
-    public postRoute(chain: Nornir<RoutePostInput>) {
+    public postRoute(chain: Nornir<RoutePostInput>): Nornir<RoutePostInput, {statusCode: HttpStatusCode.Ok, body: string, headers: {"content-type": MimeType.TextPlain}}> {
         return chain
             .use(input => input.headers["content-type"])
             .use(contentType => ({
                 statusCode: HttpStatusCode.Ok,
                 body: `Content-Type: ${contentType}`,
                 headers: {
-                    "content-type": MimeType.TextPlain,
+                    "content-type": MimeType.TextPlain
                 },
-            }));
+            } as const));
     }
 }
 
@@ -134,7 +133,7 @@ describe("REST tests", () => {
                 headers: {},
                 query: {}
             });
-            expect(response.statusCode).toEqual(HttpStatusCode.Ok);
+            expect(response.statusCode).toEqual("200");
             expect(response.body).toBe("cool");
             expect(response.headers["content-type"]).toBe("text/plain");
         })
@@ -154,7 +153,7 @@ describe("REST tests", () => {
                 }
             });
             expect(response).toEqual({
-                statusCode: HttpStatusCode.Ok,
+                statusCode: "200",
                 body: "Content-Type: application/json",
                 headers: {
                     "content-type": "text/plain"
@@ -170,10 +169,9 @@ describe("REST tests", () => {
                 query: {}
             });
             expect(response).toEqual({
-                statusCode: HttpStatusCode.Ok,
+                statusCode: "200",
                 body: undefined,
                 headers: {
-                    "content-type": AnyMimeType
                 }
             })
         })

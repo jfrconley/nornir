@@ -27,7 +27,7 @@ export abstract class ControllerProcessor {
 
     const { otherDecorators } = separateNornirDecorators(project, ts.getDecorators(transformedNode) || []);
 
-    return ts.factory.createClassDeclaration(
+    const recreatedNode = ts.factory.createClassDeclaration(
       [...transformedModifiers, ...otherDecorators],
       transformedNode.name,
       transformedNode.typeParameters,
@@ -37,15 +37,18 @@ export abstract class ControllerProcessor {
         ...routeMeta.getGeneratedMembers(),
       ],
     );
+
+    ts.setTextRange(recreatedNode, node);
+    // ts.setOriginalNode(recreatedNode, node);
+
+    return recreatedNode;
   }
 
   private static getArguments(project: Project, nornirDecorators: NornirDecoratorInfo[]): {
     basePath: string;
     apiId: string;
   } {
-    const basePathDecorator = nornirDecorators.find((decorator) =>
-      project.checker.getTypeAtLocation(decorator.declaration.parent).symbol.name === "Controller"
-    );
+    const basePathDecorator = nornirDecorators.find((decorator) => decorator.symbol.name === "Controller");
     if (basePathDecorator == undefined) throw new Error("Controller must have a controller decorator");
     if (!ts.isCallExpression(basePathDecorator.decorator.expression)) {
       throw new Error("Controller decorator is not a call expression");

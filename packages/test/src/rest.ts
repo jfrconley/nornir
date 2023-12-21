@@ -1,13 +1,11 @@
 import nornir from "@nornir/core";
 import {
-  AnyMimeType,
   ApiGatewayProxyV2,
   httpErrorHandler,
   httpEventParser,
   httpResponseSerializer,
   HttpStatusCode,
   mapErrorClass,
-  MimeType,
   normalizeEventHeaders,
   router,
   startLocalServer,
@@ -21,6 +19,7 @@ import type {
 } from "aws-lambda";
 import "./controller.js";
 import "./controller2.js";
+import "./docs-controller.js";
 import { getMockObject } from "@nrfcloud/ts-json-schema-transformer";
 
 export class TestError implements NodeJS.ErrnoException {
@@ -33,19 +32,19 @@ export class TestError implements NodeJS.ErrnoException {
 const frameworkChain = nornir<UnparsedHttpEvent>()
   .use(normalizeEventHeaders)
   .use(httpEventParser({
-    "text/csv": body => ({ cool: "stuff" }),
+    "text/csv": _body => ({ cool: "stuff" }),
   }))
   .use(router())
   .useResult(httpErrorHandler([
-    mapErrorClass(TestError, (err) => ({
-      statusCode: HttpStatusCode.InternalServerError,
-      headers: {
-        "content-type": AnyMimeType,
-      },
+    mapErrorClass(TestError, (_err) => ({
+      statusCode: HttpStatusCode.BadRequest,
+      headers: {},
     })),
   ]))
   .use(httpResponseSerializer({
-    [MimeType.ApplicationZip]: () => Buffer.from(""),
+    ["application/bzip"]: () => Buffer.from(""),
+    ["text/csv"]: (input) => Buffer.from(input as string),
+    ["text/html"]: (input) => Buffer.from(input as string),
   }));
 
 export const handler: APIGatewayProxyHandlerV2 = nornir<APIGatewayProxyEventV2>()

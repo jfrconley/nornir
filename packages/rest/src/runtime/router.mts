@@ -63,7 +63,6 @@ export class Router {
 
 
         return async (event, registry): Promise<HttpResponse> => {
-            // eslint-disable-next-line unicorn/no-array-method-this-argument, unicorn/no-array-callback-reference
             const {params, handlers: [handler]} = this.router.find(event.method, event.path);
             const request: HttpRequest = {
                 ...event,
