@@ -1,5 +1,11 @@
 # @nornir/rest
 
+## 2.0.0
+
+### Major Changes
+
+- 5bcacad: OpenAPI 3 spec generation
+
 ## 1.5.2
 
 ### Patch Changes
