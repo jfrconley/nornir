@@ -46,7 +46,7 @@ export abstract class ChainRouteProcessor {
     const path = ChainRouteProcessor.getPath(project, methodDecorator);
     const method = ChainRouteProcessor.getMethod(project, methodDecorator);
 
-    const routeIndex = controller.getRouteIndex({ method, path });
+    const routeIndex = controller.getRouteIndex(method, path);
 
     const { typeNode: inputTypeNode } = ChainRouteProcessor.resolveInputType(project, node, routeIndex);
 
@@ -63,9 +63,7 @@ export abstract class ChainRouteProcessor {
 
     const parsedDocComments = ChainRouteProcessor.parseJSDoc(project, node);
 
-    controller.registerRoute(node, {
-      method,
-      path,
+    controller.registerRoute(method, path, {
       input: inputTypeNode,
       inputSchema,
       outputSchema: outputSchema,

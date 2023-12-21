@@ -64,6 +64,7 @@ export class ControllerMeta {
 
   public static clearCache() {
     this.cache.clear();
+    this.routes.clear();
   }
 
   public static create(
@@ -190,18 +191,18 @@ export class ControllerMeta {
     return ts.factory.createExpressionStatement(callExpression);
   }
 
-  public getRouteIndex(info: RouteIndex) {
+  public getRouteIndex(method: string, path: string) {
     return {
-      method: info.method,
-      path: this.basePath + info.path.toLowerCase(),
+      method,
+      path: normalizeHttpPath(this.basePath + path.toLowerCase()),
     };
   }
 
-  public registerRoute(node: ts.Node, routeInfo: RouteInfo) {
+  public registerRoute(method: string, path: string, info: Omit<RouteInfo, "index">) {
     if (this.project.transformOnly) {
       return;
     }
-    const index = this.getRouteIndex(routeInfo);
+    const index = this.getRouteIndex(method, path);
     const methods = ControllerMeta.routes.get(index.path) || new Map<string, RouteInfo>();
     ControllerMeta.routes.set(index.path, methods);
     const route = methods.get(index.method);
@@ -210,19 +211,16 @@ export class ControllerMeta {
     }
 
     const modifiedRouteInfo = {
-      method: routeInfo.method,
-      path: this.basePath + routeInfo.path.toLowerCase(),
-      description: routeInfo.description,
-      // requestInfo: this.buildRequestInfo(index, routeInfo.input),
-      // responseInfo: this.buildResponseInfo(index, routeInfo.output),
-      outputSchema: routeInfo.outputSchema,
-      inputSchema: routeInfo.inputSchema,
-      filePath: routeInfo.filePath,
-      summary: routeInfo.summary,
-      deprecated: routeInfo.deprecated,
-      operationId: routeInfo.operationId,
-      tags: routeInfo.tags,
-      input: routeInfo.input,
+      index,
+      description: info.description,
+      outputSchema: info.outputSchema,
+      inputSchema: info.inputSchema,
+      filePath: info.filePath,
+      summary: info.summary,
+      deprecated: info.deprecated,
+      operationId: info.operationId,
+      tags: info.tags,
+      input: info.input,
     };
 
     try {
@@ -232,7 +230,7 @@ export class ControllerMeta {
         throw e;
       }
       console.error(e);
-      throw new TransformationError("Could not generate OpenAPI spec for route", modifiedRouteInfo);
+      throw new TransformationError("Could not generate OpenAPI spec for route", index);
     }
     methods.set(index.method, modifiedRouteInfo);
   }
@@ -249,15 +247,15 @@ export class ControllerMeta {
         version: "1.0.0",
       },
       paths: {
-        [route.path]: {
-          [route.method.toLowerCase()]: {
+        [route.index.path]: {
+          [route.index.method.toLowerCase()]: {
             deprecated: route.deprecated,
             tags: route.tags,
             operationId: route.operationId,
             summary: route.summary,
             description: route.description,
-            responses: this.generateOutputType(route, dereferencedOutputSchema),
-            requestBody: this.generateRequestBody(route, dereferencedInputSchema),
+            responses: this.generateOutputType(route.index, dereferencedOutputSchema),
+            requestBody: this.generateRequestBody(route.index, dereferencedInputSchema),
             parameters: [
               ...this.generateParametersForSchemaPath(dereferencedInputSchema, "/pathParams", "path"),
               ...this.generateParametersForSchemaPath(dereferencedInputSchema, "/query", "query"),
@@ -314,12 +312,12 @@ export class ControllerMeta {
     });
   }
 
-  private generateOutputType(routeInfo: RouteInfo, outputSchema: JSONSchema7): OpenAPIV3_1.ResponsesObject {
+  private generateOutputType(routeIndex: RouteIndex, outputSchema: JSONSchema7): OpenAPIV3_1.ResponsesObject {
     const responses: OpenAPIV3_1.ResponsesObject = {};
     const statusCodeDiscriminatedSchemas = resolveDiscriminantProperty(outputSchema, "/statusCode");
 
     if (statusCodeDiscriminatedSchemas == null) {
-      throw new TransformationError("Could not resolve status codes for some responses", routeInfo);
+      throw new TransformationError("Could not resolve status codes for some responses", routeIndex);
     }
 
     for (const [statusCode, schema] of Object.entries(statusCodeDiscriminatedSchemas)) {
@@ -327,7 +325,7 @@ export class ControllerMeta {
       const contentTypeDiscriminatedSchemas = resolveDiscriminantProperty(schema, "/headers/content-type");
       const bodySchema = getUnifiedPropertySchemas(schema, "/")["body"];
       if (contentTypeDiscriminatedSchemas == null && bodySchema != null) {
-        throw new TransformationError(`Could not resolve content types for "${statusCode}" responses`, routeInfo);
+        throw new TransformationError(`Could not resolve content types for "${statusCode}" responses`, routeIndex);
       }
 
       const content = contentTypeDiscriminatedSchemas == null ? undefined : Object.fromEntries(
@@ -400,13 +398,14 @@ export class ControllerMeta {
   }
 }
 
-function deparameterizePath(path: string) {
-  return path.replaceAll(/:[^/]+/g, ":param");
+function normalizeHttpPath(path: string) {
+  const doubleSlashRemoved = path.replace(/\/\//g, "/");
+  const endingSlashRemoved = doubleSlashRemoved.endsWith("/") ? doubleSlashRemoved.slice(0, -1) : doubleSlashRemoved;
+  return endingSlashRemoved.trim();
 }
 
 export interface RouteInfo {
-  method: string;
-  path: string;
+  index: RouteIndex;
   description?: string;
   summary?: string;
   input: ts.TypeNode;
@@ -418,4 +417,7 @@ export interface RouteInfo {
   operationId?: string;
 }
 
-export type RouteIndex = Pick<RouteInfo, "method" | "path">;
+export interface RouteIndex {
+  method: string;
+  path: string;
+}

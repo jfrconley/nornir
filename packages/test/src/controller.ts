@@ -125,6 +125,8 @@ interface RoutePostBodyInput {
    * @minLength 5
    */
   cool: string;
+
+  omitted: boolean;
 }
 
 /**
