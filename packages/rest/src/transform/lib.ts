@@ -1,3 +1,4 @@
+import debug from "debug";
 import ts from "typescript";
 import { StrictTransformationError } from "./error";
 import { Project } from "./project";
@@ -93,6 +94,8 @@ export function generateDescription(comments: ts.SymbolDisplayPart[]): string {
 export function strictError(project: Project, error: StrictTransformationError) {
   throw error;
 }
+
+export const log = debug("nornir/rest/transform");
 
 export const HttpStatusCodes = [
   "100",

@@ -229,7 +229,6 @@ export class ControllerMeta {
       if (e instanceof TransformationError) {
         throw e;
       }
-      console.error(e);
       throw new TransformationError("Could not generate OpenAPI spec for route", index);
     }
     methods.set(index.method, modifiedRouteInfo);

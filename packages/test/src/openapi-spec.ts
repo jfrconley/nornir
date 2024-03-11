@@ -1,8 +1,10 @@
-{
-  "openapi": "3.0.3",
+import { OpenAPIV3_1 } from "@nornir/rest";
+
+const Spec = {
+  "openapi": "3.1.0",
   "info": {
     "title": "Nornir API",
-    "version": "1.0.0"
+    "version": "1.0.0",
   },
   "paths": {
     "/docs": {
@@ -12,27 +14,25 @@
             "description": "",
             "headers": {
               "content-type": {
-                "name": "content-type",
-                "in": "header",
                 "required": true,
                 "deprecated": false,
                 "schema": {
                   "type": "string",
-                  "const": "text/html"
-                }
-              }
+                  "const": "text/html",
+                },
+              },
             },
             "content": {
               "text/html": {
                 "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
+                  "type": "string",
+                },
+              },
+            },
+          },
         },
-        "parameters": []
-      }
+        "parameters": [],
+      },
     },
     "/openapi.json": {
       "get": {
@@ -41,28 +41,26 @@
             "description": "",
             "headers": {
               "content-type": {
-                "name": "content-type",
-                "in": "header",
                 "required": true,
                 "deprecated": false,
                 "schema": {
                   "type": "string",
-                  "const": "application/json"
-                }
-              }
+                  "const": "application/json",
+                },
+              },
             },
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "additionalProperties": {}
-                }
-              }
-            }
-          }
+                  "additionalProperties": {},
+                },
+              },
+            },
+          },
         },
-        "parameters": []
-      }
+        "parameters": [],
+      },
     },
     "/root/basepath/route/{cool}": {
       "get": {
@@ -72,15 +70,13 @@
             "description": "This is a comment",
             "headers": {
               "content-type": {
-                "name": "content-type",
-                "in": "header",
                 "required": true,
                 "deprecated": false,
                 "schema": {
                   "type": "string",
-                  "const": "application/json"
-                }
-              }
+                  "const": "application/json",
+                },
+              },
             },
             "content": {
               "application/json": {
@@ -88,34 +84,32 @@
                   "type": "object",
                   "properties": {
                     "bleep": {
-                      "type": "string"
+                      "type": "string",
                     },
                     "bloop": {
-                      "type": "number"
-                    }
+                      "type": "number",
+                    },
                   },
                   "required": [
                     "bleep",
-                    "bloop"
+                    "bloop",
                   ],
-                  "additionalProperties": false
-                }
-              }
-            }
+                  "additionalProperties": false,
+                },
+              },
+            },
           },
           "201": {
             "description": "This is a comment",
             "headers": {
               "content-type": {
-                "name": "content-type",
-                "in": "header",
                 "required": true,
                 "deprecated": false,
                 "schema": {
                   "type": "string",
-                  "const": "application/json"
-                }
-              }
+                  "const": "application/json",
+                },
+              },
             },
             "content": {
               "application/json": {
@@ -123,39 +117,37 @@
                   "type": "object",
                   "properties": {
                     "bleep": {
-                      "type": "string"
+                      "type": "string",
                     },
                     "bloop": {
-                      "type": "number"
-                    }
+                      "type": "number",
+                    },
                   },
                   "required": [
                     "bleep",
-                    "bloop"
+                    "bloop",
                   ],
-                  "additionalProperties": false
-                }
-              }
-            }
+                  "additionalProperties": false,
+                },
+              },
+            },
           },
           "400": {
             "description": "This is a comment on RouteGetOutputError",
             "headers": {
               "content-type": {
-                "name": "content-type",
-                "in": "header",
                 "required": true,
                 "deprecated": false,
                 "schema": {
                   "type": "string",
-                  "const": "application/json"
-                }
-              }
+                  "const": "application/json",
+                },
+              },
             },
             "content": {
-              "application/json": {}
-            }
-          }
+              "application/json": {},
+            },
+          },
         },
         "parameters": [
           {
@@ -167,17 +159,17 @@
               "pattern": "^[a-z]+$",
               "allOf": [
                 {
-                  "$ref": "#/components/schemas/TestStringType"
-                }
-              ]
-            }
-          }
-        ]
+                  "$ref": "#/components/schemas/TestStringType",
+                },
+              ],
+            },
+          },
+        ],
       },
       "post": {
         "deprecated": true,
         "tags": [
-          "cool"
+          "cool",
         ],
         "operationId": "coolRoute",
         "summary": "Cool Route",
@@ -185,8 +177,8 @@
         "responses": {
           "200": {
             "description": "",
-            "headers": {}
-          }
+            "headers": {},
+          },
         },
         "requestBody": {
           "required": true,
@@ -195,18 +187,18 @@
               "schema": {
                 "description": "This is a CSV body",
                 "examples": [
-                  "cool,cool2"
+                  "cool,cool2",
                 ],
                 "allOf": [
                   {
-                    "$ref": "#/components/schemas/TestStringType"
-                  }
-                ]
-              }
+                    "$ref": "#/components/schemas/TestStringType",
+                  },
+                ],
+              },
             },
             "application/json": {
               "example": {
-                "cool": "stuff"
+                "cool": "stuff",
               },
               "schema": {
                 "type": "object",
@@ -214,24 +206,24 @@
                   "cool": {
                     "type": "string",
                     "description": "This is a cool property",
-                    "minLength": 5
-                  }
+                    "minLength": 5,
+                  },
                 },
                 "required": [
-                  "cool"
+                  "cool",
                 ],
                 "additionalProperties": false,
                 "description": "A cool json input",
                 "examples": [
                   {
-                    "cool": "stuff"
-                  }
-                ]
-              }
+                    "cool": "stuff",
+                  },
+                ],
+              },
             },
             "text/plain": {
               "example": {
-                "cool": "stuff"
+                "cool": "stuff",
               },
               "schema": {
                 "type": "object",
@@ -239,22 +231,22 @@
                   "cool": {
                     "type": "string",
                     "description": "This is a cool property",
-                    "minLength": 5
-                  }
+                    "minLength": 5,
+                  },
                 },
                 "required": [
-                  "cool"
+                  "cool",
                 ],
                 "additionalProperties": false,
                 "description": "A cool json input",
                 "examples": [
                   {
-                    "cool": "stuff"
-                  }
-                ]
-              }
-            }
-          }
+                    "cool": "stuff",
+                  },
+                ],
+              },
+            },
+          },
         },
         "parameters": [
           {
@@ -270,24 +262,24 @@
                   "deprecated": true,
                   "allOf": [
                     {
-                      "$ref": "#/components/schemas/TestStringType"
-                    }
-                  ]
+                      "$ref": "#/components/schemas/TestStringType",
+                    },
+                  ],
                 },
                 {
                   "type": "string",
                   "enum": [
                     "true",
-                    "false"
+                    "false",
                   ],
                   "description": "Very cool property that does a thing",
                   "examples": [
-                    "true"
+                    "true",
                   ],
-                  "pattern": "^[a-z]+$"
-                }
-              ]
-            }
+                  "pattern": "^[a-z]+$",
+                },
+              ],
+            },
           },
           {
             "name": "evenCooler",
@@ -297,8 +289,8 @@
             "deprecated": false,
             "schema": {
               "type": "number",
-              "description": "Even cooler property"
-            }
+              "description": "Even cooler property",
+            },
           },
           {
             "name": "test",
@@ -307,8 +299,8 @@
             "deprecated": false,
             "schema": {
               "type": "string",
-              "const": "boolean"
-            }
+              "const": "boolean",
+            },
           },
           {
             "name": "content-type",
@@ -319,18 +311,18 @@
               "anyOf": [
                 {
                   "type": "string",
-                  "const": "text/csv"
+                  "const": "text/csv",
                 },
                 {
                   "type": "string",
-                  "const": "application/json"
+                  "const": "application/json",
                 },
                 {
                   "type": "string",
-                  "const": "text/plain"
-                }
-              ]
-            }
+                  "const": "text/plain",
+                },
+              ],
+            },
           },
           {
             "name": "csv-header",
@@ -343,15 +335,15 @@
               "type": "string",
               "description": "This is a CSV header",
               "examples": [
-                "cool,cool2"
+                "cool,cool2",
               ],
               "pattern": "^[a-z]+,[a-z]+$",
-              "minLength": 5
-            }
-          }
-        ]
-      }
-    }
+              "minLength": 5,
+            },
+          },
+        ],
+      },
+    },
   },
   "components": {
     "schemas": {
@@ -360,12 +352,12 @@
         "additionalProperties": {
           "type": [
             "number",
-            "string"
-          ]
+            "string",
+          ],
         },
         "properties": {
-          "content-type": {}
-        }
+          "content-type": {},
+        },
       },
       "TestStringType": {
         "description": "Amazing string",
@@ -373,15 +365,16 @@
         "minLength": 5,
         "allOf": [
           {
-            "$ref": "#/components/schemas/Nominal<string,\"TestStringType\">"
-          }
-        ]
+            "$ref": "#/components/schemas/Nominal<string,\"TestStringType\">",
+          },
+        ],
       },
       "Nominal<string,\"TestStringType\">": {
         "type": [
-          "string"
+          "string",
         ],
-        "description": "Constructs a nominal type of type `T`. Useful to prevent any value of type `T` from being used or modified in places it shouldn't (think `id`s)."
+        "description":
+          "Constructs a nominal type of type `T`. Useful to prevent any value of type `T` from being used or modified in places it shouldn't (think `id`s).",
       },
       "RouteGetOutputSuccess": {
         "type": "object",
@@ -390,76 +383,76 @@
             "type": "string",
             "enum": [
               "200",
-              "201"
+              "201",
             ],
-            "description": "This is a property"
+            "description": "This is a property",
           },
           "headers": {
             "type": "object",
             "properties": {
               "content-type": {
                 "type": "string",
-                "const": "application/json"
-              }
+                "const": "application/json",
+              },
             },
             "required": [
-              "content-type"
+              "content-type",
             ],
-            "additionalProperties": false
+            "additionalProperties": false,
           },
           "body": {
             "type": "object",
             "properties": {
               "bleep": {
-                "type": "string"
+                "type": "string",
               },
               "bloop": {
-                "type": "number"
-              }
+                "type": "number",
+              },
             },
             "required": [
               "bleep",
-              "bloop"
+              "bloop",
             ],
-            "additionalProperties": false
-          }
+            "additionalProperties": false,
+          },
         },
         "required": [
           "body",
           "headers",
-          "statusCode"
+          "statusCode",
         ],
         "additionalProperties": false,
-        "description": "This is a comment"
+        "description": "This is a comment",
       },
       "RouteGetOutputError": {
         "type": "object",
         "properties": {
           "statusCode": {
             "type": "string",
-            "const": "400"
+            "const": "400",
           },
           "headers": {
             "type": "object",
             "properties": {
               "content-type": {
                 "type": "string",
-                "const": "application/json"
-              }
+                "const": "application/json",
+              },
             },
             "required": [
-              "content-type"
+              "content-type",
             ],
-            "additionalProperties": false
+            "additionalProperties": false,
           },
-          "body": {}
+          "body": {},
         },
         "required": [
           "headers",
-          "statusCode"
+          "statusCode",
         ],
         "additionalProperties": false,
-        "description": "This is a comment on RouteGetOutputError"
+        "description": "This is a comment on RouteGetOutputError",
       },
       "RoutePostInputJSONAlias": {
         "type": "object",
@@ -471,41 +464,41 @@
                 "properties": {
                   "content-type": {
                     "type": "string",
-                    "const": "application/json"
-                  }
+                    "const": "application/json",
+                  },
                 },
                 "required": [
-                  "content-type"
+                  "content-type",
                 ],
-                "additionalProperties": false
+                "additionalProperties": false,
               },
               {
                 "type": "object",
                 "properties": {
                   "content-type": {
                     "type": "string",
-                    "const": "text/plain"
-                  }
+                    "const": "text/plain",
+                  },
                 },
                 "required": [
-                  "content-type"
+                  "content-type",
                 ],
-                "additionalProperties": false
-              }
-            ]
+                "additionalProperties": false,
+              },
+            ],
           },
           "query": {
             "type": "object",
             "properties": {
               "test": {
                 "type": "string",
-                "const": "boolean"
-              }
+                "const": "boolean",
+              },
             },
             "required": [
-              "test"
+              "test",
             ],
-            "additionalProperties": false
+            "additionalProperties": false,
           },
           "body": {
             "type": "object",
@@ -513,19 +506,19 @@
               "cool": {
                 "type": "string",
                 "description": "This is a cool property",
-                "minLength": 5
-              }
+                "minLength": 5,
+              },
             },
             "required": [
-              "cool"
+              "cool",
             ],
             "additionalProperties": false,
             "description": "A cool json input",
             "examples": [
               {
-                "cool": "stuff"
-              }
-            ]
+                "cool": "stuff",
+              },
+            ],
           },
           "pathParams": {
             "type": "object",
@@ -534,34 +527,35 @@
                 "type": "string",
                 "enum": [
                   "true",
-                  "false"
+                  "false",
                 ],
                 "description": "Very cool property that does a thing",
                 "examples": [
-                  "true"
+                  "true",
                 ],
-                "pattern": "^[a-z]+$"
+                "pattern": "^[a-z]+$",
               },
               "evenCooler": {
                 "type": "number",
-                "description": "Even cooler property"
-              }
+                "description": "Even cooler property",
+              },
             },
             "required": [
-              "reallyCool"
+              "reallyCool",
             ],
-            "additionalProperties": false
-          }
+            "additionalProperties": false,
+          },
         },
         "required": [
           "body",
           "headers",
           "pathParams",
-          "query"
+          "query",
         ],
-        "additionalProperties": false
-      }
+        "additionalProperties": false,
+      },
     },
-    "parameters": {}
-  }
-}
+    "parameters": {},
+  },
+} as const satisfies OpenAPIV3_1.Document;
+export default Spec;

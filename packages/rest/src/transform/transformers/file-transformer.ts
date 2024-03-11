@@ -2,6 +2,7 @@ import { rmSync } from "fs";
 import ts from "typescript";
 import { ControllerMeta, OpenApiSpecHolder } from "../controller-meta";
 import { TransformationError } from "../error";
+import { log } from "../lib";
 import { Project } from "../project.js";
 import { NodeTransformer } from "./node-transformer";
 
@@ -77,7 +78,7 @@ export abstract class FileTransformer {
     } catch (error) {
       if (!(error instanceof Error)) throw error;
       if (error instanceof TransformationError) throw error;
-      console.error(error);
+      log(error);
 
       const file: ts.SourceFile = node.getSourceFile();
       const {

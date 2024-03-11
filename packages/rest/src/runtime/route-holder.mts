@@ -2,6 +2,7 @@ import {HttpMethod, HttpRequest, HttpResponse, HttpStatusCode, MimeType} from '.
 import {Nornir} from '@nornir/core';
 import {NornirRestRequestError} from './error.mjs';
 import {type ErrorObject, type ValidateFunction} from 'ajv'
+import {debugLog} from "./utils.mjs";
 
 export type RouteBuilder<Input extends HttpRequest = HttpRequest, Output extends HttpResponse = HttpResponse> = (chain: Nornir<Input>) => Nornir<Input, Output>
 
@@ -26,7 +27,6 @@ export class RouteHolder {
                 chain.use(request => {
                     const result = validator(request)
                     if (!result) {
-                        console.log(validator.errors)
                         throw new NornirRestRequestValidationError(request, validator.errors || [])
                     }
                     return request as Input;
@@ -46,6 +46,7 @@ export class NornirRestRequestValidationError<Request extends HttpRequest> exten
         public readonly errors: ErrorObject[]
     ) {
         super(request, `Request validation failed`)
+        debugLog(`Request validation failed`, {request, errors})
     }
 
     toHttpResponse(): HttpResponse {

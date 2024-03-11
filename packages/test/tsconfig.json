@@ -13,7 +13,9 @@
     "outDir": "dist",
     "rootDir": "src",
     "composite": false,
-    "incremental": false
+    "incremental": false,
+    "esModuleInterop": true,
+    "resolveJsonModule": true
   },
   "include": [
     "src/**/*",

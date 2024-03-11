@@ -3,6 +3,7 @@ import type {APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2} from "aw
 import {AttachmentRegistry, Nornir} from "@nornir/core";
 import {createServer} from 'node:http'
 import {promisify} from "node:util"
+import {debugLog} from "./utils.mjs";
 
 
 export abstract class ApiGatewayProxyV2 {
@@ -63,4 +64,5 @@ export async function startLocalServer(chain: Nornir<UnparsedHttpEvent, Serializ
         })
     })
     await (promisify(server.listen.bind(server)) as (port?: number) => void )(port)
+    debugLog(`Local server started on port ${port}`)
 }
