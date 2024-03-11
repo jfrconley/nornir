@@ -1,5 +1,13 @@
 # @nornir/rest
 
+## 2.1.1
+
+### Patch Changes
+
+- 7f87a1c: update schema transformer
+- Updated dependencies [7f87a1c]
+  - @nornir/core@1.3.1
+
 ## 2.1.0
 
 ### Minor Changes
