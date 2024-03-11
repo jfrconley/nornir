@@ -1,5 +1,11 @@
 # @nornir/rest
 
+## 2.1.0
+
+### Minor Changes
+
+- 357b9ac: Added new OpenAPI based router that doesn't need codegen
+
 ## 2.0.0
 
 ### Major Changes
