@@ -1,4 +1,4 @@
-import {HttpRequest, HttpResponse} from './http-event.mjs';
+import {HttpRequest, HttpResponse, HttpStatusCode, MimeType} from './http-event.mjs';
 import {AttachmentRegistry, Result} from "@nornir/core";
 
 /**
@@ -67,5 +67,23 @@ export function httpErrorHandler(errorMappings?: ErrorMapping[]): (input: Result
             }
         }
         return input.unwrap();
+    }
+}
+
+export class NornirRouteNotFoundError extends NornirRestRequestError<HttpRequest> {
+    constructor(
+        request: HttpRequest,
+    ) {
+        super(request, `Route not found`)
+    }
+
+    toHttpResponse(): HttpResponse {
+        return {
+            statusCode: HttpStatusCode.NotFound,
+            body: "Not Found",
+            headers: {
+                "content-type": MimeType.TextPlain
+            },
+        }
     }
 }

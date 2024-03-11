@@ -24,6 +24,10 @@ export {httpResponseSerializer, HttpBodySerializer, HttpBodySerializerMap} from 
 export {normalizeEventHeaders, normalizeHeaders, getContentType} from "./utils.mjs"
 export {Router} from "./router.mjs"
 
+import {OpenAPIRouter} from "./openapi/openapi-router.mjs"
+export {OpenAPIRouter} from "./openapi/openapi-router.mjs"
+export {OpenAPIV3_1} from "./openapi/spec.mjs"
+
 export const router = Router.build
 
 export function restChain() {
@@ -36,3 +40,12 @@ export function restChain() {
 }
 
 export default restChain;
+
+export function openAPIChain<T>(router: OpenAPIRouter<T>) {
+    return nornir<UnparsedHttpEvent>()
+        .use(normalizeEventHeaders)
+        .use(httpEventParser())
+        .use(router.build())
+        .useResult(httpErrorHandler())
+        .use(httpResponseSerializer())
+}

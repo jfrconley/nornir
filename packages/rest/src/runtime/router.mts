@@ -1,16 +1,8 @@
 import Trouter from 'trouter';
 import {RouteBuilder, RouteHolder} from './route-holder.mjs';
-import {
-    HttpEvent,
-    HttpHeadersWithContentType,
-    HttpMethod,
-    HttpRequest,
-    HttpResponse,
-    HttpStatusCode,
-    MimeType
-} from './http-event.mjs';
+import {HttpEvent, HttpHeadersWithContentType, HttpMethod, HttpRequest, HttpResponse} from './http-event.mjs';
 import {AttachmentRegistry, Nornir, Result} from '@nornir/core';
-import {NornirRestRequestError} from "./error.mjs";
+import {NornirRouteNotFoundError} from "./error.mjs";
 
 type RouteHandler = (request: Result<HttpRequest>, registry: AttachmentRegistry) => Promise<Result<HttpResponse>>;
 
@@ -77,24 +69,6 @@ export class Router {
             }
             const response = await handler(Result.ok(request), registry);
             return response.unwrap();
-        }
-    }
-}
-
-export class NornirRouteNotFoundError extends NornirRestRequestError<HttpRequest> {
-    constructor(
-        request: HttpRequest,
-    ) {
-        super(request, `Route not found`)
-    }
-
-    toHttpResponse(): HttpResponse {
-        return {
-            statusCode: HttpStatusCode.NotFound,
-            body: "Not Found",
-            headers: {
-                "content-type": MimeType.TextPlain
-            },
         }
     }
 }

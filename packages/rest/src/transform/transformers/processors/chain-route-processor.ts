@@ -1,5 +1,5 @@
 import { schemaToValidator } from "@nrfcloud/ts-json-schema-transformer/utils";
-import tsp from "ts-morph";
+import { ts as SchemaGeneratorTS } from "ts-json-schema-generator";
 import ts from "typescript";
 import { ControllerMeta, RouteIndex } from "../../controller-meta";
 import { TransformationError } from "../../error";
@@ -111,8 +111,8 @@ export abstract class ChainRouteProcessor {
     outputTypeNode: ts.TypeNode,
   ) {
     try {
-      const inputSchema = project.schemaGenerator.createSchemaFromNodes([inputTypeNode]);
-      const outputSchema = project.schemaGenerator.createSchemaFromNodes([outputTypeNode]);
+      const inputSchema = project.schemaGenerator.createSchemaFromNodes([inputTypeNode as SchemaGeneratorTS.Node]);
+      const outputSchema = project.schemaGenerator.createSchemaFromNodes([outputTypeNode as SchemaGeneratorTS.Node]);
       return {
         inputSchema,
         outputSchema,

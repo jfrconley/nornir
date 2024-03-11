@@ -3,9 +3,9 @@
   "compilerOptions": {
     "baseUrl": "./src",
     "plugins": [
-      {
-        "transform": "@nrfcloud/ts-json-schema-transformer/dist/transform"
-      }
+      //      {
+      //        "transform": "@nrfcloud/ts-json-schema-transformer/dist/transform"
+      //      }
     ],
     "tsBuildInfoFile": "dist/.tsbuildinfo",
     "outDir": "dist",
