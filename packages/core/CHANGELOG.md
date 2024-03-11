@@ -1,5 +1,11 @@
 # @nornir/core
 
+## 1.3.1
+
+### Patch Changes
+
+- 7f87a1c: update schema transformer
+
 ## 1.3.0
 
 ### Minor Changes
