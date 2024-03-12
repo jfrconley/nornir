@@ -17,9 +17,12 @@ class NornirContext {
     this.chain.push(handler);
   }
 
-  public build() {
+  public build(baseRegistry?: AttachmentRegistry) {
     return async (...args: unknown[]) => {
       const registry = new AttachmentRegistry();
+      if (baseRegistry) {
+        registry.merge(baseRegistry);
+      }
       let input = Result.ok(args[0]);
       if (!registry.has(InitialArgumentsKey)) {
         registry.put(InitialArgumentsKey, args);
@@ -177,8 +180,8 @@ export class Nornir<Input, StepInput = Input> {
   /**
    * Build the chain into a function that takes the chain input and produces the chain output.
    */
-  public build() {
-    return this.context.build() as (input: Input) => Promise<StepInput>;
+  public build(baseRegistry?: AttachmentRegistry) {
+    return this.context.build(baseRegistry) as (input: Input) => Promise<StepInput>;
   }
 
   public buildWithContext() {

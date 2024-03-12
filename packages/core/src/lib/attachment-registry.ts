@@ -5,8 +5,23 @@ export interface AttachmentKey<T> {
   readonly marker: T;
 }
 
+interface ConstantRegistryItem<T = unknown> {
+  type: "constant";
+  value: T;
+}
+
+export type RegistryFactory<T> = (registry: AttachmentRegistry) => T;
+
+interface FactoryRegistryItem<T = unknown> {
+  type: "factory";
+  factory: RegistryFactory<T>;
+  value?: T;
+}
+
+type RegistryItem<T = unknown> = ConstantRegistryItem<T> | FactoryRegistryItem<T>;
+
 export class AttachmentRegistry {
-  private attachments = new Map<symbol, unknown>();
+  private attachments = new Map<symbol, RegistryItem>();
 
   public static createKey<T>(): AttachmentKey<T> {
     return {
@@ -15,8 +30,30 @@ export class AttachmentRegistry {
     };
   }
 
+  public register<T>(value: T) {
+    const key = AttachmentRegistry.createKey<T>();
+    this.put(key, value);
+    return key;
+  }
+
+  public registerFactory<T>(factory: RegistryFactory<T>) {
+    const key = AttachmentRegistry.createKey<T>();
+    this.putFactory(key, factory);
+    return key;
+  }
+
   public put<T>(key: AttachmentKey<T>, value: T): void {
-    this.attachments.set(key.id, value);
+    this.attachments.set(key.id, {
+      type: "constant",
+      value,
+    });
+  }
+
+  public putFactory<T>(key: AttachmentKey<T>, factory: RegistryFactory<T>): void {
+    this.attachments.set(key.id, {
+      type: "factory",
+      factory,
+    });
   }
 
   public delete<T>(key: AttachmentKey<T>): void {
@@ -24,14 +61,27 @@ export class AttachmentRegistry {
   }
 
   public get<T>(key: AttachmentKey<T>): T | null {
-    return this.attachments.get(key.id) as T;
+    if (this.has(key)) {
+      return this.resolveItem(this.attachments.get(key.id) as RegistryItem<T>);
+    }
+    return null;
+  }
+
+  private resolveItem<T>(item: RegistryItem<T>): T {
+    if (item.type === "constant") {
+      return item.value;
+    }
+    if (item.value === undefined) {
+      item.value = item.factory(this);
+    }
+    return item.value;
   }
 
   public getAssert<T>(key: AttachmentKey<T>): T {
     if (!this.has(key)) {
       throw new NornirMissingAttachmentException();
     }
-    return this.attachments.get(key.id) as T;
+    return this.resolveItem(this.attachments.get(key.id)! as RegistryItem<T>);
   }
 
   public has<T>(key: AttachmentKey<T>): boolean {
@@ -56,5 +106,13 @@ export class AttachmentRegistry {
       }
     }
     return false;
+  }
+
+  public merge(...registries: AttachmentRegistry[]) {
+    for (const registry of registries) {
+      for (const [key, value] of registry.attachments) {
+        this.attachments.set(key, value);
+      }
+    }
   }
 }
