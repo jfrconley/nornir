@@ -1,5 +1,12 @@
 # @nornir/rest
 
+## 2.1.2
+
+### Patch Changes
+
+- Updated dependencies [d189bd4]
+  - @nornir/core@1.4.0
+
 ## 2.1.1
 
 ### Patch Changes

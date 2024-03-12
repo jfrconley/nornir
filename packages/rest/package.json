@@ -1,7 +1,7 @@
 {
   "name": "@nornir/rest",
   "description": "A nornir library",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "bin": {
     "nornir-oas": "./dist/cli/cli.js"
   },
