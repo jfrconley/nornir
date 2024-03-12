@@ -1,29 +1,53 @@
 import { describe, expect, jest } from "@jest/globals";
-import { nornir, Result } from "../../dist/index.js";
+import { AttachmentRegistry, nornir, Result } from "../../dist/index.js";
 
 describe("Nornir Tests", () => {
   describe("use()", () => {
     it("Should add basic middleware", async () => {
-      const middlewareMock = jest.fn((input: { test: string; other: true }) => input.other);
-      const chain: (input: { test: string; other: true }) => Promise<boolean> = nornir<{ test: string; other: true }>()
+      const middlewareMock = jest.fn((input: {
+        test: string;
+        other: true;
+      }) => input.other);
+      const chain: (input: {
+        test: string;
+        other: true;
+      }) => Promise<boolean> = nornir<{
+        test: string;
+        other: true;
+      }>()
         .use(middlewareMock)
         .build();
 
-      await expect(chain({ test: "test", other: true })).resolves.toBe(true);
+      await expect(chain({
+        test: "test",
+        other: true,
+      })).resolves.toBe(true);
 
       expect(middlewareMock).toHaveBeenCalledTimes(1);
-      expect(middlewareMock).toHaveBeenCalledWith({ test: "test", other: true }, expect.anything());
+      expect(middlewareMock).toHaveBeenCalledWith({
+        test: "test",
+        other: true,
+      }, expect.anything());
     });
 
     it("Should throw when middleware throws", async () => {
       const middlewareMock = jest.fn(() => {
         throw new Error("boom");
       });
-      const chain: (input: { test: string; other: true }) => Promise<boolean> = nornir<{ test: string; other: true }>()
+      const chain: (input: {
+        test: string;
+        other: true;
+      }) => Promise<boolean> = nornir<{
+        test: string;
+        other: true;
+      }>()
         .use(middlewareMock)
         .build();
 
-      await expect(chain({ test: "test", other: true })).rejects.toThrow("boom");
+      await expect(chain({
+        test: "test",
+        other: true,
+      })).rejects.toThrow("boom");
 
       expect(middlewareMock).toHaveBeenCalledTimes(1);
     });
@@ -31,32 +55,129 @@ describe("Nornir Tests", () => {
 
   describe("useResult()", () => {
     it("Should add basic middleware", async () => {
-      const middlewareMock = jest.fn((input: Result<{ test: string; other: true }>) => input.unwrap().other);
-      const chain: (input: { test: string; other: true }) => Promise<boolean> = nornir<{ test: string; other: true }>()
+      const middlewareMock = jest.fn((
+        input: Result<{
+          test: string;
+          other: true;
+        }>,
+      ) => input.unwrap().other);
+      const chain: (input: {
+        test: string;
+        other: true;
+      }) => Promise<boolean> = nornir<{
+        test: string;
+        other: true;
+      }>()
         .useResult(middlewareMock)
         .build();
 
-      await expect(chain({ test: "test", other: true })).resolves.toBe(true);
+      await expect(chain({
+        test: "test",
+        other: true,
+      })).resolves.toBe(true);
 
       expect(middlewareMock).toHaveBeenCalledTimes(1);
-      expect(middlewareMock).toHaveBeenCalledWith(Result.ok({ test: "test", other: true }), expect.anything());
+      expect(middlewareMock).toHaveBeenCalledWith(
+        Result.ok({
+          test: "test",
+          other: true,
+        }),
+        expect.anything(),
+      );
     });
 
     it("Should handle previous error result", async () => {
-      const middlewareMock = jest.fn((result: Result<{ test: string; other: true }>) =>
+      const middlewareMock = jest.fn((
+        result: Result<{
+          test: string;
+          other: true;
+        }>,
+      ) =>
         result
           .chain(() => Result.ok(false), () => Result.ok(true)).unwrap()
       );
-      const chain: (input: { test: string; other: true }) => Promise<boolean> = nornir<{ test: string; other: true }>()
+      const chain: (input: {
+        test: string;
+        other: true;
+      }) => Promise<boolean> = nornir<{
+        test: string;
+        other: true;
+      }>()
         .use(() => {
           throw new Error("boom");
         })
         .useResult(middlewareMock)
         .build();
 
-      await expect(chain({ test: "test", other: true })).resolves.toBe(true);
+      await expect(chain({
+        test: "test",
+        other: true,
+      })).resolves.toBe(true);
       expect(middlewareMock).toHaveBeenCalledTimes(1);
       expect(middlewareMock).toHaveBeenCalledWith(Result.err(new Error("boom")), expect.anything());
+    });
+  });
+
+  describe("build() with base registry", () => {
+    it("Should build a chain a registry including existing registry keys", async () => {
+      const registry = new AttachmentRegistry();
+      const factory = jest.fn(() => "other");
+      const key = registry.registerFactory(factory);
+
+      const middlewareMock = jest.fn((input: {
+        test: string;
+        other: true;
+      }, registry: AttachmentRegistry) => {
+        return registry.get(key);
+      });
+      const chain = nornir<{
+        test: string;
+        other: true;
+      }>()
+        .use(middlewareMock)
+        .build(registry);
+
+      await expect(chain({
+        test: "test",
+        other: true,
+      })).resolves.toBe("other");
+
+      expect(factory).toHaveBeenCalledTimes(1);
+      expect(middlewareMock).toHaveBeenCalledTimes(1);
+      expect(middlewareMock).toHaveBeenCalledWith({
+        test: "test",
+        other: true,
+      }, expect.anything());
+    });
+
+    it("Base registry should not be modified", async () => {
+      const registry = new AttachmentRegistry();
+      const factory = jest.fn(() => "other");
+      const key = registry.registerFactory(factory);
+      const modKey = AttachmentRegistry.createKey<string>();
+
+      const middlewareMock = jest.fn((input: {
+        test: string;
+        other: true;
+      }, middlewareRegistry: AttachmentRegistry) => {
+        middlewareRegistry.put(modKey, "other");
+        return middlewareRegistry.get(key);
+      });
+      const chain = nornir<{
+        test: string;
+        other: true;
+      }>()
+        .use(middlewareMock)
+        .build(registry);
+
+      await chain({
+        test: "test",
+        other: true,
+      });
+
+      expect(factory).toHaveBeenCalledTimes(1);
+      expect(registry.get(key)).toBe("other");
+      expect(registry.get(modKey)).toBeNull();
     });
   });
 
@@ -64,7 +185,13 @@ describe("Nornir Tests", () => {
     it("Should compose chain", async () => {
       const nestedMiddlewareMock = jest.fn((input: string) => input.length);
       const middlewareMock = jest.fn((input: number) => input === 4);
-      const chain: (input: { test: string; other: true }) => Promise<boolean> = nornir<{ test: string; other: true }>()
+      const chain: (input: {
+        test: string;
+        other: true;
+      }) => Promise<boolean> = nornir<{
+        test: string;
+        other: true;
+      }>()
         .use(input => input.test)
         .useChain(
           nornir<string>()
@@ -73,7 +200,10 @@ describe("Nornir Tests", () => {
         .use(middlewareMock)
         .build();
 
-      await expect(chain({ test: "test", other: true })).resolves.toBe(true);
+      await expect(chain({
+        test: "test",
+        other: true,
+      })).resolves.toBe(true);
       expect(nestedMiddlewareMock).toHaveBeenCalledTimes(1);
       expect(nestedMiddlewareMock).toHaveBeenCalledWith("test", expect.anything());
       expect(middlewareMock).toHaveBeenCalledTimes(1);
@@ -83,28 +213,54 @@ describe("Nornir Tests", () => {
 
   describe("split()", () => {
     it("Should split items", async () => {
-      const splitMiddlewareMock = jest.fn((input: { test: string; other: true }) => input.test);
+      const splitMiddlewareMock = jest.fn((input: {
+        test: string;
+        other: true;
+      }) => input.test);
       const middlewareMock = jest.fn((items: Result<string, Error>[]) => items.map(item => item.unwrap()));
-      const chain: (input: { test: string; other: true }[]) => Promise<string[]> = nornir<
-        { test: string; other: true }[]
+      const chain: (input: {
+        test: string;
+        other: true;
+      }[]) => Promise<string[]> = nornir<
+        {
+          test: string;
+          other: true;
+        }[]
       >()
         .split(nested => nested.use(splitMiddlewareMock))
         .use(middlewareMock)
         .build();
 
-      await expect(chain([{ test: "test", other: true }, { test: "test2", other: true }])).resolves.toEqual([
+      await expect(chain([{
+        test: "test",
+        other: true,
+      }, {
+        test: "test2",
+        other: true,
+      }])).resolves.toEqual([
         "test",
         "test2",
       ]);
       expect(splitMiddlewareMock).toHaveBeenCalledTimes(2);
-      expect(splitMiddlewareMock).toHaveBeenCalledWith({ test: "test", other: true }, expect.anything());
-      expect(splitMiddlewareMock).toHaveBeenCalledWith({ test: "test2", other: true }, expect.anything());
+      expect(splitMiddlewareMock).toHaveBeenCalledWith({
+        test: "test",
+        other: true,
+      }, expect.anything());
+      expect(splitMiddlewareMock).toHaveBeenCalledWith({
+        test: "test2",
+        other: true,
+      }, expect.anything());
       expect(middlewareMock).toHaveBeenCalledTimes(1);
       expect(middlewareMock).toHaveBeenCalledWith([Result.ok("test"), Result.ok("test2")], expect.anything());
     });
 
     it("Should handle errors", async () => {
-      const splitMiddlewareMock = jest.fn<(input: { test: string; other: true }) => string>();
+      const splitMiddlewareMock = jest.fn<
+        (input: {
+          test: string;
+          other: true;
+        }) => string
+      >();
       splitMiddlewareMock
         .mockImplementationOnce(input => input.test)
         .mockRejectedValueOnce(new Error("boom") as never);
@@ -112,20 +268,38 @@ describe("Nornir Tests", () => {
       const middlewareMock = jest.fn((items: Result<string, Error>[]) =>
         items.map(item => item.isOk ? item.unwrap() : item.error.message)
       );
-      const chain: (input: { test: string; other: true }[]) => Promise<string[]> = nornir<
-        { test: string; other: true }[]
+      const chain: (input: {
+        test: string;
+        other: true;
+      }[]) => Promise<string[]> = nornir<
+        {
+          test: string;
+          other: true;
+        }[]
       >()
         .split(nested => nested.use(splitMiddlewareMock))
         .use(middlewareMock)
         .build();
 
-      await expect(chain([{ test: "test", other: true }, { test: "test2", other: true }])).resolves.toEqual([
+      await expect(chain([{
+        test: "test",
+        other: true,
+      }, {
+        test: "test2",
+        other: true,
+      }])).resolves.toEqual([
         "test",
         "boom",
       ]);
       expect(splitMiddlewareMock).toHaveBeenCalledTimes(2);
-      expect(splitMiddlewareMock).toHaveBeenCalledWith({ test: "test", other: true }, expect.anything());
-      expect(splitMiddlewareMock).toHaveBeenCalledWith({ test: "test2", other: true }, expect.anything());
+      expect(splitMiddlewareMock).toHaveBeenCalledWith({
+        test: "test",
+        other: true,
+      }, expect.anything());
+      expect(splitMiddlewareMock).toHaveBeenCalledWith({
+        test: "test2",
+        other: true,
+      }, expect.anything());
       expect(middlewareMock).toHaveBeenCalledTimes(1);
       expect(middlewareMock).toHaveBeenCalledWith(
         [Result.ok("test"), Result.err(new Error("boom"))],
@@ -158,9 +332,15 @@ describe("Nornir Tests", () => {
         })
         .build();
 
-      await expect(chain({ type: "test1", value: "test" })).resolves.toBe("test");
+      await expect(chain({
+        type: "test1",
+        value: "test",
+      })).resolves.toBe("test");
       expect(test1MiddlewareMock).toHaveBeenCalledTimes(1);
-      expect(test1MiddlewareMock).toHaveBeenCalledWith({ type: "test1", value: "test" }, expect.anything());
+      expect(test1MiddlewareMock).toHaveBeenCalledWith({
+        type: "test1",
+        value: "test",
+      }, expect.anything());
       expect(test2MiddlewareMock).not.toHaveBeenCalled();
     });
   });
