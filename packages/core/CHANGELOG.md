@@ -1,5 +1,11 @@
 # @nornir/core
 
+## 1.4.0
+
+### Minor Changes
+
+- d189bd4: Added support for registry factories and merging
+
 ## 1.3.1
 
 ### Patch Changes
