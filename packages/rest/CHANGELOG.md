@@ -1,5 +1,11 @@
 # @nornir/rest
 
+## 2.1.3
+
+### Patch Changes
+
+- 9ad9ce7: Update handler type of implement route to be less persnickety
+
 ## 2.1.2
 
 ### Patch Changes
