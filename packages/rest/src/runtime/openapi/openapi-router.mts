@@ -24,6 +24,7 @@ type GenericRouteBuilder = (chain: Nornir<OpenAPIHttpRequest>) => Nornir<OpenAPI
 
 type RouteKey = `${HttpMethod}:${string}`
 
+
 export class OpenAPIRouter<
     const InputSpec,
     const Spec extends OpenAPIV3_1.Document = DereferenceSpec<InputSpec>
@@ -181,8 +182,9 @@ export class OpenAPIRouter<
         const Method extends UnionIntersection<keyof NonNullable<NonNullable<Spec["paths"]>[Path]>, OpenAPIHttpMethods>,
         Operation extends OpenAPIV3_1.OperationObject = OperationFromDocument<Spec, Path, Method>,
         InputType = RequestTypeFromOperation<Operation>,
-        ResponseType = ResponseTypeFromOperation<Operation>
-    >(path: Path, method: Method, handler: (chain: Nornir<NoInfer<InputType>>) => Nornir<NoInfer<InputType>, NoInfer<ResponseType>>) {
+        ResponseType = ResponseTypeFromOperation<Operation>,
+        Handler extends (chain: Nornir<NoInfer<InputType>>) => Nornir<NoInfer<InputType>, NoInfer<ResponseType>> = (chain: Nornir<NoInfer<InputType>>) => Nornir<NoInfer<InputType>, NoInfer<ResponseType>>
+    >(path: Path, method: Method, handler: NoInfer<Handler>) {
         const route = {
             path: path as string,
             method: method.toUpperCase() as HttpMethod,
@@ -284,4 +286,3 @@ export class OpenAPIRouter<
         }
     }
 }
-
