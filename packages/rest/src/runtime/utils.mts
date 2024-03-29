@@ -73,14 +73,6 @@ export type DeeplyResolveAllRefsInJsonObject<
         [K in keyof Object]: DeeplyResolveAllRefsInJsonObject<Root, Object[K], ResolverCache>
     } : Object
 
-
-const root = {
-    "a" : { "$ref": "#/b" },
-    "b" : { "$ref": "#/a" }
-} as const;
-
-const test = simpleSpecResolve(root);
-
 export function simpleSpecResolve<
     const Root,
 >(root: Root): DeeplyResolveAllRefsInJsonObject<NoInfer<Root>> {
@@ -101,7 +93,7 @@ function simpleSpecResolveInternal<
         return simpleSpecResolveInternal(root, result, resolveRefInJsonObject(root, current["$ref"]), resolverCache.concat(current["$ref"]));
     }
     if (Array.isArray(current)) {
-        return current.map((value) => simpleSpecResolveInternal(root, result, value, resolverCache));
+        return current.map((value) => simpleSpecResolveInternal(root, {}, value, resolverCache));
     }
     for (const key in current) {
         result[key] = simpleSpecResolveInternal(root, result[key], current[key], resolverCache);

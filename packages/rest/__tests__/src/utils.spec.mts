@@ -32,6 +32,23 @@ describe("utils", () => {
             expect(result).toEqual({name: 'test'});
         });
 
+        // Test case: When the current object is an array and each component does not have a $ref property
+        test("resolves simple array items", () => {
+            // Arrange
+            const items = [{
+                name: "item1"
+            }, {
+                name: "item2"
+            }] as const;
+            const root = { items } as const;
+            // Act
+            const result = simpleSpecResolve(root);
+            // Assert
+            expect(result).toEqual({
+                items: [{ name: "item1" }, { name: "item2" }],
+            });
+        })
+
         // Test case: When the current object is an array
         test('resolves array items', () => {
             // Arrange
