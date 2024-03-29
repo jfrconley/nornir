@@ -17,7 +17,7 @@ export {
     UnparsedHttpEvent, SerializedHttpResponse
 } from './http-event.mjs';
 export {RouteHolder, NornirRestRequestValidationError} from './route-holder.mjs'
-export {NornirRestRequestError, NornirRestError, httpErrorHandler, mapError, mapErrorClass} from './error.mjs'
+export {NornirRestRequestError, NornirRestError, httpErrorHandler, mapError, mapErrorClass,NornirRouteNotFoundError} from './error.mjs'
 export {ApiGatewayProxyV2, startLocalServer} from "./converters.mjs"
 export {httpEventParser, HttpBodyParser, HttpBodyParserMap, HttpQueryStringParser, NornirRestParseError} from "./parse.mjs"
 export {httpResponseSerializer, HttpBodySerializer, HttpBodySerializerMap} from "./serialize.mjs"
