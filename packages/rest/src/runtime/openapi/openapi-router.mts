@@ -245,7 +245,7 @@ export class OpenAPIRouter<
         const trouterInstance = new Trouter<
             (input: Result<OpenAPIHttpRequest>, registry: AttachmentRegistry) => Promise<Result<OpenAPIHttpResponse>>
         >();
-        this.validateRoutes()
+        this.validateRoutes();
 
         for (const {path, method, handler} of this.routes) {
             const chain = new Nornir<OpenAPIHttpRequest>()
