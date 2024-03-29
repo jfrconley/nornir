@@ -1,5 +1,12 @@
 # @nornir/rest
 
+## 2.1.4
+
+### Patch Changes
+
+- 345a030: Fix issue with JSON ref resolver producing duplicate results when root component is an array with subcomponents not containing references
+- 620782e: Expose the NornirRouteNotFoundError class
+
 ## 2.1.3
 
 ### Patch Changes
