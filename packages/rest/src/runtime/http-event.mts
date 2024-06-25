@@ -127,6 +127,11 @@ export enum HttpStatusCode {
     NotExtended = "510",
 }
 
+type Digit = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
+type NrfcloudError<T extends HttpStatusCode> = `${T}${Digit}${Digit}`;
+
+const test: NrfcloudError<HttpStatusCode.Accepted> = "20201"
+
 /**
  * @ignore
  */

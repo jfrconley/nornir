@@ -51,7 +51,7 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
     encodeRefs,
   } = options ?? {};
 
-  const schemaConfig: SchemaConfig = {
+  const schemaConfig = {
     ...SCHEMA_DEFAULTS,
     jsDoc: jsDoc ?? SCHEMA_DEFAULTS.jsDoc,
     strictTuples: strictTuples ?? SCHEMA_DEFAULTS.strictTuples,
@@ -59,16 +59,16 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
     additionalProperties: additionalProperties ?? SCHEMA_DEFAULTS.additionalProperties,
     sortProps: sortProps ?? SCHEMA_DEFAULTS.sortProps,
     expose,
-  };
+  } satisfies SchemaConfig;
 
-  const validationConfig: AJVOptions = {
+  const validationConfig = {
     ...AJV_DEFAULTS,
     loopRequired: loopRequired ?? AJV_DEFAULTS.loopRequired,
     loopEnum: loopEnum ?? AJV_DEFAULTS.loopEnum,
     removeAdditional: removeAdditional ?? AJV_DEFAULTS.removeAdditional,
     useDefaults: useDefaults ?? AJV_DEFAULTS.useDefaults,
     allErrors: allErrors ?? AJV_DEFAULTS.allErrors,
-  };
+  } satisfies AJVOptions;
 
   const nodeParser = getSchemaNodeParser(program, schemaConfig);
   const typeFormatter = createFormatter({

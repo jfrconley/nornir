@@ -1,5 +1,5 @@
 import { describe, jest } from "@jest/globals";
-import { AttachmentKey, AttachmentRegistry, RegistryFactory } from "../../dist/lib/attachment-registry.js";
+import { AttachmentRegistry, RegistryFactory } from "../../dist/lib/attachment-registry.js";
 import { NornirMissingAttachmentException } from "../../dist/lib/error.js";
 
 describe("AttachmentRegistry", () => {

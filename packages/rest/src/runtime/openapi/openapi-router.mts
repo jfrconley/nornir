@@ -1,4 +1,5 @@
 import {AttachmentRegistry, Nornir, Result} from "@nornir/core";
+import {default as addFormats} from "ajv-formats"
 import {OpenAPIV3_1} from "./spec.mjs"
 import {
     DereferenceSpec,
@@ -29,11 +30,12 @@ export class OpenAPIRouter<
     const InputSpec,
     const Spec extends OpenAPIV3_1.Document = DereferenceSpec<InputSpec>
 > {
-    private static validator = new Ajv({
+    private static validator = addFormats.default(new Ajv({
         allErrors: true,
         coerceTypes: true,
-        strict: false
-    });
+        strict: false,
+    }));
+
     private routes: {
         path: string,
         method: HttpMethod,

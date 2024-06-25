@@ -33,22 +33,23 @@ export interface Project {
 
 export type AJVOptions = Pick<
   AJVBaseOptions,
-  "useDefaults" | "removeAdditional" | "loopRequired" | "loopEnum" | "allErrors"
+  "useDefaults" | "removeAdditional" | "loopRequired" | "loopEnum" | "allErrors" | "coerceTypes"
 >;
 export type SchemaConfig = Pick<
   Config,
   "sortProps" | "expose" | "jsDoc" | "strictTuples" | "encodeRefs" | "additionalProperties"
 >;
 
-export const AJV_DEFAULTS: AJVBaseOptions = {
+export const AJV_DEFAULTS = {
   useDefaults: true,
-  coerceTypes: true,
   loopRequired: 20,
   allErrors: false,
   removeAdditional: true,
-};
+  coerceTypes: true,
+  loopEnum: 20,
+} satisfies Options;
 
-export const SCHEMA_DEFAULTS: Config = {
+export const SCHEMA_DEFAULTS = {
   expose: "export",
   jsDoc: "extended",
   sortProps: true,
@@ -57,7 +58,7 @@ export const SCHEMA_DEFAULTS: Config = {
   additionalProperties: false,
   topRef: false,
   discriminatorType: "open-api",
-};
+} satisfies Config;
 
 export type Options = AJVOptions & SchemaConfig;
 

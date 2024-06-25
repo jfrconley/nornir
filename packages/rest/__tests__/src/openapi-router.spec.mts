@@ -566,6 +566,7 @@ describe("OpenAPI Router", () => {
 
         router.implementRoute("/root/basepath/route/{reallyCool}", "post", chain =>
             chain.use(request => {
+
                 return {
                     statusCode: "200",
                     headers: {
