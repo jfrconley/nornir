@@ -1,5 +1,9 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 importers:
 
   .:
@@ -92,8 +96,8 @@ importers:
         specifier: ^29.5.0
         version: 29.5.0
       '@nrfcloud/ts-json-schema-transformer':
-        specifier: ^1.4.1
-        version: 1.4.1(typescript@5.4.2)
+        specifier: ^1.4.2
+        version: 1.4.2(typescript@5.4.2)
       '@types/jest':
         specifier: ^29.4.0
         version: 29.4.0
@@ -125,14 +129,17 @@ importers:
         specifier: workspace:^
         version: link:../core
       '@nrfcloud/ts-json-schema-transformer':
-        specifier: ^1.4.1
-        version: 1.4.1(typescript@5.4.2)
+        specifier: ^1.4.2
+        version: 1.4.2(typescript@5.4.2)
       '@types/aws-lambda':
         specifier: ^8.10.115
         version: 8.10.115
       ajv:
-        specifier: ^8.12.0
-        version: 8.12.0
+        specifier: ^8.16.0
+        version: 8.16.0
+      ajv-formats:
+        specifier: ^3.0.1
+        version: 3.0.1(ajv@8.16.0)
       atlassian-openapi:
         specifier: ^1.0.18
         version: 1.0.18
@@ -143,8 +150,8 @@ importers:
         specifier: ^10.3.10
         version: 10.3.10
       json-schema-to-ts:
-        specifier: ^3.0.0
-        version: 3.0.0
+        specifier: ^3.1.0
+        version: 3.1.0
       json-schema-traverse:
         specifier: ^1.0.0
         version: 1.0.0
@@ -164,11 +171,11 @@ importers:
         specifier: ^1.2.2
         version: 1.2.2
       ts-json-schema-generator:
-        specifier: ^1.5.0
-        version: 1.5.0
+        specifier: 1.5.1
+        version: 1.5.1
       ts-morph:
-        specifier: ^21.0.1
-        version: 21.0.1
+        specifier: ^23.0.0
+        version: 23.0.0
       tsutils:
         specifier: ^3.21.0
         version: 3.21.0(typescript@5.4.2)
@@ -225,8 +232,8 @@ importers:
         specifier: ^29.5.0
         version: 29.5.0
       '@nrfcloud/ts-json-schema-transformer':
-        specifier: ^1.4.1
-        version: 1.4.1(typescript@5.4.2)
+        specifier: ^1.4.2
+        version: 1.4.2(typescript@5.4.2)
       '@types/aws-lambda':
         specifier: ^8.10.115
         version: 8.10.115
@@ -2527,17 +2534,17 @@ packages:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.15.0
 
-  /@nrfcloud/ts-json-schema-transformer@1.4.1(typescript@5.4.2):
-    resolution: {integrity: sha512-eijFXzORJa3IppEdKxySXrVktom7oL9GfUyfmiiOng6eE1hP/L7Hy2TyZduzNmaIKWIkQJzUGpss3Z+j9EBY6g==}
+  /@nrfcloud/ts-json-schema-transformer@1.4.2(typescript@5.4.2):
+    resolution: {integrity: sha512-ZYZ3/a9X/Jzj8QjjE5YKgihg3ll1KiZrpYi8aXk8BS7bzqcnNlpchUfCg8NqO31Db1ML6DuCTRKQZAEAck0csA==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       typescript: '>=5'
     dependencies:
       '@apidevtools/json-schema-ref-parser': 10.1.0
-      ajv: 8.12.0
+      ajv: 8.16.0
       esbuild: 0.19.9
       json-schema-faker: /@jfconley/json-schema-faker@0.5.0-rcv.48
-      ts-json-schema-generator: 1.5.0
+      ts-json-schema-generator: 1.5.1
       typescript: 5.4.2
 
   /@parcel/source-map@2.1.1:
@@ -2570,11 +2577,11 @@ packages:
       '@sinonjs/commons': 2.0.0
     dev: true
 
-  /@ts-morph/common@0.22.0:
-    resolution: {integrity: sha512-HqNBuV/oIlMKdkLshXd1zKBqNQCsuPEsgQOkfFQ/eUKjRlwndXW1AjN9LVkBEIukm00gGXSRmfkl0Wv5VXLnlw==}
+  /@ts-morph/common@0.24.0:
+    resolution: {integrity: sha512-c1xMmNHWpNselmpIqursHeOHHBTIsJLbB+NuovbTTRCNiTLEr/U9dbJ8qy0jd/O2x5pc3seWuOUN5R2IoOTp8A==}
     dependencies:
       fast-glob: 3.3.2
-      minimatch: 9.0.3
+      minimatch: 9.0.4
       mkdirp: 3.0.1
       path-browserify: 1.0.1
     dev: false
@@ -2968,6 +2975,17 @@ packages:
       indent-string: 4.0.0
     dev: true
 
+  /ajv-formats@3.0.1(ajv@8.16.0):
+    resolution: {integrity: sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ==}
+    peerDependencies:
+      ajv: ^8.0.0
+    peerDependenciesMeta:
+      ajv:
+        optional: true
+    dependencies:
+      ajv: 8.16.0
+    dev: false
+
   /ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
     dependencies:
@@ -2977,8 +2995,8 @@ packages:
       uri-js: 4.4.1
     dev: true
 
-  /ajv@8.12.0:
-    resolution: {integrity: sha512-sRu1kpcO9yLtYxBKvqfTeh9KzZEwO3STyX1HT+4CaDzC6HpTGYhIhPIzj9XuKU7KYDwnaeh5hcOwjy1QuJzBPA==}
+  /ajv@8.16.0:
+    resolution: {integrity: sha512-F0twR8U1ZU67JIEtekUcLkXkoO5mMMmgGD8sK/xUFzJ805jxHQl92hImFAqqXMyMYjSPOyUPAwHYhB72g5sTXw==}
     dependencies:
       fast-deep-equal: 3.1.3
       json-schema-traverse: 1.0.0
@@ -3486,8 +3504,8 @@ packages:
     engines: {iojs: '>= 1.0.0', node: '>= 0.12.0'}
     dev: true
 
-  /code-block-writer@12.0.0:
-    resolution: {integrity: sha512-q4dMFMlXtKR3XNBHyMHt/3pwYNA69EDk00lloMOaaUMKPUXBw6lpXtbu3MMVG6/uOihGnRDOlkyqsONEUj60+w==}
+  /code-block-writer@13.0.1:
+    resolution: {integrity: sha512-c5or4P6erEA69TxaxTNcHUNcIn+oyxSRTOWV+pSYF+z4epXqNvwvJ70XPGjPNgue83oAFAPBRQYwpAJ/Hpe/Sg==}
     dev: false
 
   /collect-v8-coverage@1.0.1:
@@ -3518,9 +3536,9 @@ packages:
     engines: {node: '>=14'}
     dev: true
 
-  /commander@11.0.0:
-    resolution: {integrity: sha512-9HMlXtt/BNoYr8ooyjjNRdIilOTkVJXB+GhxMTtOKwk0R4j4lS4NpjuqmRxroBfnfTSHQIHQB7wryHhXarNjmQ==}
-    engines: {node: '>=16'}
+  /commander@12.1.0:
+    resolution: {integrity: sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==}
+    engines: {node: '>=18'}
 
   /commander@7.2.0:
     resolution: {integrity: sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw==}
@@ -5547,7 +5565,7 @@ packages:
     engines: {node: '>=6.14.1'}
     hasBin: true
     dependencies:
-      ajv: 8.12.0
+      ajv: 8.16.0
       commander: 7.2.0
       json-schema-ref-parser: 9.0.9
       json-schema-spec-types: 0.1.2
@@ -5567,13 +5585,12 @@ packages:
     resolution: {integrity: sha512-MDl8fA8ONckmQOm2+eXKJaFJNvxk7eGin+XFofNjS3q3PRKSoEvgMVb0ehOpCAYkUiLoMiqdU7obV7AmzAmyLw==}
     dev: false
 
-  /json-schema-to-ts@3.0.0:
-    resolution: {integrity: sha512-2adDesYifYEXYxNySx3gG0RR69rDWIjqAFzK/JPXdOvjHLZ/UP6d2rkpy6a+AxyhtRp2SvFPZ4+EW36jBinUbA==}
+  /json-schema-to-ts@3.1.0:
+    resolution: {integrity: sha512-UeVN/ery4/JeXI8h4rM8yZPxsH+KqPi/84qFxHfTGHZnWnK9D0UU9ZGYO+6XAaJLqCWMiks+ARuFOKAiSxJCHA==}
     engines: {node: '>=16'}
     dependencies:
       '@babel/runtime': 7.21.5
-      '@types/json-schema': 7.0.15
-      ts-algebra: 1.2.2
+      ts-algebra: 2.0.0
     dev: false
 
   /json-schema-traverse@0.4.1:
@@ -5864,6 +5881,13 @@ packages:
 
   /minimatch@9.0.3:
     resolution: {integrity: sha512-RHiac9mvaRw0x3AYRgDC1CxAP7HTcNrrECeA8YYJeWnpo+2Q5CegtZjaotWTWxDG3UeGA1coE05iH1mPjT/2mg==}
+    engines: {node: '>=16 || 14 >=14.17'}
+    dependencies:
+      brace-expansion: 2.0.1
+    dev: false
+
+  /minimatch@9.0.4:
+    resolution: {integrity: sha512-KqWh+VchfxcMNRAJjj2tnsSJdNbHsVgnkBhTNrW7AjVo6OvLtxw8zfT9oLw1JSohlFzJ8jCoTgaoXvJ+kHt6fw==}
     engines: {node: '>=16 || 14 >=14.17'}
     dependencies:
       brace-expansion: 2.0.1
@@ -6605,7 +6629,7 @@ packages:
   /rxjs@7.8.1:
     resolution: {integrity: sha512-AA3TVj+0A2iuIoQkWEK/tqFjBq2j+6PO6Y0zJcvzLAFhEFIO3HL0vls9hWLncZbAAbK0mar7oZ4V079I/qPMxg==}
     dependencies:
-      tslib: 2.5.0
+      tslib: 2.6.3
     dev: true
 
   /safe-array-concat@1.0.0:
@@ -7024,8 +7048,8 @@ packages:
       regexparam: 1.3.0
     dev: false
 
-  /ts-algebra@1.2.2:
-    resolution: {integrity: sha512-kloPhf1hq3JbCPOTYoOWDKxebWjNb2o/LKnNfkWhxVVisFFmMJPPdJeGoGmM+iRLyoXAR61e08Pb+vUXINg8aA==}
+  /ts-algebra@2.0.0:
+    resolution: {integrity: sha512-FPAhNPFMrkwz76P7cdjdmiShwMynZYN6SgOujD1urY4oNm80Ou9oMdmbR45LotcKOXoy7wSmHkRFE6Mxbrhefw==}
     dev: false
 
   /ts-api-utils@1.0.1(typescript@5.4.2):
@@ -7041,24 +7065,24 @@ packages:
     resolution: {integrity: sha512-cA5MPLWGWYXvnlJb4TamUUx858HVHBsxxdy8l7jxODOLDyGYnQOllob2A2jyDghGa5iJHs2gzFNHvwGJ0ZfR8g==}
     dev: false
 
-  /ts-json-schema-generator@1.5.0:
-    resolution: {integrity: sha512-RkiaJ6YxGc5EWVPfyHxszTmpGxX8HC2XBvcFlAl1zcvpOG4tjjh+eXioStXJQYTvr9MoK8zCOWzAUlko3K0DiA==}
+  /ts-json-schema-generator@1.5.1:
+    resolution: {integrity: sha512-apX5qG2+NA66j7b4AJm8q/DpdTeOsjfh7A3LpKsUiil0FepkNwtN28zYgjrsiiya2/OPhsr/PSjX5FUYg79rCg==}
     engines: {node: '>=10.0.0'}
     hasBin: true
     dependencies:
       '@types/json-schema': 7.0.15
-      commander: 11.0.0
+      commander: 12.1.0
       glob: 8.1.0
       json5: 2.2.3
       normalize-path: 3.0.0
       safe-stable-stringify: 2.4.3
-      typescript: 5.3.3
+      typescript: 5.4.2
 
-  /ts-morph@21.0.1:
-    resolution: {integrity: sha512-dbDtVdEAncKctzrVZ+Nr7kHpHkv+0JDJb2MjjpBaj8bFeCkePU9rHfMklmhuLFnpeq/EJZk2IhStY6NzqgjOkg==}
+  /ts-morph@23.0.0:
+    resolution: {integrity: sha512-FcvFx7a9E8TUe6T3ShihXJLiJOiqyafzFKUO4aqIHDUCIvADdGNShcbc2W5PMr3LerXRv7mafvFZ9lRENxJmug==}
     dependencies:
-      '@ts-morph/common': 0.22.0
-      code-block-writer: 12.0.0
+      '@ts-morph/common': 0.24.0
+      code-block-writer: 13.0.1
     dev: false
 
   /ts-patch@3.1.1:
@@ -7078,6 +7102,10 @@ packages:
 
   /tslib@2.5.0:
     resolution: {integrity: sha512-336iVw3rtn2BUK7ORdIAHTyxHGRIHVReokCR3XjbckJMK7ms8FysBfhLR8IXnAgy7T0PTPNBWKiH514FOW/WSg==}
+    dev: true
+
+  /tslib@2.6.3:
+    resolution: {integrity: sha512-xNvxJEOUiWPGhUuUdQgAJPKOOJfGnIyKySOc09XkKsgdUV/3E2zvwZYdejjmRgPCgcym1juLH3226yA7sEFJKQ==}
     dev: true
 
   /tsutils@3.21.0(typescript@5.4.2):
@@ -7238,11 +7266,6 @@ packages:
       for-each: 0.3.3
       is-typed-array: 1.1.12
     dev: true
-
-  /typescript@5.3.3:
-    resolution: {integrity: sha512-pXWcraxM0uxAS+tN0AG/BF2TyqmHO014Z070UsJ+pFvYuRSq8KH8DmWpnbXe0pEPDHXZV3FcAbJkijJ5oNEnWw==}
-    engines: {node: '>=14.17'}
-    hasBin: true
 
   /typescript@5.4.2:
     resolution: {integrity: sha512-+2/g0Fds1ERlP6JsakQQDXjZdZMM+rqpamFZJEKh4kwTIn3iDkgKtby0CeNd5ATNZ4Ry1ax15TMx0W2V+miizQ==}
@@ -7586,7 +7609,3 @@ packages:
   /zod@3.20.6:
     resolution: {integrity: sha512-oyu0m54SGCtzh6EClBVqDDlAYRz4jrVtKwQ7ZnsEmMI9HnzuZFj8QFwAY1M5uniIYACdGvv0PBWPF2kO0aNofA==}
     dev: true
-
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
