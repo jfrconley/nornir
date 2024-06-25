@@ -1,7 +1,7 @@
 {
   "name": "@nornir/core",
   "description": "Control and shape the destiny of your events",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "author": "John Conley",
   "devDependencies": {
     "@jest/globals": "^29.5.0",

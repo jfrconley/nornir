@@ -1,5 +1,16 @@
 # @nornir/rest
 
+## 2.2.0
+
+### Minor Changes
+
+- d07637b: add support for ajv-formats
+
+### Patch Changes
+
+- Updated dependencies [d07637b]
+  - @nornir/core@1.5.0
+
 ## 2.1.4
 
 ### Patch Changes
