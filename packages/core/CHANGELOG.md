@@ -1,5 +1,11 @@
 # @nornir/core
 
+## 1.5.0
+
+### Minor Changes
+
+- d07637b: add support for ajv-formats
+
 ## 1.4.0
 
 ### Minor Changes
