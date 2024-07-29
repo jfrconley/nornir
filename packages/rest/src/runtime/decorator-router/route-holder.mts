@@ -1,8 +1,7 @@
-import {HttpMethod, HttpRequest, HttpResponse, HttpStatusCode, MimeType} from './http-event.mjs';
+import {HttpMethod, HttpRequest, HttpResponse} from '../shared/http-event.mjs';
 import {Nornir} from '@nornir/core';
-import {NornirRestRequestError} from './error.mjs';
-import {type ErrorObject, type ValidateFunction} from 'ajv'
-import {debugLog} from "./utils.mjs";
+import {NornirRestRequestValidationError} from '../shared/error.mjs';
+import {type ValidateFunction} from 'ajv'
 
 export type RouteBuilder<Input extends HttpRequest = HttpRequest, Output extends HttpResponse = HttpResponse> = (chain: Nornir<Input>) => Nornir<Input, Output>
 
@@ -33,29 +32,5 @@ export class RouteHolder {
                 })
                     .useChain(handler)
         })
-    }
-}
-
-/**
- * Error thrown when the request does not pass validation checks.
- * Includes information about the validation errors.
- */
-export class NornirRestRequestValidationError<Request extends HttpRequest> extends NornirRestRequestError<Request> {
-    constructor(
-        request: Request,
-        public readonly errors: ErrorObject[]
-    ) {
-        super(request, `Request validation failed`)
-        debugLog(`Request validation failed`, {request, errors})
-    }
-
-    toHttpResponse(): HttpResponse {
-        return {
-            statusCode: HttpStatusCode.UnprocessableEntity,
-            body: {errors: this.errors},
-            headers: {
-                'content-type': MimeType.ApplicationJson
-            },
-        }
     }
 }

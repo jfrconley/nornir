@@ -16,11 +16,7 @@
       "jest",
       "node"
     ],
-    "paths": {
-      "@nrfcloud/utils-public.aws/*": [
-        "../dist"
-      ]
-    }
+    "paths": {}
   },
   "include": [
     "src/**/*"

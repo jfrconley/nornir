@@ -1,6 +1,6 @@
 import {OpenAPIV3_1} from "./spec.mjs"
 import {FromSchema} from "json-schema-to-ts"
-import {DeeplyResolveAllRefsInJsonObject} from "../utils.mjs";
+import {DeeplyResolveAllRefsInJsonObject} from "../shared/utils.mjs";
 
 export type DereferenceSpec<T> = DeeplyResolveAllRefsInJsonObject<T> & OpenAPIV3_1.Document
 

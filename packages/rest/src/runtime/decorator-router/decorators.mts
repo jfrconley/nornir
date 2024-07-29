@@ -1,5 +1,5 @@
 import {Nornir} from "@nornir/core";
-import {HttpRequest, HttpResponse, HttpStatusCode, MimeType} from "./http-event.mjs";
+import {HttpRequest, HttpResponse, HttpStatusCode, MimeType} from "../shared/http-event.mjs";
 import {InstanceOf} from "ts-morph";
 
 const UNTRANSFORMED_ERROR = new Error("nornir/rest decorators have not been transformed. Have you setup ts-patch/ttypescript and added the originator to your tsconfig.json?");

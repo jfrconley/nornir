@@ -135,7 +135,7 @@ export class ControllerMeta {
   private generateRouteHolderCreateStatement() {
     const nornirRestImport = FileTransformer.getOrCreateImport(
       this.source,
-      "@nornir/rest",
+      "@nornir/rest/decorator-router",
       "RouteHolder",
     );
 
@@ -173,7 +173,7 @@ export class ControllerMeta {
   }
 
   private generateRegisterRouteHolderStatement() {
-    const routerIdentifier = FileTransformer.getOrCreateImport(this.source, "@nornir/rest", "Router");
+    const routerIdentifier = FileTransformer.getOrCreateImport(this.source, "@nornir/rest/decorator-router", "Router");
     const routerInstance = ts.factory.createCallExpression(
       ts.factory.createPropertyAccessExpression(routerIdentifier, "get"),
       [],
