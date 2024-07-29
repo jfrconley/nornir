@@ -1,5 +1,5 @@
 import {describe, expect} from "@jest/globals";
-import {simpleSpecResolve} from "../../dist/runtime/utils.mjs";
+import {simpleSpecResolve} from "../../dist/runtime/shared/utils.mjs";
 
 describe("utils", () => {
     describe('simpleSpecResolve function', () => {

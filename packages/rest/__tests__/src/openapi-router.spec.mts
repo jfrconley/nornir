@@ -1,6 +1,6 @@
 import {OpenAPIV3_1} from "../../dist/runtime/index.mjs";
 import {describe, expect} from "@jest/globals";
-import {OpenAPIRouter} from "../../dist/runtime/openapi/openapi-router.mjs"
+import {OpenAPIRouter} from "../../dist/runtime/openapi-router/openapi-router.mjs"
 import {AttachmentRegistry} from "@nornir/core";
 
 const TestSpec = {
