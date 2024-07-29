@@ -1,5 +1,11 @@
 # @nornir/rest
 
+## 2.3.0
+
+### Minor Changes
+
+- 0fbc538: Refactor exports
+
 ## 2.2.0
 
 ### Minor Changes
