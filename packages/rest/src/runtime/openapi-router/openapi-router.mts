@@ -1,5 +1,5 @@
 import {AttachmentRegistry, Nornir, Result} from "@nornir/core";
-import {default as addFormats} from "ajv-formats"
+// import addFormats from "ajv-formats"
 import {OpenAPIV3_1} from "./spec.mjs"
 import {
     DereferenceSpec,
@@ -9,17 +9,17 @@ import {
     ResponseTypeFromOperation,
     UnionIntersection,
 } from "./openapi-typelib.mjs";
-import _Ajv, {ValidateFunction} from "ajv";
+import Ajv, {type ValidateFunction, } from "ajv";
 import Trouter from 'trouter';
 import {JSONSchema} from "json-schema-to-ts";
 import {OpenAPIHttpRequest, OpenAPIHttpResponse} from "./openapi-http-event.mjs";
-import {HttpEvent, HttpMethod, HttpResponse} from "../http-event.mjs";
-import {NornirRestRequestValidationError} from "../route-holder.mjs";
+import {HttpEvent, HttpMethod, HttpResponse} from "../shared/http-event.mjs";
+import {NornirRestRequestValidationError} from "../shared/error.mjs";
+import {addFormatsAjv} from "./formats.mjs"
 
-import {NornirRouteNotFoundError} from "../error.mjs";
-import {debugLog, simpleSpecResolve} from "../utils.mjs";
+import {NornirRouteNotFoundError} from "../shared/error.mjs";
+import {debugLog, simpleSpecResolve} from "../shared/utils.mjs";
 
-const Ajv = _Ajv as unknown as typeof import("ajv").default;
 
 type GenericRouteBuilder = (chain: Nornir<OpenAPIHttpRequest>) => Nornir<OpenAPIHttpRequest, OpenAPIHttpResponse>;
 
@@ -30,7 +30,7 @@ export class OpenAPIRouter<
     const InputSpec,
     const Spec extends OpenAPIV3_1.Document = DereferenceSpec<InputSpec>
 > {
-    private static validator = addFormats.default(new Ajv({
+    private validator = addFormatsAjv(new Ajv.default({
         allErrors: true,
         coerceTypes: true,
         strict: false,
@@ -56,7 +56,6 @@ export class OpenAPIRouter<
         }
         return this._resolvedSpec;
     }
-
     private getOperation(path: string, method: HttpMethod): {
         operation: OpenAPIV3_1.OperationObject,
         requestSchema: JSONSchema,
@@ -74,7 +73,7 @@ export class OpenAPIRouter<
         }
 
         const requestSchema = this.buildOperationRequestSchema(operation);
-        const requestValidator = OpenAPIRouter.validator.compile(requestSchema);
+        const requestValidator = this.validator.compile(requestSchema);
 
         const result = {
             operation,

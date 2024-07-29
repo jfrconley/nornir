@@ -1,4 +1,4 @@
-import {HttpHeaders, HttpRequest, HttpResponse, MimeType} from "../http-event.mjs"
+import {HttpHeaders, HttpRequest, HttpResponse, MimeType} from "../shared/http-event.mjs"
 
 export interface OpenAPIHttpRequest extends HttpRequest {
     headers: HttpHeaders,

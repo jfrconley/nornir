@@ -13,7 +13,7 @@ import {
 } from "../../dist/runtime/index.mjs";
 import {nornir, Nornir} from "@nornir/core";
 import {describe} from "@jest/globals";
-import {NornirRouteNotFoundError} from "../../dist/runtime/error.mjs";
+import {NornirRouteNotFoundError} from "../../dist/runtime/shared/index.mjs";
 
 interface RouteGetInput extends HttpRequestEmpty {
 }

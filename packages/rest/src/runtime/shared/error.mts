@@ -1,5 +1,6 @@
 import {HttpRequest, HttpResponse, HttpStatusCode, MimeType} from './http-event.mjs';
-import {AttachmentRegistry, Result} from "@nornir/core";
+import type {AttachmentRegistry, Result} from "@nornir/core";
+import type {ErrorObject} from "ajv";
 
 /**
  * Base error type for exceptions in rest handlers.
@@ -83,6 +84,29 @@ export class NornirRouteNotFoundError extends NornirRestRequestError<HttpRequest
             body: "Not Found",
             headers: {
                 "content-type": MimeType.TextPlain
+            },
+        }
+    }
+}
+
+/**
+ * Error thrown when the request does not pass validation checks.
+ * Includes information about the validation errors.
+ */
+export class NornirRestRequestValidationError<Request extends HttpRequest> extends NornirRestRequestError<Request> {
+    constructor(
+        request: Request,
+        public readonly errors: ErrorObject[]
+    ) {
+        super(request, `Request validation failed`)
+    }
+
+    toHttpResponse(): HttpResponse {
+        return {
+            statusCode: HttpStatusCode.UnprocessableEntity,
+            body: {errors: this.errors},
+            headers: {
+                'content-type': MimeType.ApplicationJson
             },
         }
     }

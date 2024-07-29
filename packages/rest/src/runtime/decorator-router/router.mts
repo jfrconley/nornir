@@ -1,14 +1,16 @@
 import Trouter from 'trouter';
 import {RouteBuilder, RouteHolder} from './route-holder.mjs';
-import {HttpEvent, HttpHeadersWithContentType, HttpMethod, HttpRequest, HttpResponse} from './http-event.mjs';
+import {HttpEvent, HttpHeadersWithContentType, HttpMethod, HttpRequest, HttpResponse} from '../shared/http-event.mjs';
 import {AttachmentRegistry, Nornir, Result} from '@nornir/core';
-import {NornirRouteNotFoundError} from "./error.mjs";
+import {NornirRouteNotFoundError} from "../shared/error.mjs";
 
 type RouteHandler = (request: Result<HttpRequest>, registry: AttachmentRegistry) => Promise<Result<HttpResponse>>;
 
+const instanceMap = new Map<string, Router>();
+
 export class Router {
     private static DEFAULT_INSTANCE_ID = 'default';
-    private static readonly instanceMap = new Map<string, Router>();
+    private static readonly instanceMap = instanceMap;
 
     /** @internal */
     public static get(apiId?: string): Router {
