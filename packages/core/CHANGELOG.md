@@ -1,5 +1,11 @@
 # @nornir/core
 
+## 1.6.0
+
+### Minor Changes
+
+- 75c7a2e: update to ts 5.5
+
 ## 1.5.0
 
 ### Minor Changes
