@@ -58,8 +58,8 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
     encodeRefs: encodeRefs ?? SCHEMA_DEFAULTS.encodeRefs,
     additionalProperties: additionalProperties ?? SCHEMA_DEFAULTS.additionalProperties,
     sortProps: sortProps ?? SCHEMA_DEFAULTS.sortProps,
-    expose,
-  } satisfies SchemaConfig;
+    expose: expose ?? SCHEMA_DEFAULTS.expose,
+  } as const;
 
   const validationConfig = {
     ...AJV_DEFAULTS,
@@ -68,7 +68,7 @@ export function transform(program: ts.Program, options?: Options): ts.Transforme
     removeAdditional: removeAdditional ?? AJV_DEFAULTS.removeAdditional,
     useDefaults: useDefaults ?? AJV_DEFAULTS.useDefaults,
     allErrors: allErrors ?? AJV_DEFAULTS.allErrors,
-  } satisfies AJVOptions;
+  } as const;
 
   const nodeParser = getSchemaNodeParser(program, schemaConfig);
   const typeFormatter = createFormatter({
