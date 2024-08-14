@@ -1,10 +1,10 @@
 import type { Options as AJVBaseOptions } from "ajv";
 import {
   BaseType,
+  CompletedConfig,
   Config,
   createParser,
   NodeParser,
-  ReferenceType,
   SchemaGenerator,
   StringType,
   SubNodeParser,
@@ -58,6 +58,11 @@ export const SCHEMA_DEFAULTS = {
   additionalProperties: false,
   topRef: false,
   discriminatorType: "open-api",
+  skipTypeCheck: true,
+  extraTags: [],
+  functions: "fail",
+  markdownDescription: false,
+  minify: true,
 } satisfies Config;
 
 export type Options = AJVOptions & SchemaConfig;
@@ -104,7 +109,7 @@ export class NornirParserThrow implements SubNodeParser {
   }
 }
 
-export function getSchemaNodeParser(program: ts.Program, config: Config): NodeParser {
+export function getSchemaNodeParser(program: ts.Program, config: CompletedConfig): NodeParser {
   return createParser(program as unknown as Parameters<typeof createParser>[0], config, prs => {
     prs.addNodeParser(new TemplateExpressionNodeParser());
     prs.addNodeParser(new UndefinedIdentifierParser());
