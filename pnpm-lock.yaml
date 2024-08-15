@@ -96,8 +96,8 @@ importers:
         specifier: ^29.5.0
         version: 29.7.0
       '@nrfcloud/ts-json-schema-transformer':
-        specifier: ^2.0.0
-        version: 2.0.0(typescript@5.5.4)
+        specifier: ^2.0.1
+        version: 2.0.1(typescript@5.5.4)
       '@types/jest':
         specifier: ^29.4.0
         version: 29.5.12
@@ -129,8 +129,8 @@ importers:
         specifier: workspace:^
         version: link:../core
       '@nrfcloud/ts-json-schema-transformer':
-        specifier: ^2.0.0
-        version: 2.0.0(typescript@5.5.4)
+        specifier: ^2.0.1
+        version: 2.0.1(typescript@5.5.4)
       '@types/aws-lambda':
         specifier: ^8.10.115
         version: 8.10.142
@@ -229,8 +229,8 @@ importers:
         specifier: ^29.5.0
         version: 29.7.0
       '@nrfcloud/ts-json-schema-transformer':
-        specifier: ^2.0.0
-        version: 2.0.0(typescript@5.5.4)
+        specifier: ^2.0.1
+        version: 2.0.1(typescript@5.5.4)
       '@types/aws-lambda':
         specifier: ^8.10.115
         version: 8.10.142
@@ -1389,8 +1389,8 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@nrfcloud/ts-json-schema-transformer@2.0.0':
-    resolution: {integrity: sha512-gJ1/TYKcmvnXNw9ptUQ5bcvhP33+blcZZBRc4Jl8vnVgtLBaeVHAKz7SZkTUzpncGOXbxH4ZosmZrnVbEHPNHg==}
+  '@nrfcloud/ts-json-schema-transformer@2.0.1':
+    resolution: {integrity: sha512-VzEyoNcvi82xX5+WR4qmw2PpxpPgzDpYJBCA8t8XReQmwyCFntlXI97Nm2OtVKzojsLy4i7LVwb3gTCRu377Rw==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       typescript: '>=5.5'
@@ -5170,7 +5170,7 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.17.1
 
-  '@nrfcloud/ts-json-schema-transformer@2.0.0(typescript@5.5.4)':
+  '@nrfcloud/ts-json-schema-transformer@2.0.1(typescript@5.5.4)':
     dependencies:
       '@apidevtools/json-schema-ref-parser': 11.7.0
       ajv: 8.17.1
