@@ -1,5 +1,11 @@
 # @nornir/core
 
+## 1.6.1
+
+### Patch Changes
+
+- 6c77ec3: patch schema transformer
+
 ## 1.6.0
 
 ### Minor Changes
