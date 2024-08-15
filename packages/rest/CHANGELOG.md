@@ -1,5 +1,16 @@
 # @nornir/rest
 
+## 2.4.0
+
+### Minor Changes
+
+- 75c7a2e: update to ts 5.5
+
+### Patch Changes
+
+- Updated dependencies [75c7a2e]
+  - @nornir/core@1.6.0
+
 ## 2.3.0
 
 ### Minor Changes
