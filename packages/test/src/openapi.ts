@@ -1,5 +1,5 @@
 import nornir from "@nornir/core";
-import { ApiGatewayProxyV2, openAPIChain, OpenAPIRouter, OpenAPIV3_1, startLocalServer } from "@nornir/rest";
+import { ApiGatewayProxyV2, openAPIChain, OpenAPIRouter, startLocalServer } from "@nornir/rest";
 import type { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2 } from "aws-lambda";
 import Spec from "./openapi-spec.js";
 
@@ -22,7 +22,7 @@ export const router: OpenAPIRouter<typeof Spec> = OpenAPIRouter.fromSpec(Spec);
 //   }));
 
 router.implementRoute("/destination", "post", chain =>
-  chain.use(req => {
+  chain.use(_req => {
     return {
       contentType: "application/json",
       statusCode: "201",

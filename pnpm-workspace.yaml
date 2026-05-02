@@ -1,3 +1,6 @@
 packages:
   - 'packages/*'
   - 'public'
+allowBuilds:
+  dprint: true
+  esbuild: true

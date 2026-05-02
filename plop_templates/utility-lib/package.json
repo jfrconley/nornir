@@ -58,7 +58,6 @@
     "compile:single": "tsc",
     "compile:single:tests": "tsc -p __tests__/tsconfig.json",
     "compile:single:watch": "pnpm compile:single --incremental -w & pnpm compile:single:tests -w --incremental",
-    "prepare": "patch-typescript",
     "prepublish": "pnpm build:clean",
     "test": "pnpm tests"
   },

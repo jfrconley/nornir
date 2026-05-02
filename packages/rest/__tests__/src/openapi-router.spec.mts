@@ -697,7 +697,7 @@ describe("OpenAPI Router", () => {
         const router2 = OpenAPIRouter.fromSpec(TestSpec);
 
         router2.implementRoute("/root/basepath/route/{reallyCool}", "get", chain =>
-            chain.use(request => {
+            chain.use(_request => {
                 return {
                     statusCode: "200",
                     headers: {

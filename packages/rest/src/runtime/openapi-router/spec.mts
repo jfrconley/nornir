@@ -1,5 +1,5 @@
 // disable eslint for this file
-/* eslint-disable @typescript-eslint/ban-types,@typescript-eslint/no-explicit-any,@typescript-eslint/no-namespace,eslint-comments/disable-enable-pair */
+/* eslint-disable @typescript-eslint/no-explicit-any,@typescript-eslint/no-namespace,@typescript-eslint/no-empty-object-type */
 
 import {JSONSchema} from "json-schema-to-ts";
 
