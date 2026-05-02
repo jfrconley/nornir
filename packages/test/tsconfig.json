@@ -1,7 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": "./src",
     "plugins": [
       {
         "transform": "@nrfcloud/ts-json-schema-transformer/dist/transform"

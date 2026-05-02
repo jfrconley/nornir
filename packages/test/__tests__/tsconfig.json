@@ -3,7 +3,6 @@
   "compilerOptions": {
     "pretty": true,
     "incremental": false,
-    "baseUrl": ".",
     "outDir": "dist",
     "rootDir": "src",
     "esModuleInterop": true,
