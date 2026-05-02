@@ -11,9 +11,6 @@
       "node"
     ],
     "paths": {
-      "@nrfcloud/utils-public.aws/*": [
-        "../dist"
-      ]
     }
   },
   "include": [
