@@ -7,15 +7,17 @@ import {
     UnparsedHttpEvent
 } from "./shared/index.mjs";
 import {OpenAPIRouter} from "./openapi-router/index.mjs";
+import {ErrorMapping} from "./shared/error.mjs"
 
 export * from "./shared/index.mjs";
 export * from "./openapi-router/index.mjs";
 
-export function openAPIChain<T>(router: OpenAPIRouter<T>) {
+export function openAPIChain<T>(router: OpenAPIRouter<T>, errorMappings?: ErrorMapping[]) {
     return nornir<UnparsedHttpEvent>()
         .use(normalizeEventHeaders)
         .use(httpEventParser())
         .use(router.build())
-        .useResult(httpErrorHandler())
+        .useResult(httpErrorHandler(errorMappings))
         .use(httpResponseSerializer())
 }
+

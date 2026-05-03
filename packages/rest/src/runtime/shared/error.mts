@@ -30,7 +30,7 @@ export abstract class NornirRestRequestError<Request extends HttpRequest = HttpR
 }
 
 
-interface ErrorMapping {
+export interface ErrorMapping {
     errorMatch(error: unknown): boolean;
     toHttpResponse(error: unknown, registry: AttachmentRegistry): HttpResponse | Promise<HttpResponse>;
 }
