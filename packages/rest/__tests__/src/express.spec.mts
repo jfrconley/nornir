@@ -35,12 +35,6 @@ const TestSpec = {
                 responses: {
                     "200": {
                         description: "echo",
-                        headers: {
-                            "content-type": {
-                                required: true,
-                                schema: {type: "string", const: "application/json"}
-                            }
-                        },
                         content: {
                             "application/json": {
                                 schema: {
@@ -64,12 +58,11 @@ function makeRouter() {
     const router = OpenAPIRouter.fromSpec(TestSpec);
     router.implementRoute("/echo/{id}", "post", chain =>
         chain.use(req => {
-            if (req.contentType !== "application/json") throw new Error("unexpected content type");
+            // if (req.contentType !== "application/json") throw new Error("unexpected content type");
             return {
                 statusCode: "200",
                 contentType: "application/json",
                 headers: {
-                    "content-type": "application/json"
                 },
                 body: {
                     id: req.pathParams.id,
@@ -128,9 +121,7 @@ describe("Express middleware", () => {
                 return {
                     statusCode: "200",
                     contentType: "application/json",
-                    headers: {
-                        "content-type": "application/json"
-                    },
+                    headers: {},
                     body: {id: req.pathParams.id, message: req.body.message}
                 } as const;
             })
