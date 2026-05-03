@@ -1,5 +1,11 @@
 # @nornir/core
 
+## 1.7.0
+
+### Minor Changes
+
+- 3e7d418: updated dependencies
+
 ## 1.6.1
 
 ### Patch Changes
