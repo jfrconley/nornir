@@ -1,13 +1,14 @@
 import {HttpHeaders, HttpMethod, SerializedHttpResponse, UnparsedHttpEvent} from "./http-event.mjs";
 import type {APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2} from "aws-lambda"
-import {AttachmentRegistry, Nornir} from "@nornir/core";
+import {AttachmentKey, AttachmentRegistry, InitialArgumentsKey, Nornir} from "@nornir/core";
 import {createServer} from 'node:http'
 import {promisify} from "node:util"
 import {debugLog} from "./utils.mjs";
+import type express from "express"
 
 
 export abstract class ApiGatewayProxyV2 {
-    public static EventKey = AttachmentRegistry.createKey<APIGatewayProxyEventV2>()
+    public static readonly EventKey = AttachmentRegistry.createKey<APIGatewayProxyEventV2>()
 
     public static toHttpEvent(event: APIGatewayProxyEventV2, registry: AttachmentRegistry): UnparsedHttpEvent {
         registry.put(ApiGatewayProxyV2.EventKey, event)
@@ -38,6 +39,43 @@ export abstract class ApiGatewayProxyV2 {
         }
     }
 }
+
+export abstract class Express {
+    public static readonly ExpressRequestKey: AttachmentKey<express.Request> = AttachmentRegistry.createKey<express.Request>()
+    public static readonly ExpressResponseKey: AttachmentKey<express.Response> = AttachmentRegistry.createKey<express.Response>()
+    public static readonly ExpressNextKey: AttachmentKey<express.NextFunction> = AttachmentRegistry.createKey<express.NextFunction>()
+
+    public static toHttpEvent(request: express.Request, registry: AttachmentRegistry): UnparsedHttpEvent {
+        registry.put(Express.ExpressRequestKey, request)
+        // response and next are passed as extra args, which nornir doesn't directly support
+        // we can pull them out here from the initial arguments
+        const [, response, next] = registry.getAssert(InitialArgumentsKey) as [express.Request, express.Response, express.NextFunction]
+        registry.put(Express.ExpressResponseKey, response)
+        registry.put(Express.ExpressNextKey, next)
+
+        return {
+            method: request.method as HttpMethod,
+            path: request.path,
+            headers: request.headers as HttpHeaders,
+            rawBody: Express.coerceBody(request.body),
+            rawQuery: URL.parse(request.originalUrl)?.search ?? ""
+        }
+    }
+
+    public static toResult(response: SerializedHttpResponse, registry: AttachmentRegistry): void {
+        const res = registry.getAssert(Express.ExpressResponseKey)
+        res.writeHead(+response.statusCode, response.headers)
+        res.end(response.body)
+    }
+
+    private static coerceBody(body: unknown): Buffer {
+        if (body == null) return Buffer.alloc(0)
+        if (Buffer.isBuffer(body)) return body
+        if (typeof body === "string") return Buffer.from(body, "utf8")
+        return Buffer.from(JSON.stringify(body), "utf8")
+    }
+}
+
 
 export async function startLocalServer(chain: Nornir<UnparsedHttpEvent, SerializedHttpResponse>, port = 8080) {
     const handler = chain.build();
