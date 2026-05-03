@@ -1,7 +1,7 @@
 {
   "name": "@nornir/rest",
   "description": "A nornir library",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "dependencies": {
     "@nornir/core": "workspace:^",
     "@types/aws-lambda": "^8.10.161",
