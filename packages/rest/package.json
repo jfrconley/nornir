@@ -9,6 +9,9 @@
     "json-schema-to-ts": "^3.1.0",
     "trouter": "^3.2.1"
   },
+  "repository": {
+    "url": "https://github.com/jfrconley/nornir"
+  },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.14",

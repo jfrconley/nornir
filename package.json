@@ -39,7 +39,9 @@
   "license": "MIT",
   "packageManager": "pnpm@10.33.2",
   "private": true,
-  "repository": "nrfcloud/account-service",
+  "repository": {
+    "url": "https://github.com/jfrconley/nornir"
+  },
   "scripts": {
     "clean": "rm -rf coverage reports node_modules/.cache/turbo && pnpm clean:turbo && pnpm turbo clean:single",
     "clean:turbo": "rm -rf node_modules/.cache/turbo",

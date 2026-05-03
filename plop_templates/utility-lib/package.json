@@ -61,5 +61,7 @@
     "test": "pnpm tests"
   },
   "type": "module",
-"repository": "nrfcloud/account-service"
+"repository": {
+    "url": "https://github.com/jfrconley/nornir"
+  }
 }

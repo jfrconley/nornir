@@ -25,7 +25,9 @@
     "dist"
   ],
   "license": "MIT",
-  "repository": "nrfcloud/account-service",
+  "repository": {
+    "url": "https://github.com/jfrconley/nornir"
+  },
   "scripts": {
     "//10": "The following scripts are also available from the scripts package",
     "//20": "You can also override them by specifying them here",
