@@ -1,15 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": "./src",
-    "plugins": [
-      {
-        "transform": "@nrfcloud/ts-json-schema-transformer/dist/transform"
-      },
-      {
-        "transform": "@nornir/rest/transform"
-      }
-    ],
     "outDir": "dist",
     "rootDir": "src",
     "composite": false,

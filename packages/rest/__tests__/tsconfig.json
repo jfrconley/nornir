@@ -2,12 +2,6 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "pretty": true,
-    "plugins": [
-      {
-        "transform": "../dist/transform/transform.js"
-      }
-    ],
-    "baseUrl": ".",
     "outDir": "dist",
     "rootDir": "src",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",

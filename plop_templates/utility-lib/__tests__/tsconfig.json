@@ -2,8 +2,6 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "pretty": true,
-
-    "baseUrl": ".",
     "outDir": "dist",
     "rootDir": "src",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
@@ -13,9 +11,6 @@
       "node"
     ],
     "paths": {
-      "@nrfcloud/utils-public.aws/*": [
-        "../dist"
-      ]
     }
   },
   "include": [

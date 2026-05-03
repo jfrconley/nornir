@@ -16,15 +16,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Inject slug/short variables
-        uses: rlespinasse/github-slug-action@v3.x
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 9.7.0
+        uses: rlespinasse/github-slug-action@v5
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
-          node-version: 18.x
+          node-version: 22
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
       - name: Prepare

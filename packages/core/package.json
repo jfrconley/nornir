@@ -4,15 +4,13 @@
   "version": "1.6.1",
   "author": "John Conley",
   "devDependencies": {
-    "@jest/globals": "^29.5.0",
-    "@nrfcloud/ts-json-schema-transformer": "^2.0.1",
-    "@types/jest": "^29.4.0",
-    "@types/node": "^18.15.11",
-    "esbuild": "^0.17.18",
-    "eslint": "^8.45.0",
-    "jest": "^29.5.0",
-    "ts-patch": "^3.2.1",
-    "typescript": "^5.5.4"
+    "@jest/globals": "^29.7.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.19.17",
+    "esbuild": "^0.28.0",
+    "eslint": "^10.3.0",
+    "jest": "^29.7.0",
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">=18.0.0",
@@ -52,7 +50,6 @@
     "compile:single:cjs": "esbuild --bundle dist/index.js --target=node18 --platform=node --outdir=dist --format=cjs --out-extension:.js=.cjs --packages=external --minify --log-level=error",
     "compile:single:tests": "tsc -p __tests__/tsconfig.json",
     "compile:single:watch": "pnpm compile:single --incremental -w & pnpm compile:single:tests -w --incremental",
-    "prepare": "patch-typescript",
     "test": "pnpm tests"
   },
   "type": "module"

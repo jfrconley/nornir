@@ -3,7 +3,6 @@
   "compilerOptions": {
     "pretty": true,
     "incremental": false,
-    "baseUrl": ".",
     "outDir": "dist",
     "rootDir": "src",
     "esModuleInterop": true,
@@ -12,9 +11,6 @@
       "node"
     ],
     "paths": {
-      "@nrfcloud/utils-public.aws/*": [
-        "../dist"
-      ]
     }
   },
   "include": [

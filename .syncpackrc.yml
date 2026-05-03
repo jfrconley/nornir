@@ -1,7 +1,7 @@
-dependencyTypes:
-  - dev
-  - overrides
-  - peer
-  - pnpmOverrides
-  - prod
-  - resolutions
+#dependencyTypes:
+#  - dev
+#  - overrides
+#  - peer
+#  - pnpmOverrides
+#  - prod
+#  - resolutions

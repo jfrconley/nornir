@@ -1,5 +1,5 @@
 import {HttpEvent, HttpHeaders, MimeType, UnparsedHttpEvent} from "./http-event.mjs";
-import debug from "debug"
+import {debug} from "node:util";
 
 export function getContentType(headers: HttpHeaders): MimeType | undefined {
     return (normalizeHeaders(headers))["content-type"] as MimeType
@@ -60,7 +60,6 @@ type ResolveRefInJsonObject<
     Ref extends string,
 > = DeepPick<Root, ReferenceToPath<Ref>>
 
-/* eslint-disable @typescript-eslint/ban-types */
 export type DeeplyResolveAllRefsInJsonObject<
     Root,
     Object = Root,
@@ -113,4 +112,3 @@ function resolveRefInJsonObject<
     }
     return current as DeepPick<Root, ReferenceToPath<Ref>>;
 }
-/* eslint-enable @typescript-eslint/ban-types */

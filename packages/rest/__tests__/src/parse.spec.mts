@@ -14,6 +14,7 @@ describe("Parsing", () => {
             rawQuery: ""
         }
 
+
         expect(() => parser(event)).toThrow(NornirRestParseError)
     })
 })

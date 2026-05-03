@@ -83,7 +83,6 @@ class _Ok<T, E extends Error> extends _Result<T, E> {
 
   protected _chain<X, U extends Error>(
     ok: (value: T) => Result<X, U>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _err: (error: E) => Result<X, U>,
   ): Result<X, U> {
     return ok(this.value);
