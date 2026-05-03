@@ -1,5 +1,11 @@
 # @nornir/rest
 
+## 3.1.0
+
+### Minor Changes
+
+- 0a4d39f: add express converter
+
 ## 3.0.0
 
 ### Major Changes
