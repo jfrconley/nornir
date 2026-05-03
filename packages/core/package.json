@@ -14,7 +14,6 @@
   },
   "engines": {
     "node": ">=18.0.0",
-    "npm": "please use pnpm",
     "pnpm": ">=6.32.4"
   },
   "exports": {
