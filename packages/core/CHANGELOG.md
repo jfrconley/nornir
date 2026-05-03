@@ -1,5 +1,11 @@
 # @nornir/core
 
+## 1.7.1
+
+### Patch Changes
+
+- 1cdeb9f: remove pnpm installation requirement
+
 ## 1.7.0
 
 ### Minor Changes
