@@ -1,7 +1,7 @@
 import {describe, expect, it} from "@jest/globals";
 import express from "express";
 import request from "supertest";
-import {Express, expressMiddleware, OpenAPIRouter, OpenAPIV3_1} from "../../dist/runtime/index.mjs";
+import {Express, OpenAPIRouter, OpenAPIV3_1} from "../../dist/runtime/index.mjs";
 
 const TestSpec = {
     openapi: "3.0.3",
@@ -77,7 +77,7 @@ function makeRouter() {
 function makeApp() {
     const app = express();
     app.use(express.json());
-    app.use(expressMiddleware(makeRouter()));
+    app.use(Express.toMiddleware(makeRouter()));
     return app;
 }
 
@@ -129,7 +129,7 @@ describe("Express middleware", () => {
 
         const app = express();
         app.use(express.json());
-        app.use(expressMiddleware(router));
+        app.use(Express.toMiddleware(router));
 
         const res = await request(app)
             .post("/echo/xyz")
