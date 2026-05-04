@@ -2,6 +2,7 @@ import {AttachmentRegistry, nornir, Nornir} from "@nornir/core";
 import type {APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2} from "aws-lambda";
 import {HttpHeaders, HttpMethod, SerializedHttpResponse, UnparsedHttpEvent} from "../http-event.mjs";
 import {OpenAPIRouter} from "../../openapi-router/index.mjs";
+import {OpenAPIV3_1} from "../../openapi-router/spec.mjs";
 import {ErrorMapping} from "../error.mjs";
 import {openAPIChain} from "../../index.mjs";
 
@@ -37,7 +38,7 @@ export abstract class ApiGatewayProxyV2 {
         }
     }
 
-    public static toChain<T>(router: OpenAPIRouter<T>, errorMappings?: ErrorMapping[]): Nornir<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2> {
+    public static toChain<T extends OpenAPIV3_1.Document>(router: OpenAPIRouter<T>, errorMappings?: ErrorMapping[]): Nornir<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2> {
         return nornir<APIGatewayProxyEventV2>()
             .use(this.toHttpEvent)
             .useChain(openAPIChain(router, errorMappings))

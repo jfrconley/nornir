@@ -29,6 +29,7 @@ router.implementRoute("/destination", "post", chain =>
       headers: {},
       body: {
         errors: [],
+        set: "2",
         createdAt: new Date().toISOString(),
         isEnabled: true,
         name: "test",
@@ -40,8 +41,48 @@ router.implementRoute("/destination", "post", chain =>
           url: "https://example.com",
         },
       },
-    };
+    } as const;
   }));
+
+router.implementRouteFn("/destination", "post", req => {
+  return {
+    contentType: "application/json",
+    statusCode: "201",
+    headers: {},
+    body: {
+      errors: [],
+      createdAt: new Date().toISOString(),
+      isEnabled: true,
+      name: "yay",
+      config: {
+        url: "htest",
+        verifySsl: true,
+        type: "http",
+      },
+      id: "123",
+    },
+  } as const;
+});
+
+router.implementRouteFn("/destination/{destinationId}", "patch", async req => {
+  return {
+    contentType: "application/json",
+    statusCode: "200",
+    body: {
+      errors: [],
+      createdAt: new Date().toISOString(),
+      isEnabled: true,
+      name: "yay",
+      config: {
+        url: "htest",
+        verifySsl: true,
+        type: "http",
+      },
+      id: "123",
+    },
+    headers: {},
+  };
+});
 
 export const handler: APIGatewayProxyHandlerV2 = nornir<APIGatewayProxyEventV2>()
   .use(ApiGatewayProxyV2.toHttpEvent)

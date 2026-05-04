@@ -2,7 +2,7 @@ import {OpenAPIV3_1} from "./spec.mjs"
 import {FromSchema} from "json-schema-to-ts"
 import {DeeplyResolveAllRefsInJsonObject} from "../shared/utils.mjs";
 
-export type DereferenceSpec<T> = DeeplyResolveAllRefsInJsonObject<T> & OpenAPIV3_1.Document
+export type DereferenceSpec<T extends OpenAPIV3_1.Document> = DeeplyResolveAllRefsInJsonObject<T>
 
 export type OpenAPIHttpMethods = "get" | "post" | "put" | "delete" | "options" | "head" | "patch" | "trace"
 
@@ -13,27 +13,27 @@ export type UnionIntersection<
 > = T extends U ? U extends T ? T : never : never
 
 export type OperationFromDocument<
-    Document extends OpenAPIV3_1.Document,
+    Document extends { paths?: unknown },
     Path extends DocumentPaths<Document>,
     Method extends DocumentMethods<Document, Path>,
 > = NonNullable<NonNullable<NonNullable<Document["paths"]>[Path]>[Method]>
 
 export type DocumentPaths<
-    Document extends OpenAPIV3_1.Document
+    Document extends { paths?: unknown }
 > = keyof NonNullable<Document["paths"]>
 
 export type DocumentMethods<
-    Document extends OpenAPIV3_1.Document,
+    Document extends { paths?: unknown },
     Path extends keyof NonNullable<Document["paths"]>,
-> = UnionIntersection<keyof NonNullable<NonNullable<Document["paths"]>[Path]>, OpenAPIHttpMethods>
+> = keyof NonNullable<NonNullable<Document["paths"]>[Path]>
 
-type ArrayToUnion<T extends unknown[]> = T[number]
+type ArrayToUnion<T> = T extends readonly (infer U)[] ? U : never
 
 /**
  * Return a type with parameters filtered by the `in` property
  */
 type FilterParametersByIn<
-    Parameters extends OpenAPIV3_1.ParameterObject | OpenAPIV3_1.ReferenceObject,
+    Parameters,
     In extends OpenAPIV3_1.ParameterObject["in"]
 > = Parameters extends { in: In } ? Parameters : never
 
@@ -45,88 +45,101 @@ type UndefinedProps<T extends object> = {
 type MakeOptional<T extends object> = UndefinedProps<T> & Omit<T, keyof UndefinedProps<T>>
 
 type RequestParameterObjectKeys<
-    Parameters extends OpenAPIV3_1.ParameterObject
+    Parameters
 > = Parameters extends { name: infer Name } ? Name : never
 
 type RequestRequiredParameters<
-    Parameters extends OpenAPIV3_1.ParameterObject
+    Parameters
 > = Parameters extends { required: true } ? Parameters : never
 
 type RequestOptionalParameters<
-    Parameters extends OpenAPIV3_1.ParameterObject
+    Parameters
 > = Parameters extends { required?: false } ? Parameters : never
 
 type ParameterSchemaToType<
-    Parameter extends OpenAPIV3_1.ParameterObject
-> = FromSchema<NonNullable<Parameter["schema"]>>
+    Parameter
+> = Parameter extends { schema?: infer S } ? FromSchema<NonNullable<S>> : never
 
 type RequestParameterObject<
-    Parameters extends OpenAPIV3_1.ParameterObject,
-    RequiredParameters extends OpenAPIV3_1.ParameterObject = RequestRequiredParameters<Parameters>,
-    OptionalParameters extends OpenAPIV3_1.ParameterObject = RequestOptionalParameters<Parameters>
+    Parameters,
+    RequiredParameters = RequestRequiredParameters<Parameters>,
+    OptionalParameters = RequestOptionalParameters<Parameters>
 > = {
-    [K in RequestParameterObjectKeys<RequiredParameters>]: Parameters extends { name: K } ? ParameterSchemaToType<Parameters> : never
+    [K in RequestParameterObjectKeys<RequiredParameters> & PropertyKey]: Parameters extends { name: K } ? ParameterSchemaToType<Parameters> : never
 } & {
-    [K in RequestParameterObjectKeys<OptionalParameters>]?: Parameters extends { name: K } ? ParameterSchemaToType<Parameters> : never
+    [K in RequestParameterObjectKeys<OptionalParameters> & PropertyKey]?: Parameters extends { name: K } ? ParameterSchemaToType<Parameters> : never
 }
 
 type GetParametersFromOperation<
-    Operation extends OpenAPIV3_1.OperationObject,
+    Operation,
     In extends OpenAPIV3_1.ParameterObject["in"]
-> = RequestParameterObject<FilterParametersByIn<ArrayToUnion<NonNullable<Operation["parameters"]>>, In>>
+> = Operation extends { parameters?: infer P }
+    ? RequestParameterObject<FilterParametersByIn<ArrayToUnion<NonNullable<P>>, In>>
+    : RequestParameterObject<never>
 
 
 export type BaseRequestTypeFromOperation<
-    Operation extends OpenAPIV3_1.OperationObject,
+    Operation,
 > = {
     headers: GetParametersFromOperation<Operation, "header">,
     query: GetParametersFromOperation<Operation, "query">,
     pathParams: GetParametersFromOperation<Operation, "path">,
 }
 
+type RequestBodyContent<Operation> =
+    Operation extends { requestBody?: infer RB }
+        ? RB extends OpenAPIV3_1.ReferenceObject ? never
+        : RB extends { content?: infer C } ? C : never
+        : never
+
+type IsRequestBodyRequired<Operation> =
+    Operation extends { requestBody?: infer RB }
+        ? RB extends { required: true } ? true : false
+        : false
+
 export type RequestBodyToRequestTypeUnion<
-    Operation extends OpenAPIV3_1.OperationObject,
-    MappedContent extends MapRequestBodyContentToTypeUnion<NonNullable<Exclude<Operation["requestBody"], OpenAPIV3_1.ReferenceObject>>["content"]> = MapRequestBodyContentToTypeUnion<NonNullable<Exclude<Operation["requestBody"], OpenAPIV3_1.ReferenceObject>>["content"]>
-> = NonNullable<Operation["requestBody"]> extends { required: true } ?
+    Operation,
+    MappedContent = MapRequestBodyContentToTypeUnion<RequestBodyContent<Operation>>
+> = IsRequestBodyRequired<Operation> extends true ?
     MappedContent extends { "content-type": string, schema: OpenAPIV3_1.SchemaObject } ?
         { contentType: MappedContent["content-type"], body: FromSchema<MakeOptional<MappedContent["schema"]>> } : never :
     MappedContent extends { "content-type": string, schema: OpenAPIV3_1.SchemaObject } ?
         { contentType: MappedContent["content-type"], body?: FromSchema<MakeOptional<MappedContent["schema"]>> } : never
 
 export type RequestTypeFromOperation<
-    Operation extends OpenAPIV3_1.OperationObject,
+    Operation,
 > = RequestBodyToRequestTypeUnion<Operation> extends never ?
     BaseRequestTypeFromOperation<Operation> :
     BaseRequestTypeFromOperation<Operation> & RequestBodyToRequestTypeUnion<Operation>;
 
 type MapRequestBodyContentToTypeUnion<
-    RequestBodyContent extends OpenAPIV3_1.RequestBodyObject["content"]
+    RequestBodyContent
 > = {
     [K in keyof RequestBodyContent]: RequestBodyContent[K] & { "content-type": K }
 } extends {[K: string]: infer U} ? U : never;
 
 type MapResponseStatusCodesToTypeUnion<
-    Responses extends OpenAPIV3_1.ResponsesObject
+    Responses
 > = {
     [K in keyof Responses]: Responses[K] & { statusCode: K }
 } extends {[K: string]: infer U} ? U : never;
 
 type MapResponseBodyContentToTypeUnion<
-    ResponseBodyContent extends OpenAPIV3_1.ResponseObject["content"]
+    ResponseBodyContent
 > = {
     [K in keyof ResponseBodyContent]: ResponseBodyContent[K] & { "contentType": K }
 } extends {[K: string]: infer U} ? U : never;
 
 type ResponseContentToResponseContentTypeUnion<
-    Response extends OpenAPIV3_1.ResponseObject,
-    MappedContent extends MapResponseBodyContentToTypeUnion<NonNullable<Response["content"]>> = MapResponseBodyContentToTypeUnion<NonNullable<Response["content"]>>
+    Response,
+    MappedContent = Response extends { content?: infer C } ? MapResponseBodyContentToTypeUnion<NonNullable<C>> : never
 > = MappedContent extends { "contentType": string, schema: OpenAPIV3_1.SchemaObject } ?
     { contentType: MappedContent["contentType"], body: FromSchema<MakeOptional<MappedContent["schema"]>> } : never
 
 type ResponsesToResponseTypeUnion<
-    Responses extends OpenAPIV3_1.ResponsesObject,
-    MappedContent extends MapResponseStatusCodesToTypeUnion<Responses> = MapResponseStatusCodesToTypeUnion<Responses>
-> = MappedContent extends { statusCode: string } & OpenAPIV3_1.ResponseObject ?
+    Responses,
+    MappedContent = MapResponseStatusCodesToTypeUnion<Responses>
+> = MappedContent extends { statusCode: string } ?
        ResponseContentToResponseContentTypeUnion<MappedContent> extends never ?
            ResponseHeadersToTypeUnion<MappedContent> & { statusCode: MappedContent["statusCode"] } :
        ResponseContentToResponseContentTypeUnion<MappedContent> &
@@ -135,25 +148,32 @@ type ResponsesToResponseTypeUnion<
     : never
 
 export type ResponseTypeFromOperation<
-    Operation extends OpenAPIV3_1.OperationObject
-> = ResponsesToResponseTypeUnion<NonNullable<Operation["responses"]>>
+    Operation
+> = Operation extends { responses?: infer R } ? ResponsesToResponseTypeUnion<NonNullable<R>> : never
+
+type HeaderSchemaType<H, K extends PropertyKey> =
+    H extends Record<PropertyKey, unknown>
+        ? K extends keyof H
+            ? NonNullable<H[K]> extends { schema?: infer S } ? FromSchema<MakeOptional<NonNullable<S>>> : never
+            : never
+        : never
 
 type ResponseHeadersToTypeUnion<
-    Response extends OpenAPIV3_1.ResponseObject
-> = Response extends { headers: Record<string, OpenAPIV3_1.HeaderObject>} ? {
+    Response
+> = Response extends { headers: infer H } ? {
     headers: {
-        [K in ResponseHeadersRequiredKeys<Response["headers"]>]: FromSchema<MakeOptional<NonNullable<NonNullable<NonNullable<Response["headers"]>[K]>["schema"]>>>
+        [K in ResponseHeadersRequiredKeys<H> & PropertyKey]: HeaderSchemaType<H, K>
     } & {
-        [K in ResponseHeadersOptionalKeys<Response["headers"]>]?: FromSchema<MakeOptional<NonNullable<NonNullable<NonNullable<Response["headers"]>[K]>["schema"]>>>
+        [K in ResponseHeadersOptionalKeys<H> & PropertyKey]?: HeaderSchemaType<H, K>
     }
 } : { headers: Record<string, never>};
 
 type ResponseHeadersRequiredKeys<
-    Headers extends OpenAPIV3_1.ResponseObject["headers"],
+    Headers,
     HeaderKeys extends keyof Headers = keyof Headers
 > = Headers[HeaderKeys] extends { required: true } ? HeaderKeys : never
 
 type ResponseHeadersOptionalKeys<
-    Headers extends OpenAPIV3_1.ResponseObject["headers"],
+    Headers,
     HeaderKeys extends keyof Headers = keyof Headers
 > = Headers[HeaderKeys] extends { required?: false } ? HeaderKeys : never

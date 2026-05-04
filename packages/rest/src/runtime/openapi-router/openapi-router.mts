@@ -27,8 +27,7 @@ type RouteKey = `${HttpMethod}:${string}`
 
 
 export class OpenAPIRouter<
-    const InputSpec,
-    const Spec extends OpenAPIV3_1.Document = DereferenceSpec<InputSpec>
+    const InputSpec extends OpenAPIV3_1.Document,
 > {
     private validator = addFormatsAjv(new Ajv.default({
         allErrors: true,
@@ -48,11 +47,11 @@ export class OpenAPIRouter<
         requestValidator: ValidateFunction
     }> = new Map()
 
-    private _resolvedSpec: Spec | undefined;
+    private _resolvedSpec: DereferenceSpec<InputSpec> | undefined;
 
     public get resolvedSpec() {
         if (this._resolvedSpec == null) {
-            this._resolvedSpec = simpleSpecResolve(this.spec) as Spec;
+            this._resolvedSpec = simpleSpecResolve(this.spec) as DereferenceSpec<InputSpec>;
         }
         return this._resolvedSpec;
     }
@@ -66,7 +65,7 @@ export class OpenAPIRouter<
             return this.operationCache.get(key)!;
         }
 
-        const operation = this.resolvedSpec.paths?.[path as keyof Spec["paths"]]?.[method.toLowerCase() as OpenAPIHttpMethods];
+        const operation = this.resolvedSpec.paths?.[path as string]?.[method.toLowerCase() as OpenAPIHttpMethods] as OpenAPIV3_1.OperationObject | undefined;
 
         if (operation == null) {
             throw new Error(`Operation ${method}:${path} not found`);
@@ -179,17 +178,34 @@ export class OpenAPIRouter<
     }
 
     public implementRoute<
-        const Path extends keyof NonNullable<Spec["paths"]>,
-        const Method extends UnionIntersection<keyof NonNullable<NonNullable<Spec["paths"]>[Path]>, OpenAPIHttpMethods>,
-        Operation extends OpenAPIV3_1.OperationObject = OperationFromDocument<Spec, Path, Method>,
+        const Path extends keyof NonNullable<DereferenceSpec<InputSpec>["paths"]>,
+        const Method extends keyof NonNullable<NonNullable<DereferenceSpec<InputSpec>["paths"]>[Path]>,
+        Operation = OperationFromDocument<DereferenceSpec<InputSpec>, Path, Method>,
         InputType = RequestTypeFromOperation<Operation>,
         ResponseType = ResponseTypeFromOperation<Operation>,
         Handler extends (chain: Nornir<NoInfer<InputType>>) => Nornir<NoInfer<InputType>, NoInfer<ResponseType>> = (chain: Nornir<NoInfer<InputType>>) => Nornir<NoInfer<InputType>, NoInfer<ResponseType>>
     >(path: Path, method: Method, handler: NoInfer<Handler>) {
         const route = {
             path: path as string,
-            method: method.toUpperCase() as HttpMethod,
+            method: (method as string).toUpperCase() as HttpMethod,
             handler: handler as unknown as GenericRouteBuilder,
+        };
+        debugLog(`Implemented route ${route.method}:${route.path}`);
+        this.routes.push(route);
+    }
+
+    public implementRouteFn<
+        const Path extends keyof NonNullable<DereferenceSpec<InputSpec>["paths"]>,
+        const Method extends keyof NonNullable<NonNullable<DereferenceSpec<InputSpec>["paths"]>[Path]>,
+        Operation = OperationFromDocument<DereferenceSpec<InputSpec>, Path, Method>,
+        InputType = RequestTypeFromOperation<Operation>,
+        ResponseType = ResponseTypeFromOperation<Operation>,
+        Handler extends (req: InputType, registry: AttachmentRegistry) => ResponseType | Promise<ResponseType> = (req: InputType, registry: AttachmentRegistry) => ResponseType | Promise<ResponseType>
+    >(path: Path, method: Method, handler: NoInfer<Handler>) {
+        const route = {
+            path: path as string,
+            method: (method as string).toUpperCase() as HttpMethod,
+            handler: ((chain: Nornir<InputType>) => chain.use(handler)) as unknown as GenericRouteBuilder,
         };
         debugLog(`Implemented route ${route.method}:${route.path}`);
         this.routes.push(route);

@@ -805,4 +805,469 @@ describe("OpenAPI Router", () => {
         expect(() => OpenAPIRouter.merge(TestSpec, router1, router2).build())
             .toThrow("Route POST:/root/basepath/route/{reallyCool} is implemented more than once")
     })
+
+    it("Should process a basic request with implementRouteFn", async () => {
+        const router = OpenAPIRouter.fromSpec(TestSpec);
+
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "post", (request, _registry) => {
+            return {
+                statusCode: "200",
+                headers: {
+                    reallyCool: request.pathParams.reallyCool,
+                },
+            } as const
+        })
+
+        const chain = router.build();
+
+        const response = await chain({
+            method: "POST",
+            path: "/root/basepath/route/true",
+            headers: {
+                "content-type": "application/json",
+            },
+            query: {},
+            body: {
+                cool: "truess",
+            },
+        }, new AttachmentRegistry())
+
+        expect(response).toMatchObject({
+            statusCode: "200",
+            headers: {
+                reallyCool: "true",
+            },
+        })
+    })
+
+    it("Should not process an invalid request with implementRouteFn", async () => {
+        const router = OpenAPIRouter.fromSpec(TestSpec);
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "post", (request, _registry) => {
+            return {
+                statusCode: "200",
+                headers: {
+                    reallyCool: request.pathParams.reallyCool,
+                },
+            } as const
+        })
+
+        const chain = router.build();
+
+        await expect(chain({
+            method: "POST",
+            path: "/root/basepath/route/true",
+            headers: {
+                "content-type": "application/json",
+            },
+            query: {},
+            body: {
+                cool: "tr",
+            },
+        }, new AttachmentRegistry())).rejects.toMatchObject({
+            errors: expect.arrayContaining([
+                expect.objectContaining({
+                    instancePath: "/body/cool",
+                    keyword: "minLength",
+                }),
+            ]),
+        })
+    })
+
+    it("Should pass the attachment registry to implementRouteFn handler", async () => {
+        const router = OpenAPIRouter.fromSpec(TestSpec);
+        const key = AttachmentRegistry.createKey<string>();
+
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "post", (request, registry) => {
+            registry.put(key, "set-by-handler")
+            return {
+                statusCode: "200",
+                headers: {
+                    reallyCool: request.pathParams.reallyCool,
+                },
+            } as const
+        })
+
+        const chain = router.build();
+        const registry = new AttachmentRegistry();
+
+        await chain({
+            method: "POST",
+            path: "/root/basepath/route/true",
+            headers: {
+                "content-type": "application/json",
+            },
+            query: {},
+            body: {
+                cool: "truess",
+            },
+        }, registry)
+
+        expect(registry.get(key)).toBe("set-by-handler")
+    })
+
+    it("Should support implementRouteFn with merge", async () => {
+        const router1 = OpenAPIRouter.fromSpec(TestSpec);
+        router1.implementRouteFn("/root/basepath/route/{reallyCool}", "post", (request, _registry) => {
+            return {
+                statusCode: "200",
+                headers: {
+                    reallyCool: request.pathParams.reallyCool,
+                },
+            } as const
+        })
+
+        const router2 = OpenAPIRouter.fromSpec(TestSpec);
+        router2.implementRouteFn("/root/basepath/route/{reallyCool}", "get", (_request, _registry) => {
+            return {
+                statusCode: "200",
+                headers: {
+                    "content-type": "application/json",
+                },
+                body: {
+                    bleep: "bleep",
+                    bloop: 5,
+                },
+                contentType: "application/json",
+            } as const
+        })
+
+        const chain = OpenAPIRouter.merge(TestSpec, router1, router2).build();
+
+        await expect(chain({
+            method: "POST",
+            path: "/root/basepath/route/true",
+            headers: {
+                "content-type": "application/json",
+            },
+            query: {},
+            body: {
+                cool: "truess",
+            },
+        }, new AttachmentRegistry())).resolves.toMatchObject({
+            statusCode: "200",
+            headers: {
+                reallyCool: "true",
+            },
+        })
+
+        await expect(chain({
+            method: "GET",
+            path: "/root/basepath/route/trues",
+            headers: {},
+            query: {},
+            body: {},
+        }, new AttachmentRegistry())).resolves.toMatchObject({
+            statusCode: "200",
+            headers: {
+                "content-type": "application/json",
+            },
+            body: {
+                bleep: "bleep",
+                bloop: 5,
+            },
+        })
+    })
+
+    it("Should process a basic request with an async implementRouteFn handler", async () => {
+        const router = OpenAPIRouter.fromSpec(TestSpec);
+
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "post", async (request, _registry) => {
+            await new Promise(resolve => setImmediate(resolve));
+            return {
+                statusCode: "200",
+                headers: {
+                    reallyCool: request.pathParams.reallyCool,
+                },
+            } as const
+        })
+
+        const chain = router.build();
+
+        const response = await chain({
+            method: "POST",
+            path: "/root/basepath/route/true",
+            headers: {
+                "content-type": "application/json",
+            },
+            query: {},
+            body: {
+                cool: "truess",
+            },
+        }, new AttachmentRegistry())
+
+        expect(response).toMatchObject({
+            statusCode: "200",
+            headers: {
+                reallyCool: "true",
+            },
+        })
+    })
+
+    it("Should surface errors thrown from an async implementRouteFn handler", async () => {
+        const router = OpenAPIRouter.fromSpec(TestSpec);
+
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "post", async (_request, _registry) => {
+            await new Promise(resolve => setImmediate(resolve));
+            throw new Error("async handler boom");
+        })
+
+        const chain = router.build();
+
+        await expect(chain({
+            method: "POST",
+            path: "/root/basepath/route/true",
+            headers: {
+                "content-type": "application/json",
+            },
+            query: {},
+            body: {
+                cool: "truess",
+            },
+        }, new AttachmentRegistry())).rejects.toThrow("async handler boom")
+    })
+
+    it("Should await an async implementRouteFn handler before returning", async () => {
+        const router = OpenAPIRouter.fromSpec(TestSpec);
+        let completed = false;
+
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "post", async (request, _registry) => {
+            await new Promise(resolve => setTimeout(resolve, 10));
+            completed = true;
+            return {
+                statusCode: "200",
+                headers: {
+                    reallyCool: request.pathParams.reallyCool,
+                },
+            } as const
+        })
+
+        const chain = router.build();
+
+        const responsePromise = chain({
+            method: "POST",
+            path: "/root/basepath/route/true",
+            headers: {
+                "content-type": "application/json",
+            },
+            query: {},
+            body: {
+                cool: "truess",
+            },
+        }, new AttachmentRegistry())
+
+        expect(completed).toBe(false);
+        await responsePromise;
+        expect(completed).toBe(true);
+    })
+
+    it("Should support async implementRouteFn handlers across merged routers", async () => {
+        const router1 = OpenAPIRouter.fromSpec(TestSpec);
+        router1.implementRouteFn("/root/basepath/route/{reallyCool}", "post", async (request, _registry) => {
+            await new Promise(resolve => setImmediate(resolve));
+            return {
+                statusCode: "200",
+                headers: {
+                    reallyCool: request.pathParams.reallyCool,
+                },
+            } as const
+        })
+
+        const router2 = OpenAPIRouter.fromSpec(TestSpec);
+        router2.implementRouteFn("/root/basepath/route/{reallyCool}", "get", async (_request, _registry) => {
+            await new Promise(resolve => setImmediate(resolve));
+            return {
+                statusCode: "200",
+                headers: {
+                    "content-type": "application/json",
+                },
+                body: {
+                    bleep: "bleep",
+                    bloop: 5,
+                },
+                contentType: "application/json",
+            } as const
+        })
+
+        const chain = OpenAPIRouter.merge(TestSpec, router1, router2).build();
+
+        await expect(chain({
+            method: "GET",
+            path: "/root/basepath/route/trues",
+            headers: {},
+            query: {},
+            body: {},
+        }, new AttachmentRegistry())).resolves.toMatchObject({
+            statusCode: "200",
+            body: {
+                bleep: "bleep",
+                bloop: 5,
+            },
+        })
+    })
+
+    it("Should not allow implementing the same route twice with implementRouteFn", () => {
+        const router = OpenAPIRouter.fromSpec(TestSpec);
+
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "post", (request, _registry) => {
+            return {
+                statusCode: "200",
+                headers: {
+                    reallyCool: request.pathParams.reallyCool,
+                },
+            } as const
+        })
+
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "post", (request, _registry) => {
+            return {
+                statusCode: "200",
+                headers: {
+                    reallyCool: request.pathParams.reallyCool,
+                },
+            } as const
+        })
+
+        expect(() => router.build())
+            .toThrow("Route POST:/root/basepath/route/{reallyCool} is implemented more than once")
+    })
+
+    // This test never executes its body — it exists purely so the TypeScript
+    // compiler asserts that improper handler responses, paths, and methods
+    // are rejected via @ts-expect-error directives. If any expected error
+    // disappears, compilation will fail.
+    it.skip("Should typecheck handler responses for implementRouteFn", () => {
+        const router = OpenAPIRouter.fromSpec(TestSpec);
+
+        // Sanity check: a fully valid GET 200 response compiles with no errors.
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "get", (_request, _registry) => {
+            return {
+                statusCode: "200",
+                headers: {
+                    "content-type": "application/json",
+                },
+                body: {
+                    bleep: "bleep",
+                    bloop: 5,
+                },
+                contentType: "application/json",
+            } as const
+        })
+
+        // Sanity check: a valid POST 200 response compiles with no errors.
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "post", (_request, _registry) => {
+            return {
+                statusCode: "200",
+                headers: {},
+            } as const
+        })
+
+        // @ts-expect-error - statusCode "999" is not declared in the spec
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "post", (_request, _registry) => {
+            return {
+                statusCode: "999",
+                headers: {},
+            } as const
+        })
+
+        // @ts-expect-error - bloop must be a number per the spec schema
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "get", (_request, _registry) => {
+            return {
+                statusCode: "200",
+                headers: {
+                    "content-type": "application/json",
+                },
+                body: {
+                    bleep: "bleep",
+                    bloop: "not-a-number",
+                },
+                contentType: "application/json",
+            } as const
+        })
+
+        // @ts-expect-error - GET 200 requires a body, omitting it is invalid
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "get", (_request, _registry) => {
+            return {
+                statusCode: "200",
+                headers: {
+                    "content-type": "application/json",
+                },
+                contentType: "application/json",
+            } as const
+        })
+
+        // @ts-expect-error - content-type response header must be "application/json"
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "get", (_request, _registry) => {
+            return {
+                statusCode: "200",
+                headers: {
+                    "content-type": "text/plain",
+                },
+                body: {
+                    bleep: "bleep",
+                    bloop: 5,
+                },
+                contentType: "application/json",
+            } as const
+        })
+
+        // @ts-expect-error - contentType discriminator must be "application/json"
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "get", (_request, _registry) => {
+            return {
+                statusCode: "200",
+                headers: {
+                    "content-type": "application/json",
+                },
+                body: {
+                    bleep: "bleep",
+                    bloop: 5,
+                },
+                contentType: "text/plain",
+            } as const
+        })
+
+        // @ts-expect-error - "/nonexistent/path" is not a path in the spec
+        router.implementRouteFn("/nonexistent/path", "get", (_request, _registry) => {
+            return {
+                statusCode: "200",
+                headers: {},
+            } as const
+        })
+
+        // @ts-expect-error - "patch" is not declared on this path in the spec
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "patch", (_request, _registry) => {
+            return {
+                statusCode: "200",
+                headers: {},
+            } as const
+        })
+
+        // Request type narrowing: pathParams.reallyCool exists, foo does not.
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "post", (request, _registry) => {
+            // @ts-expect-error - "foo" is not a declared path parameter
+            const _foo: string = request.pathParams.foo
+            return {
+                statusCode: "200",
+                headers: {
+                    reallyCool: request.pathParams.reallyCool,
+                },
+            } as const
+        })
+
+        // Sanity check: a valid async handler compiles.
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "post", async (request, _registry) => {
+            return {
+                statusCode: "200",
+                headers: {
+                    reallyCool: request.pathParams.reallyCool,
+                },
+            } as const
+        })
+
+        // @ts-expect-error - async handler returning an invalid statusCode is also rejected
+        router.implementRouteFn("/root/basepath/route/{reallyCool}", "post", async (_request, _registry) => {
+            return {
+                statusCode: "999",
+                headers: {},
+            } as const
+        })
+    })
 })

@@ -9,17 +9,6 @@
     "json-schema-to-ts": "^3.1.0",
     "trouter": "^3.2.1"
   },
-  "peerDependencies": {
-    "express": "^5.2.1"
-  },
-  "peerDependenciesMeta": {
-    "express": {
-      "optional": true
-    }
-  },
-  "repository": {
-    "url": "https://github.com/jfrconley/nornir"
-  },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
     "@types/express": "^5.0.6",
@@ -57,6 +46,17 @@
     "README.md"
   ],
   "license": "MIT",
+  "peerDependencies": {
+    "express": "^5.2.1"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "url": "https://github.com/jfrconley/nornir"
+  },
   "scripts": {
     "//10": "The following scripts are also available from the scripts package",
     "//20": "You can also override them by specifying them here",

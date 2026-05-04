@@ -2,6 +2,7 @@ import {AttachmentKey, AttachmentRegistry, InitialArgumentsKey, nornir, Nornir} 
 import type express from "express";
 import {HttpHeaders, HttpMethod, SerializedHttpResponse, UnparsedHttpEvent} from "../http-event.mjs";
 import {OpenAPIRouter} from "../../openapi-router/index.mjs";
+import {OpenAPIV3_1} from "../../openapi-router/spec.mjs";
 import {ErrorMapping} from "../error.mjs";
 import {openAPIChain} from "../../index.mjs";
 
@@ -40,14 +41,14 @@ export abstract class Express {
         return Buffer.from(JSON.stringify(body), "utf8")
     }
 
-    public static toChain<T>(router: OpenAPIRouter<T>, errorMappings?: ErrorMapping[]): Nornir<express.Request, void> {
+    public static toChain<T extends OpenAPIV3_1.Document>(router: OpenAPIRouter<T>, errorMappings?: ErrorMapping[]): Nornir<express.Request, void> {
         return nornir<express.Request>()
             .use(Express.toHttpEvent)
             .useChain(openAPIChain(router, errorMappings))
             .use(Express.toResult)
     }
 
-    public static toMiddleware<T>(router: OpenAPIRouter<T>, errorMappings?: ErrorMapping[]): express.RequestHandler {
+    public static toMiddleware<T extends OpenAPIV3_1.Document>(router: OpenAPIRouter<T>, errorMappings?: ErrorMapping[]): express.RequestHandler {
         const handler = this.toChain(router, errorMappings).build() as (
             req: express.Request,
             res: express.Response,

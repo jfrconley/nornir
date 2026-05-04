@@ -1,6 +1,7 @@
 import {AttachmentRegistry, Nornir} from "@nornir/core";
 import {HttpHeaders, HttpMethod, SerializedHttpResponse, UnparsedHttpEvent} from "../http-event.mjs";
 import {OpenAPIRouter} from "../../openapi-router/index.mjs";
+import {OpenAPIV3_1} from "../../openapi-router/spec.mjs";
 import {ErrorMapping} from "../error.mjs";
 import {createServer} from "node:http";
 import {promisify} from "node:util";
@@ -9,7 +10,7 @@ import {debugLog} from "../utils.mjs";
 export interface Converter<Input, Output> {
     toHttpEvent(event: Input, registry: AttachmentRegistry): UnparsedHttpEvent
     toResult(event: SerializedHttpResponse, registry: AttachmentRegistry): Output
-    toChain<T>(router: OpenAPIRouter<T>, errorMappings?: ErrorMapping[]): Nornir<Input, Output>
+    toChain<T extends OpenAPIV3_1.Document>(router: OpenAPIRouter<T>, errorMappings?: ErrorMapping[]): Nornir<Input, Output>
 }
 
 export async function startLocalServer(chain: Nornir<UnparsedHttpEvent, SerializedHttpResponse>, port = 8080) {
